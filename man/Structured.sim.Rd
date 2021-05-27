@@ -14,11 +14,7 @@ Structured.sim(
 )
 }
 \arguments{
-<<<<<<< HEAD
-\item{data}{nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point}
-=======
 \item{data}{$n \times 3$ matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point}
->>>>>>> 8fadb51f72d529784c6e751d5c5edce63ecd7a69
 
 \item{effective.pop}{effective population size from which the sample is taken}
 
