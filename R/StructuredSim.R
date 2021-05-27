@@ -177,4 +177,3 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
 
   Phylo.sim
 }
-Test
