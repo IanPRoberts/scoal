@@ -8,6 +8,7 @@ output:
 header-includes:
    - \usepackage{bbm}
    - \usepackage{amsmath, amssymb, amsthm}
+   - \newcommand{\bbP}{\mathbb{P}}
 bibliography: Bibliography.bib
 ---
 
@@ -119,20 +120,56 @@ edge.color <- rep(NA,dim(struc.phylo$edge)[1])
     - $c$ gives a $d$-dimensional vector with entries $c_i$ giving the number of coalescence events occuring in deme $i$
     - $k_{ir}$ denotes the number of lineages in deme $i$ at time $t_r$
     
-## Problem
-Currently likelihood calculated recursively does not agree with the exact form from @Ewing2004. Recursive likelihood is calculated by adding a contribution from each of the three possible events:
+## Recursive log-likelihood
+Recursive log-likelihood is calculated by adding a contribution from each of the three possible ways nodes are added to the phylo:
   
 - New leaf is added
 - Coalescence occurs in deme $i$
 - Migration occurs $i \rightarrow j$
 
 ## Likelihood contributions
-Total coalescence rate $\mathcal{C} = \sum_{i=1}^d \binom{k_i}{2}$, Total migration rate $\mathcal{M} = \sum_{i=1}^d \sum_{j \neq i} k_i \lambda_{ij}$ and Total event rate: $\mathcal{E} = \mathcal{C} + \mathcal{M}$.
+Total coalescence rate $\mathcal{C} = \sum_{i=1}^d \frac{1}{\theta_i}\binom{k_i}{2}$, Total migration rate $\mathcal{M} = \sum_{i=1}^d \sum_{j \neq i} k_i \lambda_{ij}$ and Total event rate: $\mathcal{E} = \mathcal{C} + \mathcal{M}$.
 
 - New leaf added:
     - $L \leftarrow L + \log \left( 1 - \mathcal{E} \exp \{ - \mathcal{E}\boldsymbol{\delta} \} \right)$ where $\boldsymbol{\delta}$ is the time to next new leaf being added
-- Coalescence or migration event:
-    - Event time $T$ is simulated as truncated exponential with rate $\mathcal{E}$ and cutoff $\boldsymbol{\delta}$ via inverse transform sampling
-    - With probability $\frac{\mathcal{C}}{\mathcal{M}}$, event is a coalescence. Select a coalescence deme from all demes containing at least 2 lineages weighted by number of lineages in the deme so deme $i$ is selected with probability $\frac{k_i}{\sum_{j : k_j \geq 2} k_j}$.
+- Coalescence event in deme $i$:
+  \begin{align*}
+   \scriptstyle L & \scriptstyle \leftarrow L + \log \left( \bbP[\text{Coal}] \bbP[\text{Coal deme}] \bbP[\text{Coal pair}] f_T(t) \right) \\
+      & \scriptstyle \phantom{\leftarrow} = L + \log \left( \frac{\mathcal{C}}{\mathcal{E}} \cdot \frac{\frac{1}{\theta_i} \binom{k_i}{2}}{\sum_{j=1}^d \frac{1}{\theta_j} \binom{k_j}{2}} \cdot \binom{k_i}{2}^{-1} \cdot \mathcal{E} \exp \{ -\mathcal{E} t \} \right) = L - \mathcal{E} t - \log \theta_i
+  \end{align*}
+- Migration event $i \rightarrow j$:
+  \begin{align*} 
+    \scriptstyle L & \scriptstyle \leftarrow L + \log \left( \bbP[\text{Mig}] \bbP[\text{Mig origin}] \bbP[\text{Mig target}] \bbP[\text{Mig lineage}] f_T(t) \right) \\
+      & \scriptstyle \phantom{\leftarrow} = L + \log \left( \frac{\mathcal{M}}{\mathcal{E}} \cdot \frac{k_i \sum_{\eta \neq i} \lambda_{i\eta}}{\sum_{\alpha = 1}^d k_\alpha \sum_{\beta \neq \alpha} \lambda_{\alpha \beta}}
+      \cdot \frac{\lambda_{ij}}{\sum_{\gamma \neq i} \lambda_{i \gamma}} \cdot \frac{1}{k_i} \cdot \mathcal{E} \exp \{ -\mathcal{E} t \} \right) = L - \mathcal{E}t + \log(\lambda_{ij})
+  \end{align*}
 
+## Testing
+```{r, echo = FALSE}
+N <- 100; likelihoods <- matrix(0,nrow = N,ncol = 2)
+
+for (i in 1:N){
+  phylo <- Structured.sim(struc.data, 1,1,2,migration.mat,FALSE)
+  likelihoods[i,1] <- phylo$log.likelihood
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+}
+
+Max <- max(abs(likelihoods[,2] - likelihoods[,1]))
+```
+Running `r N` generated processes for the example dataset and comparing the exact likelihood [@Ewing2004] to the recursive likelihood. Maximum discrepancy over the 100 iterations was `r Max`.
+
+```{r, echo = TRUE, eval=FALSE}
+N <- 100; likelihoods <- matrix(0,nrow = N,ncol = 2)
+
+for (i in 1:N){
+  phylo <- Structured.sim(struc.data, 1,1,2,migration.mat,FALSE)
+  likelihoods[i,1] <- phylo$log.likelihood
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+}
+
+max(abs(likelihoods[,2] - likelihoods[,1]))
+```
+```{r}
+Max
+```
 ## References
