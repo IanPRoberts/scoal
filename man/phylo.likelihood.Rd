@@ -11,7 +11,7 @@ phylo.likelihood(phylo, effective.pop, gen.length)
 
 \item{effective.pop}{effective population size from which the sample is taken}
 
-\item{gen.length}{generation length of the sampled individuals}
+\item{gen.length}{mean generation length of the sampled individuals}
 }
 \value{
 A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
