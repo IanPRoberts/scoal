@@ -1,0 +1,138 @@
+---
+title: "The Structured Coalescent"
+author: "Ian Roberts"
+date: "07/06/2021"
+output:
+  beamer_presentation:
+    theme: "Frankfurt"
+header-includes:
+   - \usepackage{bbm}
+   - \usepackage{amsmath, amssymb, amsthm}
+bibliography: Bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+devtools::load_all()
+library(ape)
+```
+
+## Homochronous Leaves
+
+\alert{Homochronous.Sim} simulates the ordinary Kingman $n$-coalescent, and outputs a phylo object which can potentially be plotted using ape::plot.phylo
+
+```{r, fig.height=4, fig.cap="Homochronous $n$-coalescent simulation using Homochronous.Sim where Effective population $\\times$ generation length = 25"}
+HomoPhylo <- Homochronous.Sim(1:5,1,25)
+plot(HomoPhylo, show.tip.label = FALSE)
+axisPhylo(1, root.time = 2021 - max(node.depth.edgelength(HomoPhylo)), backward = FALSE)
+```
+
+## Heterochronous Leaves
+
+- \alert{Heterochronous.sim} again simulates the Kingman $n$-coalescent, outputting a phylo object. Key difference is the option for heterochronous leaves (in continuous years) and optional argument for plotting the phylo object automatically
+- Effectively reduces to \alert{Homochronous.sim} if all leaves have the same age
+- Example dataset: first column giving sample id and second column giving year of observation
+
+\centering
+\begin{tabular}{ccc}
+    ID & Year \\ \hline
+    1 & 2021 \\
+    2 & 2020 \\
+    3 & 2021 \\
+    4 & 2018 \\
+    5 & 2019
+  \end{tabular}
+```{r}
+data <- matrix(c(1:5,2021,2020,2021,2018,2019), ncol = 2)
+```
+
+---
+
+```{r, fig.cap="Heterochronous $n$-coalescent simulation using Homochronous.Sim where Effective population $\\times$ generation length = 25", fig.height = 5}
+
+HeteroPhylo <- Heterochronous.Sim(data,1,25, TRUE)
+
+```
+
+## Verification
+- Verified the accuracy of \alert{Heterochronous.sim} via likelihood computation. Likelihood calculated recursively as the simulation is run, then compare obtained value with explicit calculation from the final phylo object (using \alert{phylo.likelihood}).
+- Likelihood of a heterochronous coalescent process [@Drummond2002] is given by
+  \[
+    L = \frac{1}{\theta^{n-1}} \, \prod_{i=2}^{2n-1} \exp \left\{ - \frac{k_i (k_i - 1)}{2 \theta_i} (t_i - t_{i-1}) \right\}
+  \]
+  where 
+    - $t_i$ denotes the time of the $i^\text{th}$ event (either a coalescence or adding a newly sampled lineage)
+    - $k_i$ denotes the number of current lineages at $t_i$
+    - $\theta$ denotes the product of effective population and generation length.
+
+## Structured Coalescent
+- \alert{Structured.sim} generates a realisation of the structured coalescent process where at each event time, either:
+    - Two lineages in the same deme coalesce
+    - One lineage migrates between two demes
+- Allows for heterochronous leaves so effectively reduces to \alert{Heterochronous.sim} when there is only one deme
+- Example dataset: Augments the previous dataset with a third column giving initial deme of the lineages. Assume 2 demes and an example migration matrix $\Lambda$
+
+\begin{minipage}{0.4\linewidth}
+  \flushright
+  \begin{tabular}{ccc}
+    ID & Year & Deme \\ \hline
+    1 & 2021 & 1 \\
+    2 & 2020 & 1 \\
+    3 & 2021 & 2 \\
+    4 & 2018 & 2 \\
+    5 & 2019 & 2
+  \end{tabular}
+\end{minipage} \hfill
+\begin{minipage}{0.4\linewidth}
+  \[\Lambda = \begin{bmatrix}
+    0 & 0.02 \\
+    0.05 & 0
+  \end{bmatrix} \]
+\end{minipage}
+
+---
+```{r, fig.cap="Structured heterochronous $n$-coalescent realisation using Structured.sim with Effective population $\\times$ generation length = 25 and migration rates 0.02 ($1 \\rightarrow 2$) and 0.05 ($2 \\rightarrow 1$)", fig.height = 5}
+struc.data <- cbind(data,c(1,1,2,2,2))
+migration.mat <- matrix(c(0,0.02,0.05,0),ncol=2)
+struc.phylo <- Structured.sim(struc.data, 1,25,2,migration.mat,FALSE)
+
+color.palette <- c("red","blue") #rainbow(2)
+edge.color <- rep(NA,dim(struc.phylo$edge)[1])
+    for (i in 1 : dim(struc.phylo$edge)[1]){
+      edge.color[i] <- color.palette[struc.phylo$node.deme[struc.phylo$edge[i,2]]]
+    }
+    plot(struc.phylo, edge.color = edge.color)
+    axisPhylo(1, root.time = 2021 - max(node.depth.edgelength(struc.phylo)), backward = FALSE)
+```
+
+## Verification (IN PROGRESS)
+- Again, verify by constructing likelihood recursively and compare to the exact form [@Ewing2004]
+
+\[
+  L =\ \prod_{i=1}^d \prod_{\substack{j=1 \\ j \neq i}}^d \prod_{r=2}^{2n + M -1} \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_r - t_{r-1}) \right\}
+\]
+
+- where
+    - $n$ denotes the number of leaves
+    - $d$ denotes the number of demes
+    - $m$ gives a $d\times d$ matrix with entries $m_{ij}$ giving the number of migrations $(i \rightarrow j)$ and $M = \sum_{i,j = 1}^d m_{ij}$ gives the total number of migration events
+    - $c$ gives a $d$-dimensional vector with entries $c_i$ giving the number of coalescence events occuring in deme $i$
+    - $k_{ir}$ denotes the number of lineages in deme $i$ at time $t_r$
+    
+## Problem
+Currently likelihood calculated recursively does not agree with the exact form from @Ewing2004. Recursive likelihood is calculated by adding a contribution from each of the three possible events:
+  
+- New leaf is added
+- Coalescence occurs in deme $i$
+- Migration occurs $i \rightarrow j$
+
+## Likelihood contributions
+Total coalescence rate $\mathcal{C} = \sum_{i=1}^d \binom{k_i}{2}$, Total migration rate $\mathcal{M} = \sum_{i=1}^d \sum_{j \neq i} k_i \lambda_{ij}$ and Total event rate: $\mathcal{E} = \mathcal{C} + \mathcal{M}$.
+
+- New leaf added:
+    - $L \leftarrow L + \log \left( 1 - \mathcal{E} \exp \{ - \mathcal{E}\boldsymbol{\delta} \} \right)$ where $\boldsymbol{\delta}$ is the time to next new leaf being added
+- Coalescence or migration event:
+    - Event time $T$ is simulated as truncated exponential with rate $\mathcal{E}$ and cutoff $\boldsymbol{\delta}$ via inverse transform sampling
+    - With probability $\frac{\mathcal{C}}{\mathcal{M}}$, event is a coalescence. Select a coalescence deme from all demes containing at least 2 lineages weighted by number of lineages in the deme so deme $i$ is selected with probability $\frac{k_i}{\sum_{j : k_j \geq 2} k_j}$.
+
+## References
