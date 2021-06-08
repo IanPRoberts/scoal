@@ -15,6 +15,10 @@
 Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.matrix, plot.phylo = FALSE){
   lambda <- effective.pop * gen.length
 
+  if (length(lambda) == 1){
+    lambda <- rep(lambda,n.deme)
+  }
+
   n <- dim(data)[1]
 
   edge.list <- list()  #Listing tree edges
@@ -39,9 +43,11 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
     K[i] <- sum(node.deme[active] == i)
   }
 
+  diag(migration.matrix) <- 0  #Ensure no self-migration is possible (migrations i -> i prevented)
+
   while (height.next.tip < Inf){
     migration.rate <- sum(t(migration.matrix) %*% K)
-    coalescence.rate <- sum(choose(K,2)/effective.pop)/gen.length
+    coalescence.rate <- sum(choose(K,2)/lambda)
     event.rate <- migration.rate + coalescence.rate  #Combined event rate of coalescence and migration
 
     event.prob <- pexp(height.next.tip - time, rate = event.rate)  #Probability event before next node added
@@ -58,20 +64,17 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
     }
     else{  #Event occurs before new nodes added
       event.time <- rexp.trunc(1, height.next.tip - time, event.rate)
+      likelihood <- likelihood - event.rate * event.time
 
       if (runif(1) <= coalescence.rate/event.rate){  #Coalescence event
-        possible.coal.demes <- which(K >= 2)  #Possible coalescence demes
-        coalescence.deme <- sample.vector(possible.coal.demes,1, prob = K[possible.coal.demes])  #Select coalescence deme
+        coalescence.deme <- sample.int(n.deme, 1, prob = choose(K,2)/lambda)  #Select coalescence deme
         node.sample <- sample.vector(intersect(active,which(node.deme == coalescence.deme)),2)  #Select coalescing lineages
-
         node.deme <- c(node.deme, coalescence.deme)  #Assigning new node's deme
 
         time <- time + event.time
         node.height <- c(node.height, time)
 
-        likelihood <- likelihood +
-          log(dexp(event.time,event.rate)) - log(K[coalescence.deme] * (K[coalescence.deme]-1) / 2) +
-          log(coalescence.rate/event.rate)
+        likelihood <- likelihood - log(lambda[coalescence.deme])
 
         #Update edge.list and edge.length
         edge.list[[count]] <- c(new.node,node.sample[1])
@@ -82,13 +85,9 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
         K[coalescence.deme] <- K[coalescence.deme] - 1  #Number of lineages in coalescence deme decreases by 1
         active <- c(active[!(active %in% node.sample)], new.node)
         new.node <- new.node + 1
-
-
       }
       else{  #Migration event
-        possible.origin.demes <- which(K >= 1)  #Possible origin demes
-        origin.deme <- sample.vector(possible.origin.demes,1,prob = K[possible.origin.demes])  #Select origin deme
-
+        origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.mat))
         target.deme <- sample.int(n.deme,1, prob = migration.matrix[origin.deme,])  #Select target deme
         node.sample <- sample.vector(intersect(active,which(node.deme == origin.deme)),1)  #Select lineage to migrate
 
@@ -101,9 +100,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
         edge.length <- c(edge.length, time - node.height[node.sample])
         count <- count + 1
 
-        likelihood <- likelihood +
-          log(dexp(event.time,event.rate)) - log(sum(K)) +
-          log(migration.rate/event.rate)
+        likelihood <- likelihood + log(migration.mat[origin.deme,target.deme])
 
         K[origin.deme] <- K[origin.deme] -1; K[target.deme] <- K[target.deme] + 1  #Number of lineages in target increases by 1, number in origin decreases by 1
         active <- c(active[!(active %in% node.sample)], new.node)
@@ -114,23 +111,21 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
 
   while(length(active) > 1){
     migration.rate <- sum(t(migration.matrix) %*% K)
-    coalescence.rate <- sum(choose(K,2)/effective.pop)/gen.length
+    coalescence.rate <- sum(choose(K,2)/lambda)
     event.rate <- migration.rate + coalescence.rate  #Combined event rate of coalescence and migration
 
-    event.time <- rexp.trunc(1, height.next.tip - time, event.rate)  #Time of next event
+    event.time <- rexp.trunc(1, height.next.tip - time, event.rate)
+    likelihood <- likelihood - event.rate * event.time
 
     if (runif(1) <= coalescence.rate/event.rate){  #Coalescence event
-      possible.coal.demes <- which(K >= 2)  #Possible coalescence demes
-      coalescence.deme <- sample.vector(possible.coal.demes,1, prob = K[possible.coal.demes])  #Select coalescence deme
+      coalescence.deme <- sample.int(n.deme, 1, prob = choose(K,2)/lambda)  #Select coalescence deme
       node.sample <- sample.vector(intersect(active,which(node.deme == coalescence.deme)),2)  #Select coalescing lineages
-      node.deme <- c(node.deme, coalescence.deme)  #New node's deme
+      node.deme <- c(node.deme, coalescence.deme)  #Assigning new node's deme
 
       time <- time + event.time
       node.height <- c(node.height, time)
 
-      likelihood <- likelihood +
-        log(dexp(event.time,event.rate)) - log(K[coalescence.deme] * (K[coalescence.deme]-1) / 2) +
-        log(coalescence.rate/event.rate)
+      likelihood <- likelihood - log(lambda[coalescence.deme])
 
       #Update edge.list and edge.length
       edge.list[[count]] <- c(new.node,node.sample[1])
@@ -143,16 +138,11 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
       new.node <- new.node + 1
     }
     else{  #Migration event
-      possible.origin.demes <- which(K >= 1)  #Possible origin demes
-      origin.deme <- sample.vector(possible.origin.demes,1,prob = K[possible.origin.demes])  #Select origin deme
+      origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.mat))
       target.deme <- sample.int(n.deme,1, prob = migration.matrix[origin.deme,])  #Select target deme
+      node.sample <- sample.vector(intersect(active,which(node.deme == origin.deme)),1)  #Select lineage to migrate
 
-      node.sample <- sample.vector(intersect(active,which(node.deme == origin.deme)),1)  #Select migrating node
-      node.deme <- c(node.deme, target.deme)  #New node's deme
-
-      likelihood <- likelihood +
-        log(dexp(event.time,event.rate)) - log(sum(K)) +
-        log(migration.rate/event.rate)
+      node.deme <- c(node.deme, target.deme)  #Assigning new node's deme
 
       time <- time + event.time
       node.height <- c(node.height, time)
@@ -160,6 +150,8 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
       edge.list[[count]] <- c(new.node, node.sample)
       edge.length <- c(edge.length, time - node.height[node.sample])
       count <- count + 1
+
+      likelihood <- likelihood + log(migration.mat[origin.deme,target.deme])
 
       K[origin.deme] <- K[origin.deme] -1; K[target.deme] <- K[target.deme] + 1  #Number of lineages in target increases by 1, number in origin decreases by 1
       active <- c(active[!(active %in% node.sample)], new.node)
