@@ -33,7 +33,7 @@ phylo.likelihood <- function(phylo, effective.pop, gen.length){
 
   likelihood <- 0  #Initialise log likelihood at 0
   likelihood <- sum(- (k * ( k-1) / (2 * lambda)) * time.increments) - (n-1) * log(lambda)
-  c(likelihood, exp(likelihood))  #Output (log-likelihood, likelihood)
+  return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
 }
 
 
@@ -56,7 +56,7 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
   n <- length(phylo$tip.label) #Number of tips
   n.demes <- dim(migration.matrix)[1] #Number of demes
   n.migrations <- phylo$Nnode - n + 1 #Number of migration events
-
+  diag(migration.matrix) <- 0  #Prevent self-migrations
 
   if (length(lambda) == 1){
     lambda <- rep(lambda,n.demes)
@@ -105,26 +105,6 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
   likelihood <- 0
   likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
     sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
-  likelihood
-
-  #not.root <- (1:(n.migrations+2*n-1))[-(n+1)]
-  #likelihood <- 0
-  #for (r in 1:length(time.increments)){
-  #  for (i in 1 : n.demes){
-  #    likelihood <- likelihood - k[r,i] * (k[r,i] - 1) / (2 * lambda[i]) * time.increments[r]
-  #
-  #    for (j in (1 : n.demes)[-i]){
-  #      likelihood <- likelihood - k[r,i] * migration.matrix[i,j] * time.increments[r]
-  #    }
-  #  }
-  #  }
-  #
-  #for (i in 1 : n.demes){
-  #  likelihood <- likelihood - c[i] * log(lambda[i])
-  #
-  #  for (j in (1:n.demes)[-i]){
-  #    likelihood <- likelihood + m[i,j] * log(migration.matrix[i,j])
-  #  }
-  #}
+  return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
 
 }

@@ -3,7 +3,6 @@
 #' Simulates a tree under the structured coalescent model
 #'
 #' @param data  nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point
-#' @param data $n \times 3$ matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point
 #' @param effective.pop effective population size from which the sample is taken
 #' @param gen.length generation length of the sampled individuals
 #' @param n.deme total number of demes
@@ -187,5 +186,5 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
     plot(Phylo.sim, edge.color = edge.color)
     axisPhylo(1, root.time = max(data[,2]) - time, backward = FALSE)
   }
-  Phylo.sim
+  return(Phylo.sim)
 }
