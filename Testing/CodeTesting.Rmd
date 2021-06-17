@@ -1,0 +1,89 @@
+---
+title: "Code Testing"
+author: "Ian Roberts"
+date: "09/06/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+devtools::load_all()
+library(ape)
+```
+
+## Structured Simulation Testing
+Generate datasets of size $n$ observations with
+
+  * Random sample times uniform between two years (default 2010 to 2021)
+  * Random demes sampled uniformly at random from 1:n.deme (default n.deme = 2)
+
+```{r}
+Test.data <- function(n, n.deme = 2, lower.year = 2010, upper.year = 2021){
+  data <- matrix(0,nrow = n, ncol = 3)
+  data[,1] <- 1:n
+  data[,2] <- runif(n, min = lower.year, max = upper.year + 1)
+  data[,3] <- sample.int(n.deme, n, replace = TRUE)
+  data
+}
+```
+
+Run $N$ repetitions computing the recursive likelihood under Structured.sim and the likelihood from structured.likelihood with unique test datasets.
+```{r}
+N <- 100  #Number of repetitions
+n <- 100  #Sample size
+n.deme <- 2
+migration.mat <- matrix(runif(n.deme^2),n.deme, n.deme)
+
+likelihoods <- matrix(0,nrow = N,ncol = 2)
+
+for (i in 1:N){
+  phylo <- Structured.sim(Test.data(n,n.deme), 1,1,2,migration.mat,FALSE)
+  likelihoods[i,1] <- phylo$log.likelihood
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+}
+
+max(abs(likelihoods[,1] - likelihoods[,2]))
+```
+Consistently returns discrepancies between calculated likelihoods of order $10^{-13}$ suggesting accurate computations are being made.
+
+*Initially a discrepancy arose from removing the diagonal of migration.mat in Structured.sim but not in structured.likelihood*
+
+Repeating the testing with a greater number of demes:
+```{r}
+N <- 100
+n.deme <- 5
+
+migration.mat <- matrix(runif(n.deme^2),n.deme, n.deme)
+
+likelihoods <- matrix(0,nrow = N,ncol = 2)
+
+for (i in 1:N){
+  phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
+  likelihoods[i,1] <- phylo$log.likelihood
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+}
+
+max(abs(likelihoods[,1] - likelihoods[,2]))
+```
+
+confirm that the likelihoods computed under structured.sim agree with the heterochronous coalescent without migration when there is a single deme.
+```{r}
+n.deme <- 1
+N <- 100
+
+migration.mat <- matrix(1,1,1)
+
+likelihoods <- matrix(0,N,3)
+
+for (i in 1:N){
+  phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
+  likelihoods[i,1] <- phylo$log.likelihood
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,3] <- phylo.likelihood(phylo,1,1)[1]
+}
+
+max(abs(likelihoods[,1] - likelihoods[,2]))
+max(abs(likelihoods[,2] - likelihoods[,3]))
+```
+
+Consistently, the likelihoods calculated for the structured coalescent with a single deme (using structured.likelihood) correspond exactly to the heterochronous coalescent (using phylo.likelihood)
