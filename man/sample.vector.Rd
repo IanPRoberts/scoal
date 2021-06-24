@@ -17,7 +17,10 @@ sample.vector(x, size, replace = FALSE, prob = NULL)
 \item{prob}{a vector of probability weights for obtaining the elements
     of the vector being sampled.}
 }
+\value{
+A vector of length \code{size} with elements drawn from \code{x}
+}
 \description{
 Samples a vector in the same way as base::sample except if the vector has
-length 1, the single value is always returned
+length 1, the value entered is always returned
 }
