@@ -16,8 +16,8 @@ mig.pair.death(edge, edge.deme, node.ages, n.deme)
 \item{n.deme}{Number of possible demes in the process}
 }
 \value{
-List with 3 elements, first element the edge matrix, second element
-the node ages and third element giving the edge demes
+List containing the updated edge matrix,
+node ages and edge demes
 }
 \description{
 Performs a Migration pair death move (Ewing et al. 2004). Deletes two

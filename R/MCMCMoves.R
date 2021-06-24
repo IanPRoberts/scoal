@@ -10,8 +10,8 @@
 #' @param node.ages Time of each node in the coalescent tree
 #' @param n.deme Number of possible demes in the process
 #'
-#' @return List with 3 elements, first element the edge matrix, second element
-#' the node ages and third element giving the edge demes
+#' @return List containing the updated edge matrix,
+#' node ages and edge demes
 
 mig.pair.birth <- function(edge, edge.deme, node.ages, n.deme){
   all.nodes <- (unique(as.vector(edge)))
@@ -49,8 +49,8 @@ mig.pair.birth <- function(edge, edge.deme, node.ages, n.deme){
 #' @param node.ages Time of each node in the coalescent tree
 #' @param n.deme Number of possible demes in the process
 #'
-#' @return List with 3 elements, first element the edge matrix, second element
-#' the node ages and third element giving the edge demes
+#' @return List containing the updated edge matrix,
+#' node ages and edge demes
 
 mig.pair.death <- function(edge, edge.deme, node.ages, n.deme){
   # Identify node types based on frequencies in edge matrix
@@ -69,11 +69,155 @@ mig.pair.death <- function(edge, edge.deme, node.ages, n.deme){
 
   selected.edge <- sample(seq_along(edge[,1]),1)  #Samples 1 row of edge matrix uniformly at random
 
-  if ((edge[selected.edge,1] %in% migration.nodes == TRUE) && (edge[selected.edge,1] %in% migration.nodes == TRUE )){
-    #DO EVENT
-  } else{
-    "REJECT"
-    #return("REJECT")
-  }
+  #Assuming selected.edge is a migration node, there will be one child and one parent edge from selected.edge
+  parent.edge <- which(edge[,2] == edge[selected.edge,1])
+  child.edge <- which(edge[,1] == edge[selected.edge,2])
 
+  if ((edge[selected.edge,1] %in% migration.nodes == TRUE) &&
+      (edge[selected.edge,2] %in% migration.nodes == TRUE) &&
+      (edge.deme[child.edge] == edge.deme[parent.edge])){
+    edge[child.edge,1] <- edge[parent.edge,1]  #Update remaining edge in edge matrix
+    edge.deme <- edge.deme[-c(selected.edge, parent.edge)]
+    node.ages <- node.ages[-edge[selected.edge,]]
+
+    edge <- edge[-c(selected.edge, parent.edge),]  #Remove selected.edge and parent.edge from edge matrix
+
+    output <- list()
+    output$edge <- edge
+    output$node.ages <- node.ages
+    output$edge.deme <- edge.deme
+
+    return(output)
+  } else{
+    return("REJECT")
+  }
+}
+
+#' Migration Birth MCMC Move
+#'
+#' Performs a Migration birth move (Ewing et al. 2004). Adds a migration
+#' node between a randomly selected ancestral node and its parent, allocating a
+#' deme for the new edge consistent with the surrounding edges.
+#'
+#'
+#' @param edge Edge matrix for a structured coalescent tree
+#' @param edge.deme Label for the deme in which each edge lies
+#' @param node.ages Time of each node in the coalescent tree
+#' @param n.deme Number of possible demes in the process
+#'
+#' @return List containing the updated edge matrix,
+#' node ages and edge demes
+
+mig.birth <- function(edge, edge.deme, node.ages, n.deme){
+  all.nodes <- sort(unique(as.vector(edge)))
+  node.freq <- table(match(as.vector(edge),all.nodes))  #Frequency of each node featured in edge matrix
+
+  leaf.nodes <- all.nodes[node.freq == 1]  #Leaf nodes have frequency 1
+  n.leaf <- length(leaf.nodes)
+  root.node <- n.leaf + 1  #Root node is n.leaf + 1 for ape phylo-style object
+  coalescence.nodes <- all.nodes[node.freq == 3]  #Coalescence nodes have frequency 3
+  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, coalescence.nodes, leaf.nodes)]
+
+  selected.node <- sample(all.nodes[-leaf.nodes],1)  #Ancestral node selected uniformly at random
+  node.parent <- parent.node(selected.node, edge, node.ages)
+
+  if (selected.node == root.node){
+    return("REJECT")
+  } else{
+    new.node <- max(all.nodes) + 1
+    parent.edge <- get.edge.id(selected.node,node.parent,edge)
+    subtree <- list()  #List containing edges and nodes in maximal connected subtree containing <selected.node, new.node>
+    subtree$nodes <- c(selected.node, new.node)
+    subtree$edges <- parent.edge  #Edge <selected.node, node.parent> will be modified to <selected.node, new.node> later without changing edge ID if proposal is accepted
+    test.nodes <- selected.node
+
+    #Identify maximal connected subtree with tips at migration or leaf nodes
+    while (TRUE %in% (test.nodes %in% coalescence.nodes)){
+      test.nodes <- test.nodes[test.nodes %in% coalescence.nodes]
+      #Add children of coalescence nodes to subtree
+      for (i in test.nodes){
+        i.children <- child.nodes(i,edge,node.ages)
+        subtree$nodes <- c(subtree$nodes, i.children)
+        for (j in i.children){
+          subtree$edges <- c(subtree$edges, get.edge.id(i,j,edge))
+        }
+        test.nodes <- c(test.nodes[-1], i.children)  #[-1] removes first element
+      }
+    }
+    #Reject if a leaf node lies within the subtree
+    if (TRUE %in% (subtree$nodes %in% leaf.nodes)){
+      return("REJECT")
+    } else{
+      subtree.leaf <- subtree$nodes[subtree$nodes %in% migration.nodes]
+      exterior.deme <- edge.deme[parent.edge]
+      for (i in subtree.leaf){
+        terminal.child <- child.nodes(i,edge, node.ages)  #Identify child of each subtree leaf outside of subtree
+        external.edge <- get.edge.id(i,terminal.child, edge)  #Edge ID of
+        exterior.deme <- c(exterior.deme, edge.deme[external.edge])
+      }
+
+      exterior.deme <- unique(exterior.deme)
+
+      if (length(exterior.deme) == n.deme){
+        return("REJECT")
+      } else{
+        interior.deme <- edge.deme[parent.edge]
+        new.deme <- sample.vector((1:n.deme)[-exterior.deme],1)
+
+        # Update edge matrix
+        edge[parent.edge,which(edge[parent.edge,] == node.parent)] <- new.node
+        edge <- rbind(edge, c(node.parent, new.node))
+
+        # Update edge deme
+        edge.deme <- c(edge.deme, interior.deme)
+        edge.deme[subtree$edges] <- new.deme
+
+        # Add node age for new node
+        node.ages <- c(node.ages, runif(1, min = node.ages[node.parent], max = node.ages[selected.node]))
+
+        output <- list()
+        output$edge <- edge
+        output$node.ages <- node.ages
+        output$edge.deme <- edge.deme
+
+        return(output)
+      }
+    }
+  }
+}
+
+#' Migration Death MCMC Move
+#'
+#' Performs a Migration death move (Ewing et al. 2004). Selects an ancestral node
+#' uniformly at random and removes the parent of the selected node, allocating
+#' demes as necessary for modified edges.
+#'
+#'
+#' @param edge Edge matrix for a structured coalescent tree
+#' @param edge.deme Label for the deme in which each edge lies
+#' @param node.ages Time of each node in the coalescent tree
+#' @param n.deme Number of possible demes in the process
+#'
+#' @return List containing the updated edge matrix,
+#' node ages and edge demes
+
+mig.death <- function(edge, edge.deme, node.ages, n.deme){
+  all.nodes <- sort(unique(as.vector(edge)))
+  node.freq <- table(match(as.vector(edge),all.nodes))  #Frequency of each node featured in edge matrix
+
+  leaf.nodes <- all.nodes[node.freq == 1]  #Leaf nodes have frequency 1
+  n.leaf <- length(leaf.nodes)
+  root.node <- n.leaf + 1  #Root node is n.leaf + 1 for ape phylo-style object
+  coalescence.nodes <- all.nodes[node.freq == 3]  #Coalescence nodes have frequency 3
+  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, coalescence.nodes, leaf.nodes)]
+
+  selected.node <- sample(all.nodes[-leaf.nodes],1)  #Ancestral node selected uniformly at random
+  node.parent <- parent.node(selected.node, edge, node.ages)
+  node.parent2 <- parent.node(node.parent, edge, node.ages)
+
+  if (is.finite(node.parent) == FALSE || is.finite(node.parent2) == FALSE){  # || necessary here when node.parent is root. || exits logical test without checking second condition if first condition is TRUE. | returns logical(0) if node.parent is root as node.parent2 = numeric()
+    return("REJECT")
+  } else{
+
+  }
 }
