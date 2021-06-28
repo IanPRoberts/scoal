@@ -37,7 +37,7 @@ migration.mat <- matrix(runif(n.deme^2),n.deme, n.deme)
 likelihoods <- matrix(0,nrow = N,ncol = 2)
 
 for (i in 1:N){
-  phylo <- Structured.sim(Test.data(n,n.deme), 1,1,2,migration.mat,FALSE)
+  phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
   likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
 }
