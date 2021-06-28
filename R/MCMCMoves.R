@@ -129,19 +129,19 @@ mig.birth <- function(edge, edge.deme, node.ages, n.deme){
     subtree <- list()  #List containing edges and nodes in maximal connected subtree containing <selected.node, new.node>
     subtree$nodes <- c(selected.node, new.node)
     subtree$edges <- parent.edge  #Edge <selected.node, node.parent> will be modified to <selected.node, new.node> later without changing edge ID if proposal is accepted
-    test.nodes <- selected.node
+    active.nodes <- selected.node
 
     #Identify maximal connected subtree with tips at migration or leaf nodes
-    while (TRUE %in% (test.nodes %in% coalescence.nodes)){
-      test.nodes <- test.nodes[test.nodes %in% coalescence.nodes]
+    while (TRUE %in% (active.nodes %in% coalescence.nodes)){
+      active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
       #Add children of coalescence nodes to subtree
-      for (i in test.nodes){
+      for (i in active.nodes){
         i.children <- child.nodes(i,edge,node.ages)
         subtree$nodes <- c(subtree$nodes, i.children)
         for (j in i.children){
           subtree$edges <- c(subtree$edges, get.edge.id(i,j,edge))
         }
-        test.nodes <- c(test.nodes[-1], i.children)  #[-1] removes first element
+        active.nodes <- c(active.nodes[-1], i.children)  #[-1] removes first element
       }
     }
     #Reject if a leaf node lies within the subtree
@@ -215,9 +215,78 @@ mig.death <- function(edge, edge.deme, node.ages, n.deme){
   node.parent <- parent.node(selected.node, edge, node.ages)
   node.parent2 <- parent.node(node.parent, edge, node.ages)
 
-  if (is.finite(node.parent) == FALSE || is.finite(node.parent2) == FALSE){  # || necessary here when node.parent is root. || exits logical test without checking second condition if first condition is TRUE. | returns logical(0) if node.parent is root as node.parent2 = numeric()
+  if ((is.finite(node.parent) == FALSE) ||
+      (is.finite(node.parent2) == FALSE) ||
+      !(node.parent %in% migration.nodes)){
+    # || necessary here when node.parent is root. || exits logical test without checking second condition if first condition is TRUE. | returns logical(0) if node.parent is root as node.parent2 = numeric()
+    # Require node.parent to be migration node for edge <selected.node, node.parent2> to exist in the tree
     return("REJECT")
   } else{
+    #Identify maximal subtree containing edge <selected.node, node.parent>
+    subtree <- list()
+    subtree$root <- node.parent2
 
+    while (! subtree$root %in% c(migration.nodes, root.node)){
+      #Sweep upwards through tree until subtree root is either the root of the tree, or a migration node
+      subtree$root <- parent.node(subtree$root, edge, node.ages)
+    }
+
+    subtree$nodes <- subtree$root
+    subtree$edges <- integer()
+    subtree$leaves <- integer()
+    active.nodes <- subtree$root
+
+    while (FALSE %in% (active.nodes %in% c(migration.nodes[! migration.nodes %in% c(subtree$root, node.parent)], leaf.nodes))){
+      #Sweep downwards from subtree root until hitting migration or leaf nodes. Ignore node.parent as a migration node
+      new.active <- integer()
+      for (i in active.nodes){
+        i.children <- child.nodes(i, edge, node.ages)
+        subtree$nodes <- c(subtree$nodes, i.children)
+
+        for (j in i.children){
+          subtree$edges <- c(subtree$edges, get.edge.id(i,j,edge))
+          if (j %in% c(migration.nodes[migration.nodes != node.parent], leaf.nodes)){
+            subtree$leaves <- c(subtree$leaves, j)
+          } else{
+            new.active <- c(new.active, j)
+          }
+        }
+        active.nodes <- new.active
+      }
+    }
+
+    if (TRUE %in% (subtree$nodes %in% leaf.nodes)){
+      return("REJECT")
+    } else{
+      #Update subtree deme labels
+      exterior.deme <- edge.deme[get.edge.id(subtree$root, parent.node(subtree$root, edge, node.ages), edge)]
+      for (i in subtree$leaves){
+        terminal.child <- child.nodes(i,edge, node.ages)  #Identify child of each subtree leaf outside of subtree
+        external.edge <- get.edge.id(i,terminal.child, edge)  #Edge ID of
+        exterior.deme <- c(exterior.deme, edge.deme[external.edge])
+      }
+
+      exterior.deme <- unique(exterior.deme)
+
+      if (length(exterior.deme) == n.deme){
+        return("REJECT")
+      } else{
+        interior.deme <- edge.deme[parent.edge]
+        new.deme <- sample.vector((1:n.deme)[-exterior.deme],1)
+
+        edge.deme[subtree$edges] <- new.deme
+        parent.edge <- get.edge.id(selected.node, node.parent, edge)
+        edge <- edge[-parent.edge,]
+        edge.deme <- edge.deme[-parent.edge]
+        node.ages <- node.ages[-node.parent]
+
+        output <- list()
+        output$edge <- edge
+        output$node.ages <- node.ages
+        output$edge.deme <- edge.deme
+
+        return(output)
+      }
+    }
   }
 }
