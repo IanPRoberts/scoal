@@ -5,10 +5,13 @@ date: "07/06/2021"
 output:
   beamer_presentation:
     theme: "Frankfurt"
-header-includes:
+header-includes: 
    - \usepackage{bbm}
    - \usepackage{amsmath, amssymb, amsthm}
    - \newcommand{\bbP}{\mathbb{P}}
+   - \newcommand{\bbE}{\mathbb{E}}
+   - \AtBeginSubsection{}
+   - \AtBeginSection{}
 bibliography: Bibliography.bib
 ---
 
@@ -18,9 +21,16 @@ devtools::load_all()
 library(ape)
 ```
 
+# Coalescent Process Simulation
+
 ## Homochronous Leaves
 
-\alert{Homochronous.Sim} simulates the ordinary Kingman $n$-coalescent, and outputs a phylo object which can potentially be plotted using ape::plot.phylo
+- Homochronous leaves occur when each lineage is sampled at the same time
+- Each pair of lineages coalesces at constant rate 1, resulting in a combined coalescence rate of $\frac{1}{\theta}\binom{n_t}{2}$ where $n_t$ denotes the number of lineages remaining in the sample at time $t$ backwards in time and $\theta$ denotes the product of effective population and mutation rate
+- \alert{Homochronous.Sim} simulates the ordinary Kingman $n$-coalescent [@Kingman1982] with simultaneously sampled lineages
+- \alert{Homochronous.Sim} outputs a phylo object from the ape package (containing edge matrix, vector of edge lengths)
+
+---
 
 ```{r, fig.height=4, fig.cap="Homochronous $n$-coalescent simulation using Homochronous.Sim where Effective population $\\times$ generation length = 25"}
 HomoPhylo <- Homochronous.Sim(1:5,1,25)
@@ -29,59 +39,54 @@ axisPhylo(1, root.time = 2021 - max(node.depth.edgelength(HomoPhylo)), backward 
 ```
 
 ## Heterochronous Leaves
+- Heterochronous leaves occur when lineages are sampled at various times
+- \alert{Heterochronous.sim} again simulates the Kingman $n$-coalescent with lineages sampled at various times. Requires an additional input of the time of the sample measured in continuous years
+- Reduces to \alert{Homochronous.sim} if all leaves have the same age (homochronous leaves)
 
-- \alert{Heterochronous.sim} again simulates the Kingman $n$-coalescent, outputting a phylo object. Key difference is the option for heterochronous leaves (in continuous years) and optional argument for plotting the phylo object automatically
-- Effectively reduces to \alert{Homochronous.sim} if all leaves have the same age
-- Example dataset: first column giving sample id and second column giving year of observation
-
-\centering
-\begin{tabular}{ccc}
-    ID & Year \\ \hline
-    1 & 2021 \\
-    2 & 2020 \\
-    3 & 2021 \\
-    4 & 2018 \\
-    5 & 2019
-  \end{tabular}
 ```{r}
-data <- matrix(c(1:5,2021,2020,2021,2018,2019), ncol = 2)
+data <- matrix(c(1:5,2021.0137,2020.411,2021.200,2018.687,2019.958), ncol = 2)
 ```
 
 ---
 
-```{r, fig.cap="Heterochronous $n$-coalescent simulation using Homochronous.Sim where Effective population $\\times$ generation length = 25", fig.height = 5}
+\centering
+\begin{footnotesize}
+  \begin{tabular}{c|ccc}
+    ID & 1 & 2 & 3  \\
+    Date & 05/01/2021 & 30/05/2020 & 14/03/2021 \\
+    Cts. Time & 2021.014 & 2020.411 & 2021.200 \\[1ex] \hline
+    ID & 4 & 5 \\
+    Date & 08/09/2018 & 16/12/2019 \\
+    Cts. Time & 2018.687 & 2019.958
+  \end{tabular}
+\end{footnotesize}
+
+```{r, fig.cap="Heterochronous $n$-coalescent simulation using Homochronous.Sim where Effective population $\\times$ generation length = 25", fig.height = 4}
 
 HeteroPhylo <- Heterochronous.Sim(data,1,25, TRUE)
 
 ```
 
-## Verification
-- Verified the accuracy of \alert{Heterochronous.sim} via likelihood computation. Likelihood calculated recursively as the simulation is run, then compare obtained value with explicit calculation from the final phylo object (using \alert{phylo.likelihood}).
-- Likelihood of a heterochronous coalescent process [@Drummond2002] is given by
-  \[
-    L = \frac{1}{\theta^{n-1}} \, \prod_{i=2}^{2n-1} \exp \left\{ - \frac{k_i (k_i - 1)}{2 \theta_i} (t_i - t_{i-1}) \right\}
-  \]
-  where 
-    - $t_i$ denotes the time of the $i^\text{th}$ event (either a coalescence or adding a newly sampled lineage)
-    - $k_i$ denotes the number of current lineages at $t_i$
-    - $\theta$ denotes the product of effective population and generation length.
-
 ## Structured Coalescent
-- \alert{Structured.sim} generates a realisation of the structured coalescent process where at each event time, either:
+- Under the structured coalescent multiple populations or demes evolve with migration events occuring between distinct demes
+- Each pair of lineages coalesce at rate 1, with an instantaneous coalescence rate $\frac{1}{\theta_i} \binom{n_{it}}{2}$, where $n_{it}$ denotes the number of lineages in deme $i$ at time $t$ and $\theta_i$ denotes the product of the effective population size of deme $i$ and mutation rate. Further, each lineage may migrate from deme $i$ to deme $j$ ($j \neq i$) at rate $\lambda_{ij}$
+- \alert{Structured.sim} generates a realisation of this structured coalescent process where at each event time, either:
     - Two lineages in the same deme coalesce
     - One lineage migrates between two demes
-- Allows for heterochronous leaves so effectively reduces to \alert{Heterochronous.sim} when there is only one deme
-- Example dataset: Augments the previous dataset with a third column giving initial deme of the lineages. Assume 2 demes and an example migration matrix $\Lambda$
+
+## Example Simulation
+- Augment the previous example dataset with an initial deme for each lineage
+- Assume 2 demes and an example migration matrix $\Lambda$
 
 \begin{minipage}{0.4\linewidth}
   \flushright
   \begin{tabular}{ccc}
-    ID & Year & Deme \\ \hline
-    1 & 2021 & 1 \\
-    2 & 2020 & 1 \\
-    3 & 2021 & 2 \\
-    4 & 2018 & 2 \\
-    5 & 2019 & 2
+    ID & Age & Deme \\ \hline
+    1 & 2021.014 & 1 \\
+    2 & 2020.411 & 1 \\
+    3 & 2021.200 & 2 \\
+    4 & 2018.687 & 2 \\
+    5 & 2019.958 & 2
   \end{tabular}
 \end{minipage} \hfill
 \begin{minipage}{0.4\linewidth}
@@ -92,6 +97,7 @@ HeteroPhylo <- Heterochronous.Sim(data,1,25, TRUE)
 \end{minipage}
 
 ---
+
 ```{r, fig.cap="Structured heterochronous $n$-coalescent realisation using Structured.sim with Effective population $\\times$ generation length = 25 and migration rates 0.02 ($1 \\rightarrow 2$) and 0.05 ($2 \\rightarrow 1$)", fig.height = 5}
 struc.data <- cbind(data,c(1,1,2,2,2))
 migration.mat <- matrix(c(0,0.02,0.05,0),ncol=2)
@@ -106,11 +112,27 @@ edge.color <- rep(NA,dim(struc.phylo$edge)[1])
     axisPhylo(1, root.time = 2021 - max(node.depth.edgelength(struc.phylo)), backward = FALSE)
 ```
 
-## Verification (IN PROGRESS)
-- Again, verify by constructing likelihood recursively and compare to the exact form [@Ewing2004]
+# Simulation Verification
+
+## Heterochronous.Sim
+
+- Simulations obtained from \alert{Heterochronous.sim} were verified via calculation of the log-likelihood
+- The log-likelihood can be calculated recursively by considering the contributions made when either a new leaf is added, or a coalescence occurs
+- This log-likelihood can be compared to the likelihood from @Drummond2002,
+  \[
+    L = \frac{1}{\theta^{n-1}} \, \prod_{i=2}^{2n-1} \exp \left\{ - \frac{k_i (k_i - 1)}{2 \theta} (t_i - t_{i-1}) \right\}
+  \]
+  where 
+    - $t_i$ denotes the time of the $i^\text{th}$ event (either a coalescence or adding a newly sampled lineage)
+    - $k_i$ denotes the number of current lineages at $t_i$
+    - $\theta$ denotes the product of effective population and generation length.
+
+
+## Structured.Sim
+- Simulations from \alert{Structured.Sim} were verified via calculation of the log-likelihood with the exact form of the likelihood from @Ewing2004,
 
 \[
-  L =\ \prod_{i=1}^d \prod_{\substack{j=1 \\ j \neq i}}^d \prod_{r=2}^{2n + M -1} \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_r - t_{r-1}) \right\}
+  L =\ \prod_{i=1}^d \prod_{j \neq i} \prod_{r=2}^{2n + M -1} \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_r - t_{r-1}) \right\}
 \]
 
 - where
@@ -121,11 +143,11 @@ edge.color <- rep(NA,dim(struc.phylo$edge)[1])
     - $k_{ir}$ denotes the number of lineages in deme $i$ at time $t_r$
     
 ## Recursive log-likelihood
-Recursive log-likelihood is calculated by adding a contribution from each of the three possible ways nodes are added to the phylo:
+The recursive log-likelihood for the structured coalescent can be calculated by summing the contributions when each node is added to the phylo. Nodes can be added in one of three ways:
   
-- New leaf is added
-- Coalescence occurs in deme $i$
-- Migration occurs $i \rightarrow j$
+- A new leaf is added
+- A coalescence occurs in deme $i$
+- A migration occurs $i \rightarrow j$
 
 ## Likelihood contributions
 Total coalescence rate $\mathcal{C} = \sum_{i=1}^d \frac{1}{\theta_i}\binom{k_i}{2}$, Total migration rate $\mathcal{M} = \sum_{i=1}^d \sum_{j \neq i} k_i \lambda_{ij}$ and Total event rate: $\mathcal{E} = \mathcal{C} + \mathcal{M}$.
@@ -145,13 +167,14 @@ Total coalescence rate $\mathcal{C} = \sum_{i=1}^d \frac{1}{\theta_i}\binom{k_i}
   \end{align*}
 
 ## Testing
+
 ```{r, echo = FALSE}
 N <- 100; likelihoods <- matrix(0,nrow = N,ncol = 2)
 
 for (i in 1:N){
   phylo <- Structured.sim(struc.data, 1,1,2,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
-  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)[1]
 }
 
 Max <- max(abs(likelihoods[,2] - likelihoods[,1]))
@@ -164,7 +187,7 @@ N <- 100; likelihoods <- matrix(0,nrow = N,ncol = 2)
 for (i in 1:N){
   phylo <- Structured.sim(struc.data, 1,1,2,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
-  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)[1]
 }
 
 max(abs(likelihoods[,2] - likelihoods[,1]))
@@ -172,4 +195,45 @@ max(abs(likelihoods[,2] - likelihoods[,1]))
 ```{r}
 Max
 ```
+
+# MCMC Update Scheme
+
+## Aim
+
+Currently implementing a reversible-jump MCMC scheme to infer the migration events and migration rates for a fixed genealogy. Based on the work of:
+
+- @Drummond2002 who propose a reversible-jump MCMC scheme to simultaneously estimate the genealogy alongside the mutation rate and effective population size for a heterochronous coalescent model
+- @Ewing2004 who develop this MCMC scheme to again simultaneously estimate the genealogy alongside the mutation rate, population size and migration rates for a structured coalescent model
+
+## Reversible Jump Moves
+
+The selected reversible jump moves are those of @Ewing2004 which do not modify the (fixed) genealogy:
+
+- Migration Birth/Death
+- Migration Pair Birth/Death
+- Coalescent Node Merge/Split
+
+## Migration Birth/Death
+
+A migration birth/death move samples an ancestral node, $r$, uniformly at random and selects either a birth or death event with probability $\frac{1}{2}$,
+
+  - Birth event: Add one new migration node uniformly along the edge connecting $r$ and parent($r$), reselecting demes over the maximal connected subtree containing the edge <$r$, parent$(r)$> containing no interior migration nodes
+  - Death event: If the parent($r$) is a migration node, delete parent($r$) and reselect demes over the maximal connect subtree containing the edge <$r$, parent$^2(r)$> containing no interior migration nodes
+  - IMAGE OF MIGRATION BIRTH/DEATH???
+
+## Migration Pair Birth/Death
+
+A migration pair birth/death move samples an edge, $e$, uniformly at random and selects either a birth or death event with probability $\frac{1}{2}$,
+
+  - Pair birth event: A pair of migration nodes are each added uniformly along $e$, selecting a deme different to the deme of $e$
+  - Pair death event: If both terminal nodes of $e$ are migration nodes and lie in the same deme, both nodes are deleted and the deme between them is updated
+
+## Coalescent Node Merge/Split
+
+A coalescent node merge/split samples a coalescent node, $c$, uniformly at random and selects either a merge or split event with probability $\frac{1}{2}$,
+
+  - Merge event: If both children of $c$ are migration nodes lying in the same deme, the two migration nodes are pulled through $c$ and merged onto the parent edge of $c$
+  - Split event: If parent$(c)$ is a migration node, the migration node is pulled through $c$ and split onto both child edges
+
+# References
 ## References
