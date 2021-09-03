@@ -21,10 +21,10 @@ node.count <- function(phylo){
     }
     M[,i] <- summary(factor(origin.deme, 1:3))
   }
-
   C <- summary(factor(phylo$node.deme[coalescence.nodes], 1:3))
   out <- list()
   out$C <- C
   out$M <- M
   return(out)
+
 }
