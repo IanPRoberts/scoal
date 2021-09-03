@@ -39,7 +39,7 @@ likelihoods <- matrix(0,nrow = N,ncol = 2)
 for (i in 1:N){
   phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
-  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)[1]
 }
 
 max(abs(likelihoods[,1] - likelihoods[,2]))
@@ -60,7 +60,7 @@ likelihoods <- matrix(0,nrow = N,ncol = 2)
 for (i in 1:N){
   phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
-  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)[1]
 }
 
 max(abs(likelihoods[,1] - likelihoods[,2]))
@@ -78,7 +78,7 @@ likelihoods <- matrix(0,N,3)
 for (i in 1:N){
   phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
   likelihoods[i,1] <- phylo$log.likelihood
-  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)
+  likelihoods[i,2] <- structured.likelihood(phylo,1,1,migration.mat)[1]
   likelihoods[i,3] <- phylo.likelihood(phylo,1,1)[1]
 }
 

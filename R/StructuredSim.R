@@ -86,7 +86,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
         new.node <- new.node + 1
       }
       else{  #Migration event
-        origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.mat))
+        origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.matrix))
         target.deme <- sample.int(n.deme,1, prob = migration.matrix[origin.deme,])  #Select target deme
         node.sample <- sample.vector(intersect(active,which(node.deme == origin.deme)),1)  #Select lineage to migrate
 
@@ -99,7 +99,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
         edge.length <- c(edge.length, time - node.height[node.sample])
         count <- count + 1
 
-        likelihood <- likelihood + log(migration.mat[origin.deme,target.deme])
+        likelihood <- likelihood + log(migration.matrix[origin.deme,target.deme])
 
         K[origin.deme] <- K[origin.deme] -1; K[target.deme] <- K[target.deme] + 1  #Number of lineages in target increases by 1, number in origin decreases by 1
         active <- c(active[!(active %in% node.sample)], new.node)
@@ -137,7 +137,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
       new.node <- new.node + 1
     }
     else{  #Migration event
-      origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.mat))
+      origin.deme <- sample.int(n.deme, 1, prob = K * rowSums(migration.matrix))
       target.deme <- sample.int(n.deme,1, prob = migration.matrix[origin.deme,])  #Select target deme
       node.sample <- sample.vector(intersect(active,which(node.deme == origin.deme)),1)  #Select lineage to migrate
 
@@ -150,7 +150,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
       edge.length <- c(edge.length, time - node.height[node.sample])
       count <- count + 1
 
-      likelihood <- likelihood + log(migration.mat[origin.deme,target.deme])
+      likelihood <- likelihood + log(migration.matrix[origin.deme,target.deme])
 
       K[origin.deme] <- K[origin.deme] -1; K[target.deme] <- K[target.deme] + 1  #Number of lineages in target increases by 1, number in origin decreases by 1
       active <- c(active[!(active %in% node.sample)], new.node)
