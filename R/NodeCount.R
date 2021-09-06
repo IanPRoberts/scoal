@@ -1,6 +1,18 @@
+#' Counting of Migration and Coalescent Events
+#'
+#' Counts the number of migration events between each pair of demes and the number
+#' of coalescence events occurring in each deme
+#'
+#' @param phylo An object of class \code{phylo} augmented with a deme for each node in the tree (with the deme of an edge being given by the end closest to the tips of the tree)
+#'
+#' @return Returns a list containing a matrix M and a vector C. M has entries {m_{ij}} giving the number of migrations beginning in deme i and ending in deme j backwards in time. C has entries c_i giving the number of coalescence events occurring in deme i.
+#'
+#' @export
+
+
 node.count <- function(phylo){
   demes <- unique(phylo$node.deme)
-  n.deme <- length(demes)
+  n.deme <- length(demes)  ##max(demes)???
   n <- length(phylo$tip.label)
 
   leaf.nodes <- 1:n
@@ -26,5 +38,4 @@ node.count <- function(phylo){
   out$C <- C
   out$M <- M
   return(out)
-
 }
