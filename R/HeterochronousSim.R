@@ -9,6 +9,8 @@
 #' @param phylo.plot logical; if FALSE (default) plot is not produced
 #'
 #' @return An object of class \code{phylo} (from package \code{ape}) augmented with the likelihood and log-likelihood of the simulated tree
+#'
+#' @export
 
 Heterochronous.Sim <- function(Data, effective.pop, gen.length, phylo.plot=FALSE){
   lambda <- effective.pop * gen.length

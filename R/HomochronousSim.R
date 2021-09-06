@@ -8,6 +8,8 @@
 #' @param GenLength generation length of the sampled individuals
 #'
 #' @return An object of class \code{phylo} (from package \code{ape})
+#'
+#' @export
 
 Homochronous.Sim <- function(Data,EffectivePop,GenLength){
   lambda <- EffectivePop * GenLength

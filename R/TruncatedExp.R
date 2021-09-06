@@ -7,6 +7,8 @@
 #' @param n number of observations
 #' @param rate vector of rates
 #' @param c truncation cutoff
+#'
+#' @export
 
 dexp.trunc <- function(x, c = Inf, rate = 1){
   #Density function

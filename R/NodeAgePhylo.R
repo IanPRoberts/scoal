@@ -10,6 +10,8 @@
 #' @param plot.phylo logical; if FALSE (default) plot is not produced
 #'
 #' @return An object of class \code{phylo} (from package \code{ape}) storing the given structured coalescent process
+#'
+#' @export
 
 node.age.phylo <- function(edge, edge.deme, node.ages, tip.label = NA, plot.phylo = FALSE){
   all.nodes <- sort(unique(as.vector(edge)))

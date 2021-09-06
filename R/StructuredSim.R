@@ -10,6 +10,8 @@
 #' @param plot.phylo logical; if FALSE (default) plot is not produced
 #'
 #' @return An object of class \code{phylo} (from package \code{ape}) augmented with the likelihood and log-likelihood of the simulated tree, and the deme of each node in the tree. Additional nodes are added to account for migration events between coalescences
+#'
+#' @export
 
 Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.matrix, plot.phylo = FALSE){
   lambda <- effective.pop * gen.length

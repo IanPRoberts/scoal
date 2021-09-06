@@ -6,6 +6,8 @@
 #' @inheritParams base::sample
 #'
 #' @return A vector of length \code{size} with elements drawn from \code{x}
+#'
+#' @export
 
 sample.vector <- function(x, size, replace = FALSE, prob = NULL){
   #Samples a vector. If the vector has length 1, always returns the single value
@@ -28,6 +30,8 @@ sample.vector <- function(x, size, replace = FALSE, prob = NULL){
 #' @param node.ages Time of each node in the \code{phylo} object
 #'
 #' @return Node ID of the parent node. If the input node is the root, returns Inf
+#'
+#' @export
 
 parent.node <- function(node, edge, node.ages){
   all.nodes <- sort(unique(as.vector(edge)))
@@ -57,6 +61,8 @@ parent.node <- function(node, edge, node.ages){
 #' @inheritParams parent.node
 #'
 #' @return Vector of node IDs of any child nodes. If the input node is a leaf, returns NA
+#'
+#' @export
 
 child.nodes <- function(node, edge, node.ages){
   all.nodes <- sort(unique(as.vector(edge)))
@@ -83,6 +89,8 @@ child.nodes <- function(node, edge, node.ages){
 #' @param edge Edge matrix from a \code{phylo} object
 #'
 #' @return Edge ID for the edge connecting \code{start} and \code{end}
+#'
+#' @export
 
 get.edge.id <- function(start, end, edge){
   edge.id <- which(((edge[,1] == start) & (edge[,2] == end)) | ((edge[,1] == end) & (edge[,2] == start)))

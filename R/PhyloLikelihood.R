@@ -8,6 +8,9 @@
 #' @param gen.length mean generation length of the sampled individuals
 #'
 #' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
+#'
+#' @export
+
 phylo.likelihood <- function(phylo, effective.pop, gen.length){
   lambda <- effective.pop * gen.length
   n <- length(phylo$tip.label)
@@ -49,6 +52,8 @@ phylo.likelihood <- function(phylo, effective.pop, gen.length){
 #' @param migration.matrix matrix of migration rates between demes
 #'
 #' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
+#'
+#' @export
 
 
 structured.likelihood <- function(phylo, effective.pop, gen.length, migration.matrix){

@@ -12,6 +12,8 @@
 #'
 #' @return List containing the updated edge matrix,
 #' node ages and edge demes
+#'
+#' @export
 
 mig.pair.birth <- function(edge, edge.deme, node.ages, n.deme){
   all.nodes <- (unique(as.vector(edge)))
@@ -51,6 +53,8 @@ mig.pair.birth <- function(edge, edge.deme, node.ages, n.deme){
 #'
 #' @return List containing the updated edge matrix,
 #' node ages and edge demes
+#'
+#' @export
 
 mig.pair.death <- function(edge, edge.deme, node.ages, n.deme){
   # Identify node types based on frequencies in edge matrix
@@ -82,6 +86,17 @@ mig.pair.death <- function(edge, edge.deme, node.ages, n.deme){
 
     edge <- edge[-c(selected.edge, parent.edge),]  #Remove selected.edge and parent.edge from edge matrix
 
+    #ape phylo object requires consecutive node labels without gaps
+    all.nodes <- unique(as.vector(edge))
+    missing.labels <- (1:length(all.nodes))[! (1:length(all.nodes)) %in% all.nodes]
+    extra.labels <- all.nodes[!all.nodes %in% (1:length(all.nodes))]
+
+    for (i in 1:length(missing.labels)){
+      edge[edge == extra.labels[i]] <- missing.labels[i]
+    }
+
+    ##### ARE THE NODE AGES CORRECT???  #####
+
     output <- list()
     output$edge <- edge
     output$node.ages <- node.ages
@@ -107,6 +122,8 @@ mig.pair.death <- function(edge, edge.deme, node.ages, n.deme){
 #'
 #' @return List containing the updated edge matrix,
 #' node ages and edge demes
+#'
+#' @export
 
 mig.birth <- function(edge, edge.deme, node.ages, n.deme){
   all.nodes <- sort(unique(as.vector(edge)))
@@ -200,6 +217,8 @@ mig.birth <- function(edge, edge.deme, node.ages, n.deme){
 #'
 #' @return List containing the updated edge matrix,
 #' node ages and edge demes
+#'
+#' @export
 
 mig.death <- function(edge, edge.deme, node.ages, n.deme){
   all.nodes <- sort(unique(as.vector(edge)))
@@ -290,3 +309,77 @@ mig.death <- function(edge, edge.deme, node.ages, n.deme){
     }
   }
 }
+
+#' Coalescent Node Split
+#'
+#' Performs a coalescent node split (Ewing et al. 2004). Selects a coalescent
+#' node uniformly at random and if the parent of the coalescent node is a
+#' migration node, the migration node is pulled through the coalescent node onto
+#' the child edges.
+#'
+#' @param edge Edge matrix for a structured coalescent tree
+#' @param edge.deme Label for the deme in which each edge lies
+#' @param node.ages Time of each node in the coalescent tree
+#' @param n.deme Number of possible demes in the process
+#'
+#' @return List containing the updated edge matrix,
+#' node ages and edge demes
+#'
+#' @export
+
+coal.split <- function(edge, edge.deme, node.ages, n.deme){
+  all.nodes <- sort(unique(as.vector(edge)))
+  node.freq <- table(match(as.vector(edge),all.nodes))  #Frequency of each node featured in edge matrix
+
+  leaf.nodes <- all.nodes[node.freq == 1]  #Leaf nodes have frequency 1
+  n.leaf <- length(leaf.nodes)
+  root.node <- n.leaf + 1  #Root node is n.leaf + 1 for ape phylo-style object
+  coalescence.nodes <- all.nodes[node.freq == 3]  #Coalescence nodes have frequency 3
+  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, coalescence.nodes, leaf.nodes)]
+
+  selected.node <- sample.vector(coalescence.nodes, 1)
+  node.parent <- parent.node(selected.node, edge, node.ages)
+
+  if (! node.parent %in% migration.node){
+    return("REJECT")
+  } else{
+    node.children <- child.nodes(selected.node, edge, node.ages)
+    node.parent2 <- parent.node(node.parent, edge, node.ages)
+
+    child.edges <- integer()
+    for (i in node.children){
+      child.edges <- c(child.edges, get.edge.id(selected.node, i, edge))
+    }
+    parent.edge <- get.edge.id(selected.node, node.parent, edge)
+    parent2.edge <- get.edge.id(node.parent, node.parent2, edge)
+
+    new.node <- max(all.nodes) + 1
+
+    edge[parent.edge,] <- c(selected.node, node.parent)  #Move parent node below selected node
+    edge[child.edges[1],] <- c(node.parent, node.children[1])
+    edge[parent2.edge,] <- c(node.parent2, selected.node)
+    edge[child.edges[2],] <- c(new.node, node.children[2])
+    edge <- rbind(edge, c(selected.node, new.node))  #Add new node below selected node
+
+    node.ages[node.parent] <- runif(1, min = node.ages[selected.node], max = node.ages[node.children[1]])
+    node.ages <- c(node.ages, runif(1, min = node.ages[selected.node], max = node.ages[node.children[2]]))
+
+    deme <- edge.deme[parent2.edge]
+    edge.deme[c(parent.edge, parent2.edge)] <- deme
+    edge.deme <- c(edge.deme, deme)
+
+    output <- list()
+    output$edge <- edge
+    output$node.ages <- node.ages
+    output$edge.deme <- edge.deme
+
+    return(output)
+  }
+}
+
+#' Coalescent Node Merge
+#'
+
+#coal.merge <- function(edge, edge.deme, node.ages, n.deme){
+#
+#}
