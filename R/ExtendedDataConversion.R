@@ -49,7 +49,34 @@ ed.to.phylo <- function(ED){
   n.nodes <- dim(ED)[1]
   n.tips <- sum(is.na(ED[,3]))
 
-  ####### CHECK NODE LABELS ARE 1:N.NODES (AND FIX INTERNAL NODES IF NOT) #######
+  #Check no gaps in node labelling scheme to allow phylo object to be generated
+  if (max(ED[,1]) > n.nodes){
+    missing.labels <- (1:n.nodes)[! (1:n.nodes) %in% ED[,1]]
+    extra.labels <- as.vector(ED[ED[,1] > n.nodes,1])  #as.vector needed in case only 1 extra label has appeared
+
+    count <- 1
+    for (i in extra.labels){
+      row <- which(ED[,1] == i)
+      ED[row,1] <- missing.labels[count]
+
+      parent.row <- which(ED[,1] == ED[row,2])
+      if (ED[parent.row,3] == i){
+        ED[parent.row,3] == missing.labels[count]
+      } else{
+        ED[parent.row,4] == missing.labels[count]
+      }
+
+      for (i in 3:4){
+        if (is.na(ED[row,i]) == FALSE){
+          child.row <- which(ED[,1] == ED[row,i])
+          ED[child.row,2] <- missing.labels[count]
+        }
+      }
+
+      count <- count + 1
+    }
+
+  }
 
   edge.list <- list()
   edge.length <- numeric(0)

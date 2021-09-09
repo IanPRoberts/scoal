@@ -32,7 +32,7 @@ Run $N$ repetitions computing the recursive likelihood under Structured.sim and 
 N <- 100  #Number of repetitions
 n <- 100  #Sample size
 n.deme <- 2
-migration.mat <- matrix(runif(n.deme^2),n.deme, n.deme)
+migration.mat <- matrix(runif(n.deme^2, 0, 0.1),n.deme, n.deme)
 
 likelihoods <- matrix(0,nrow = N,ncol = 2)
 
