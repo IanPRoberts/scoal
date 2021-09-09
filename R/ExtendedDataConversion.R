@@ -44,3 +44,30 @@ phylo.to.ed <- function(phylo){
 #' @return A phylo object augmented with node demes.
 #'
 #' @export
+
+ed.to.phylo <- function(ED){
+  n.nodes <- dim(ED)[1]
+  n.tips <- sum(is.na(ED[,3]))
+
+  ####### CHECK NODE LABELS ARE 1:N.NODES (AND FIX INTERNAL NODES IF NOT) #######
+
+  edge.list <- list()
+  edge.length <- numeric(0)
+  count <- 1
+  for (i in (1:n.nodes)[-(n.tips + 1)]){
+    edge.list[[count]] <- c(ED[i,2],i)
+    edge.length[count] <- ED[i,6] - ED[ED[i,2],6]
+    count <- count + 1
+  }
+  edge <- do.call(rbind,edge.list)  #construct edge matrix from edge.list
+
+  phylo <- list()
+  class(phylo) <- 'phylo'
+  phylo$edge <- edge
+  phylo$edge.length <- edge.length
+  phylo$tip.label <- 1:n.tips #ED[1:n.tips,1]
+  phylo$Nnode <- n.nodes - n.tips
+  phylo$node.deme <- ED[,5]
+
+  return(phylo)
+}
