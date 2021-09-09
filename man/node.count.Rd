@@ -10,7 +10,7 @@ node.count(phylo)
 \item{phylo}{An object of class \code{phylo} augmented with a deme for each node in the tree (with the deme of an edge being given by the end closest to the tips of the tree)}
 }
 \value{
-Returns a matrix M with entries \deqn{m_{ij}} \deqn{p_{x}(1)=Pr(y=1|x)}
+Returns a list containing a matrix M and a vector C. M has entries {m_{ij}} giving the number of migrations beginning in deme i and ending in deme j backwards in time. C has entries c_i giving the number of coalescence events occurring in deme i.
 }
 \description{
 Counts the number of migration events between each pair of demes and the number
