@@ -96,3 +96,23 @@ get.edge.id <- function(start, end, edge){
   edge.id <- which(((edge[,1] == start) & (edge[,2] == end)) | ((edge[,1] == end) & (edge[,2] == start)))
   return(edge.id)
 }
+
+#' Plot Structured Coalescent Tree
+#'
+#' Plots a structured coalescent tree input as a phylo object augmented with node demes
+#'
+#' @param phylo phylo object augmented with node demes
+#'
+#' @export
+
+structured.plot <- function(phylo){
+  edge <- phylo$edge
+  n.demes <- length(unique(phylo$node.deme))
+  color.palette <- rainbow(n.demes)
+  edge.color <- rep(NA,dim(edge)[1])
+  for (i in 1 : dim(edge)[1]){
+    edge.color[i] <- color.palette[phylo$node.deme[edge[i,2]]]
+  }
+
+  plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
+}
