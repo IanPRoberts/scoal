@@ -1,0 +1,83 @@
+#' Migration Pair Birth MCMC Move
+#'
+#' Performs a Migration pair birth move (Ewing et al. 2004). Adds two migration
+#' nodes on an edge selected uniformly at random from a structured coalescent
+#' process, allocating a deme for the added edge such that a migration event
+#' does not target its origin deme.
+#'
+#' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
+#' @param n.deme Number of distinct demes in the population
+#'
+#' @return Updated extended data object with the proposal from the migration pair birth move
+#'
+#' @export
+
+ed.mig.pair.birth <- function(ED, n.deme){
+  all.nodes <- ED[,1]
+  root.node <- which(is.na(ED[,2]))
+
+  #Sample non-root node to obtain edge <sampled.node, node.parent>
+  selected.node <- sample(all.nodes[all.nodes != root.node], 1)
+  selected.row <- which(ED[,1] == selected.node)
+  parent.node <- ED[selected.row, 2]
+  parent.row <- which(ED[,1] == parent.node)
+
+  new.nodes <- max(all.nodes) + c(1,2)  #New node IDs
+  new.node.ages <- sort(runif(2, min = ED[parent.row, 6], max = ED[selected.row, 6]), decreasing = TRUE) #New node ages
+
+  new.deme <- sample.vector((1:n.deme)[-ED[selected.row,5]], 1)
+
+  ED[selected.row, 2] <- new.nodes[1]
+  ED[parent.row, which(ED[parent.row,] == selected.node)] <- new.nodes[2]
+  ED <- rbind(ED,
+              c(new.nodes[1], new.nodes[2], selected.node, NA, new.deme, new.node.ages[1]),
+              c(new.nodes[2], parent.node, new.nodes[1], NA, ED[selected.row, 5], new.node.ages[2])
+              )
+
+  return(ED)
+}
+
+#' Migration Pair Death MCMC Move
+#'
+#' Performs a Migration pair death move (Ewing et al. 2004). Deletes two
+#' migration nodes if they lie between two edges in the same deme.
+#'
+#' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
+#' @param n.deme Number of distinct demes in the population
+#'
+#' @return Updated extended data object with the proposal from the migration pair death move
+#'
+#' @export
+
+ed.mig.pair.death <- function(ED, n.deme){
+  all.nodes <- ED[,1]
+  leaf.nodes <- all.nodes[is.na(ED[,3])]
+  root.node <- all.nodes[is.na(ED[,2])]
+  coalescence.nodes <- all.nodes[!is.na(ED[,4])]
+  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
+  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, leaf.nodes, coalescence.nodes)]
+
+  #Sample non-root node to obtain edge <sampled.node, node.parent>
+  selected.node <- sample(all.nodes[all.nodes != root.node], 1)
+  selected.row <- which(ED[,1] == selected.node)
+  parent.node <- ED[selected.row, 2]
+  parent.row <- which(ED[,1] == parent.node)
+
+  if ((ED[selected.row, 1] %in% migration.nodes) &&
+      (ED[parent.row, 1] %in% migration.nodes) &&
+      (ED[ED[selected.row,3], 5] == ED[parent.row, 5])){
+    #Both ends of the edge are migration nodes, and the demes are consistent to remove the pair of nodes
+    parent2.node <- ED[parent.row, 2]
+    parent2.row <- which(ED[,1] == parent2.node)
+    child.node <- ED[selected.row, 3]
+    child.row <- which(ED[,1] == child.node)
+
+    ED[parent2.row,which(ED[parent2.row,] == parent.node)] <- child.node
+    ED[child.row, 2] <- parent2.node
+    ED <- ED[-c(selected.row, parent.row),]
+
+    return(ED)
+  } else {
+    return("REJECT")
+  }
+}
