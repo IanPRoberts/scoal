@@ -111,5 +111,84 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
   likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
     sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
   return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
+}
 
+#' Calculates the likelihood of a structured coalescent tree
+#'
+#' Returns the likelihood and log-likelihood of a tree generated under the
+#' structured coalescent process
+#'
+#' @param ED Extended data representation of a structured coalescent process
+#'  @param effective.pop effective population sizes from which the samples are taken
+#' @param gen.length mean generation length of the sampled individuals
+#' @param migration.matrix matrix of migration rates between demes
+#'
+#' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
+#'
+#' @export
+
+ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
+  n.demes <- dim(migration.matrix)[1]
+  diag(migration.matrix) <- 0  #Prevent self-migrations
+
+  lambda <- effective.pop * gen.length
+  if (length(lambda) == 1){
+    lambda <- rep(lambda,n.demes)
+  }
+
+  all.nodes <- ED[,1]
+  leaf.nodes <- all.nodes[is.na(ED[,3])]
+  root.node <- all.nodes[is.na(ED[,2])]
+  coalescence.nodes <- all.nodes[!is.na(ED[,4])]
+  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
+  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, leaf.nodes, coalescence.nodes)]
+
+  node.heights <- ED[,6]
+  event.times <- sort(unique(node.heights))  #Times of events, root at time=0
+  time.increments <- diff(event.times)
+
+  #Number of lineages in each deme between each event time
+  k <- matrix(0, nrow = length(event.times) - 1, ncol = n.demes)
+  k[1,ED[root.node,5]] <- 2
+  for (i in 2 : (length(event.times) - 1)){
+    current.rows <- which(ED[,6] == event.times[i])
+    k[i,] <- k[i-1,]
+    if (length(current.rows) > 1){ #Multiple leaves added simultaneously
+      for (j in current.rows){
+        k[i, ED[j, 5]] <- k[i, ED[j, 5]] + 1
+      }
+    } else{
+      if (current.rows %in% migration.nodes){ #Migration event
+        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+        current.child <- ED[current.rows, 3]
+        k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
+      } else if (current.rows %in% coalescence.nodes){ #Coalescence event
+        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
+      } else{ #Single leaf added
+        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+      }
+    }
+  }
+
+  #Number of coalescence events in each deme
+  c <- rep(0,n.demes)
+  for (j in 1 : n.demes){
+    c[j] <- sum(ED[coalescence.nodes, 5] == j)
+  }
+
+  #Number of migration events between each pair of demes
+  m <- matrix(0,nrow = n.demes, ncol = n.demes)
+  for (node in migration.nodes){
+    node.row <- which(ED[,1] == node)
+    child.row <- which(ED[, 1] == ED[node, 3])
+    i <- ED[child.row, 5]
+    j <- ED[node.row, 5]
+    m[i,j] <- m[i,j] + 1
+  }
+
+  #Likelihood computation
+  likelihood <- 0
+  likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
+    sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
+  return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
 }
