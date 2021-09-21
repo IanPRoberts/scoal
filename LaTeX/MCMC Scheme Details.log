@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  21 SEP 2021 14:38
+=======
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  21 SEP 2021 14:26
+>>>>>>> babe0261d348be91df2b0b3a4309e1a7819e6d35
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -946,6 +950,7 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 {C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] (MCMC Scheme De
 tails.aux)
+<<<<<<< HEAD
 
 Package rerunfilecheck Warning: File `"MCMC Scheme Details".out' has changed.
 (rerunfilecheck)                Rerun to get outlines right
@@ -961,6 +966,17 @@ Here is how much of TeX's memory you used:
  886717 words of memory out of 3000000
  46089 multiletter control sequences out of 15000+600000
  409599 words of font info for 50 fonts, out of 8000000 for 9000
+=======
+Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
+(rerunfilecheck)             Checksum: D60CF1411CEC2E4F2FAFB4AE5A8B54D7;292.
+ ) 
+Here is how much of TeX's memory you used:
+ 28978 strings out of 479173
+ 561171 string characters out of 2864085
+ 884717 words of memory out of 3000000
+ 46087 multiletter control sequences out of 15000+600000
+ 408994 words of font info for 48 fonts, out of 8000000 for 9000
+>>>>>>> babe0261d348be91df2b0b3a4309e1a7819e6d35
  1141 hyphenation exceptions out of 8191
  99i,11n,104p,437b,331s stack positions out of 5000i,500n,10000p,200000b,80000s
 <C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Progra
@@ -971,9 +987,16 @@ fonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr1
 2.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Prog
 ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/Mi
 KTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+<<<<<<< HEAD
 Output written on "MCMC Scheme Details.pdf" (1 page, 107123 bytes).
 PDF statistics:
  103 PDF objects out of 1000 (max. 8388607)
  10 named destinations out of 1000 (max. 500000)
+=======
+Output written on "MCMC Scheme Details.pdf" (1 page, 102798 bytes).
+PDF statistics:
+ 96 PDF objects out of 1000 (max. 8388607)
+ 5 named destinations out of 1000 (max. 500000)
+>>>>>>> babe0261d348be91df2b0b3a4309e1a7819e6d35
  173 words of extra memory for PDF output out of 10000 (max. 10000000)
 
