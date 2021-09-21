@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  21 SEP 2021 14:07
-=======
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  21 SEP 2021 14:05
->>>>>>> 9770ec0db405e6482846d9a966314946c7fde32e
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  21 SEP 2021 14:26
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -935,33 +931,43 @@ LaTeX Info: Redefining \nameref on input line 63.
 \@outlinefile=\write7
 \openout7 = `"MCMC Scheme Details.out"'.
 
- [1
+LaTeX Font Info:    Trying to load font information for U+msa on input line 66.
+
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 66.
+
+
+(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+) [1
 
 {C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] (MCMC Scheme De
 tails.aux)
 Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+(rerunfilecheck)             Checksum: D60CF1411CEC2E4F2FAFB4AE5A8B54D7;292.
  ) 
 Here is how much of TeX's memory you used:
- 28920 strings out of 479173
- 560420 string characters out of 2864085
-<<<<<<< HEAD
- 879704 words of memory out of 3000000
-=======
- 878704 words of memory out of 3000000
->>>>>>> 9770ec0db405e6482846d9a966314946c7fde32e
- 46053 multiletter control sequences out of 15000+600000
- 404041 words of font info for 29 fonts, out of 8000000 for 9000
+ 28978 strings out of 479173
+ 561171 string characters out of 2864085
+ 884717 words of memory out of 3000000
+ 46087 multiletter control sequences out of 15000+600000
+ 408994 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,11n,104p,437b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
-<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb>
-<<<<<<< HEAD
-Output written on "MCMC Scheme Details.pdf" (1 page, 19881 bytes).
-=======
-Output written on "MCMC Scheme Details.pdf" (1 page, 19878 bytes).
->>>>>>> 9770ec0db405e6482846d9a966314946c7fde32e
+ 99i,11n,104p,437b,331s stack positions out of 5000i,500n,10000p,200000b,80000s
+<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Progra
+m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
+fonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr1
+2.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Prog
+ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/Mi
+KTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+Output written on "MCMC Scheme Details.pdf" (1 page, 102798 bytes).
 PDF statistics:
- 54 PDF objects out of 1000 (max. 8388607)
- 2 named destinations out of 1000 (max. 500000)
- 157 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 96 PDF objects out of 1000 (max. 8388607)
+ 5 named destinations out of 1000 (max. 500000)
+ 173 words of extra memory for PDF output out of 10000 (max. 10000000)
 

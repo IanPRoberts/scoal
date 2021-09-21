@@ -61,9 +61,30 @@
 %}
 
 \begin{document}
-<<<<<<< HEAD
-	blah blah
-=======
-	blah
->>>>>>> 9770ec0db405e6482846d9a966314946c7fde32e
+	\section{Notation}
+		\begin{itemize}
+			\item[$\calT$] Phylogeny with migration history
+			\item[$d$] Number of distinct demes
+			\item[$\Lambda$] Migration matrix $\Lambda = [\Lambda_{ij}]_{i,j=1}^d$ such that $\Lambda = \lambda_{i \rightarrow j}$ is the migration rate from deme $i$ into deme $j$ backwards in time. Note that self-migrations are forbidden, i.e. $\lambda_{ii} = 0$ $\forall i = 1,2, \dots, d$.
+			\item[$\theta$] Effective population vector such that $\theta_i$ is the effective population in deme $i$
+			\item[$g$] Mean generation length for individuals in the overall population ($g > 0$)
+		\end{itemize}
+	
+	\section{Structured Coalescent Likelihood}
+		(Based on Ewing et al. (2004))
+			\begin{equation}
+				L_{n,d}(\calT) = \prod_{i=1}^d \prod_{\substack{j=1 \\ j \neq i}}^d \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \prod_{r=2}^{2n + M -1} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_{r-1} - t_r) \right\}
+			\end{equation}
+	
+	\section{MCMC}
+		Fix a structured coalescent phylogeny and the evolutionary parameters (migration matrix, effective populations). Construct a MCMC algorithm inspired by Ewing et al. (2004) with the following three types of proposal move
+			\begin{enumerate}
+				\item Migration Birth/Death Move
+				\item Migration Pair Birth/Death Move
+				\item Coalescent Node Split/Merge Move
+			\end{enumerate}
+		which obtain irreducibility over the space of migration histories on a fixed phylogeny with fixed evolutionary parameters.
+		
+		\subsection{Migration Birth/Death Move}
+			The migration birth/death move aims to add or remove a single migration node from the migration history, reassigning demes as necessary to maintain a consistent 
 \end{document}
