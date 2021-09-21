@@ -11,6 +11,9 @@ devtools::load_all()
 library(ape)
 ```
 
+\newcommand{\calJ}{\mathcal{J}}
+\newcommand{\calT}{\mathcal{T}}
+
 ## Structured Simulation Testing
 Generate datasets of size $n$ observations with
 
@@ -87,3 +90,27 @@ max(abs(likelihoods[,2] - likelihoods[,3]))
 ```
 
 Consistently, the likelihoods calculated for the structured coalescent with a single deme (using structured.likelihood) correspond exactly to the heterochronous coalescent (using phylo.likelihood)
+
+
+## MCMC Implementation Testing
+
+Begin by generating a reversible jump MCMC algorithm with only one type of (reversible) move. Initially, select the migration pair birth/death move. This type of move has acceptance probabilities
+  \[
+    \alpha(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT') Q(\calT | \calT')}{L(\calT) \pi(\calT) Q(\calT' | \calT)} || \calJ || \right),
+  \]
+where $\calT$ denotes a structured coalescent tree with a full migration history, $L(\calT)$ denotes the likelihood and $\pi(\calT)$ the prior. The Jacobian term is equal to 1 as parameters are being added or deleted but not transformed under the migration pair birth/death move.
+
+For a migration pair birth, it holds that
+  \begin{align*}
+    Q(\calT' | \calT) & = \bbP [\text{Selected edge}] \cdot \bbP[ \text{New node times}] \cdot \bbP[\text{Selected deme}] \\
+      & = \frac{1}{n + M + (n - 2)} \cdot \frac{2}{(t_i - t_{ip})^2} \cdot \frac{1}{d-1},
+  \end{align*}
+where $i$ and $ip$ denote the ends of the selected edge, and the factor of 2 in the "New node times" term arises from the ordering of the uniformly distributed times. Similarly,
+  \begin{align*}
+    Q(\calT | \calT') & = \bbP[\text{Selected edge}] \\
+      & = \frac{1}{n + (M+2) + (n-2)} = \frac{1}{M+2n}.
+  \end{align*}
+Thus, the acceptance probability for a migration pair birth is given by
+  \[
+    \alpha_{PB}(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT')}{L(\calT) \pi(\calT) } \cdot \frac{(M+2n-2)(t_i - t_{ip})^2 (d-1)}{2(M+2n)} \right)
+  \]
