@@ -94,23 +94,143 @@ Consistently, the likelihoods calculated for the structured coalescent with a si
 
 ## MCMC Implementation Testing
 
-Begin by generating a reversible jump MCMC algorithm with only one type of (reversible) move. Initially, select the migration pair birth/death move. This type of move has acceptance probabilities
-  \[
-    \alpha(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT') Q(\calT | \calT')}{L(\calT) \pi(\calT) Q(\calT' | \calT)} || \calJ || \right),
-  \]
-where $\calT$ denotes a structured coalescent tree with a full migration history, $L(\calT)$ denotes the likelihood and $\pi(\calT)$ the prior. The Jacobian term is equal to 1 as parameters are being added or deleted but not transformed under the migration pair birth/death move.
+Begin by testing a MCMC algorithm with a single type of move (migration birth/death).
 
-For a migration pair birth, it holds that
-  \begin{align*}
-    Q(\calT' | \calT) & = \bbP [\text{Selected edge}] \cdot \bbP[ \text{New node times}] \cdot \bbP[\text{Selected deme}] \\
-      & = \frac{1}{n + M + (n - 2)} \cdot \frac{2}{(t_i - t_{ip})^2} \cdot \frac{1}{d-1},
-  \end{align*}
-where $i$ and $ip$ denote the ends of the selected edge, and the factor of 2 in the "New node times" term arises from the ordering of the uniformly distributed times. Similarly,
-  \begin{align*}
-    Q(\calT | \calT') & = \bbP[\text{Selected edge}] \\
-      & = \frac{1}{n + (M+2) + (n-2)} = \frac{1}{M+2n}.
-  \end{align*}
-Thus, the acceptance probability for a migration pair birth is given by
-  \[
-    \alpha_{PB}(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT')}{L(\calT) \pi(\calT) } \cdot \frac{(M+2n-2)(t_i - t_{ip})^2 (d-1)}{2(M+2n)} \right)
-  \]
+TESTING MIGRATION BIRTH/DEATH MOVE ONLY
+
+%%%%%% THERE IS HUGE PROBLEM SOMEWHERE IN MIGATION DEATH MOVE - CAUSES R SESSION TO ABORT
+%%%%%% PROBABLY APE PLOTTING PROBLEM?????
+```{r}
+n <- 10
+n.deme <- 5
+migration.mat <- matrix(runif(n.deme^2, 0, 0.1),n.deme, n.deme)
+phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)
+structured.plot(phylo); nodelabels(frame = "none"); tiplabels(frame = "none")
+
+ED <- phylo.to.ed(phylo)
+
+for (i in 1 : 10){
+  Out <- ed.mig.death.new(ED, n.deme); Out$prop.ratio
+  if (Out$prop.ratio > 0){
+    new.phylo <- ed.to.phylo(Out$ED)
+    structured.plot(new.phylo); nodelabels(frame = "none"); tiplabels(frame = "none")
+  }
+}
+
+
+```
+
+Burn in phase 100 iterations, main run 1000 iterations; prior ratio 1 and likelihood ratio given by ratio of poisson(1) distributions on number of migration events. Select migration birth w/prob p and migration death w/prob 1-p
+
+```{r}
+N0 <- 10^2 #Burn in phase
+N <- 10^3
+p <- 1/2
+sample <- numeric(N)
+
+n <- 100
+n.deme <- 3
+migration.mat <- matrix(runif(n.deme^2, 0, 1),n.deme, n.deme)
+phylo <- Structured.sim(Test.data(n,n.deme), 1,1,n.deme,migration.mat,FALSE)  #Initial tree
+ED <- phylo.to.ed(phylo)
+
+for (i in 1:(N0 + N)){
+  U <- runif(1)
+  
+  if (U <= p){ #Birth
+    proposal <- ed.mig.birth.3(ED, n.deme) #ed.mig.birth.new(ED, n.deme)
+  } else{ #Death
+    proposal <- ed.mig.death.3(ED, n.deme) #ed.mig.death.new(ED, n.deme)
+  }
+  
+  ED.n.mig <- length(ED[is.na(ED[,4]) & (! is.na(ED[,3])), 1])  #Number of migrations in current tree
+  prop.ED <- proposal$ED
+  prop.n.mig <- length(prop.ED[is.na(prop.ED[,4]) & (! is.na(prop.ED[,3])), 1])  #Number of migrations in proposal
+  
+  accept.prob <- min(1, factorial(ED.n.mig)/factorial(prop.n.mig) * proposal$prop.ratio)
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){
+    ED <- proposal$ED
+  }
+  
+  if (i > N0){
+      sample[i-N0] <- length(ED[is.na(ED[,4]) & (! is.na(ED[,3])), 1])
+  }
+}
+summary(as.factor(sample))
+structured.plot(ed.to.phylo(ED)) #;nodelabels(frame = "none")
+structured.plot(phylo) #;nodelabels(frame = "none")
+hist(sample)
+```
+
+
+Construct a tree with $n$ homochronous leaves such that all lineages migrate into deme 1 almost immediately after the sample is drawn and no more migrations occur. Assume also that all generated data do not begin in deme 1.
+
+Initialising at this tree reduces the possiblity of having to reject any proposal due to a leaf being included in the subtree and also starts at an almost minimal number of migration events.
+
+```{r}
+n <- 20
+n.deme <- 3
+DATA <- matrix(c(1:n, rep(0,n), sample(2:n.deme, n, replace = TRUE)), n)
+
+migration.matrix <- matrix(0.3, n.deme,n.deme)
+diag(migration.matrix) <- 0
+
+tree.top <- Homochronous.Sim(1:n, 1, 1)
+tree.top$node.deme <- rep(1, 2*n-1)
+fake.ED <- phylo.to.ed(tree.top)
+
+max.node <- max(fake.ED[,1])
+node.labels <- fake.ED[,1:4]
+
+for (i in 1:n){
+  node.labels[which(node.labels == i)] <- max.node + i
+}
+
+fake.ED[,1:4] <- node.labels
+
+for (i in 1:n){
+  fake.ED <- rbind(fake.ED, c(i, max.node + i, NA, NA, sample((1:n.deme)[-fake.ED[i, 5]], 1), fake.ED[i, 6] + 1e-3))
+  fake.ED[i, 3] <- i
+}
+
+structured.plot(ed.to.phylo(fake.ED))
+```
+Run the MCMC with Poisson likelihood for this artificial tree. The minimum number of migration events possible in this tree is 20 as none of the current migration nodes may be removed. (Should obtain a 20 + Poi(1) sample???)
+
+```{r}
+N <- 1e3
+p <- 0.8
+sample <- numeric(N)
+
+ED <- fake.ED
+for (i in 1:N){
+  U <- runif(1)
+  
+  if (i/2 != floor(i/2)){ #Birth
+    proposal <- ed.mig.birth.3(ED, n.deme) #ed.mig.birth.new(ED, n.deme)
+  } else{ #Death
+    proposal <- ed.mig.death.3(ED, n.deme) #ed.mig.death.new(ED, n.deme)
+  }
+  
+  ED.n.mig <- length(ED[is.na(ED[,4]) & (! is.na(ED[,3])), 1])  #Number of migrations in current tree
+  prop.ED <- proposal$ED
+  prop.n.mig <- length(prop.ED[is.na(prop.ED[,4]) & (! is.na(prop.ED[,3])), 1])  #Number of migrations in proposal
+  
+  accept.prob <- min(1, factorial(ED.n.mig)/factorial(prop.n.mig) * proposal$prop.ratio)
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){
+    ED <- proposal$ED
+  }
+  
+  sample[i] <- length(ED[is.na(ED[,4]) & (! is.na(ED[,3])), 1])
+}
+structured.plot(ed.to.phylo(fake.ED))
+structured.plot(ed.to.phylo(ED))
+hist(sample)
+structured.plot(ed.to.phylo(proposal$ED))
+```
