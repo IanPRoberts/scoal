@@ -54,36 +54,22 @@ ed.to.phylo <- function(ED){
     missing.labels <- (1:n.nodes)[! (1:n.nodes) %in% ED[,1]]
     extra.labels <- as.vector(ED[ED[,1] > n.nodes,1])  #as.vector needed in case only 1 extra label has appeared
 
+    node.label.mat <- ED[,1:4]
     count <- 1
     for (i in extra.labels){
-      row <- which(ED[,1] == i)
-      ED[row,1] <- missing.labels[count]
-
-      parent.row <- which(ED[,1] == ED[row,2])
-      if (ED[parent.row,3] == i){
-        ED[parent.row,3] == missing.labels[count]
-      } else{
-        ED[parent.row,4] == missing.labels[count]
-      }
-
-      for (i in 3:4){
-        if (is.na(ED[row,i]) == FALSE){
-          child.row <- which(ED[,1] == ED[row,i])
-          ED[child.row,2] <- missing.labels[count]
-        }
-      }
-
+      node.label.mat[node.label.mat == i] <- missing.labels[count]
       count <- count + 1
     }
-
+    ED[, 1:4] <- node.label.mat
   }
-
   edge.list <- list()
   edge.length <- numeric(0)
   count <- 1
   for (i in (1:n.nodes)[-(n.tips + 1)]){
-    edge.list[[count]] <- c(ED[i,2],i)
-    edge.length[count] <- ED[i,6] - ED[ED[i,2],6]
+    row <- which(ED[,1] == i)
+    parent.row <- which(ED[,1] == ED[row, 2])
+    edge.list[[count]] <- c(ED[row, 2], i)
+    edge.length[count] <- ED[row, 6] - ED[parent.row, 6]
     count <- count + 1
   }
   edge <- do.call(rbind,edge.list)  #construct edge matrix from edge.list
@@ -94,7 +80,7 @@ ed.to.phylo <- function(ED){
   phylo$edge.length <- edge.length
   phylo$tip.label <- 1:n.tips #ED[1:n.tips,1]
   phylo$Nnode <- n.nodes - n.tips
-  phylo$node.deme <- ED[,5]
+  phylo$node.deme <- ED[order(ED[,1]),5]  #Order supplies the ordering of the rows in ED to get node demes in correct order
 
   return(phylo)
 }

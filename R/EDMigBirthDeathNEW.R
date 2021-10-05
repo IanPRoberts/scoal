@@ -22,17 +22,17 @@ ed.mig.birth.new <- function(ED, n.deme){
   edge.length <- numeric(dim(ED)[1] - 1)
 
   for (i in (1:dim(ED)[1])[-root.node]){
-    edge.length[i] <- ED[i,6] - ED[ED[i,2],6]
+    edge.length[i] <- ED[i,6] - ED[which(ED[,1] == ED[i,2]),6]
   }
 
   tree.length <- sum(edge.length)
   new.position <- runif(1, 0, tree.length)
 
-  edge.child <- min(which(cumsum(edge.length) >= new.position))
-  edge.parent <- which(ED[,1] == ED[edge.child, 2])
+  child.row <- min(which(cumsum(edge.length) >= new.position))
+  parent.row <- which(ED[,1] == ED[child.row, 2])
 
-  subtree.nodes <- ED[edge.child,1]
-  active.nodes <- ED[edge.child,1]
+  subtree.nodes <- ED[child.row,1]
+  active.nodes <- ED[child.row,1]
   while(TRUE %in% (active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
@@ -53,12 +53,12 @@ ed.mig.birth.new <- function(ED, n.deme){
   }
 
   if (TRUE %in% (subtree.nodes %in% leaf.nodes)){
-    return("REJECT")
+    return(list(ED = ED, prop.ratio = 0))
   } else{
     subtree.leaf <- subtree.nodes[subtree.nodes %in% migration.nodes]
-    forbidden.deme <- ED[edge.child,5]  #Deme of parent edge
+    forbidden.deme <- ED[child.row,5]  #Deme of subtree interior
 
-    for (i in subtree.leaf){
+    for (i in subtree.leaf){ #Demes adjacent to tips of subtree
       leaf.row <- which(ED[,1] == i)
       forbidden.deme <- c(forbidden.deme, ED[which(ED[,1] == ED[leaf.row, 3]), 5])
     }
@@ -66,25 +66,27 @@ ed.mig.birth.new <- function(ED, n.deme){
     forbidden.deme <- unique(forbidden.deme)
 
     if (length(forbidden.deme) == n.deme){
-      return("REJECT")
+      return(list(ED = ED, prop.ratio = 0))
     } else{
       new.node <- max(ED[,1]) + 1
       new.row <- dim(ED)[1] + 1
       ED <- rbind(ED, c(new.node, rep(NA,5)))
-      ED[new.row, 6] <- ED[edge.child, 6] - (new.position - sum(edge.length[1:(edge.child-1)])) #Update new.node age
-      ED[new.row, 5] <- ED[edge.child, 5]
-      ED[new.row, 3] <- ED[edge.child, 1]
-      ED[new.row, 2] <- ED[edge.parent, 1]
+      ED[new.row, 6] <- ED[child.row, 6] - (new.position - sum(edge.length[1:(child.row-1)])) #Update new.node age
+      ED[new.row, 5] <- ED[child.row, 5]
+      ED[new.row, 3] <- ED[child.row, 1]
+      ED[new.row, 2] <- ED[parent.row, 1]
 
-      ED[edge.child, 2] <- new.node
+      ED[child.row, 2] <- new.node
 
       new.deme <- sample.vector((1:n.deme)[-forbidden.deme],1)
       for (i in subtree.nodes){
         ED[which(ED[,1] == i),5] <- new.deme
       }
 
-      ED[edge.parent, which(ED[edge.parent, 1:4] == edge.child)] <- new.node #Update child of parent.node
-      return(ED)
+      ED[parent.row, which(ED[parent.row, 1:4] == child.row)] <- new.node #Update child of parent.node
+
+      prop.ratio <- tree.length * (n.deme - length(forbidden.deme)) / (1 + length(migration.nodes))  #Proposal ratio
+      return(list(ED = ED, prop.ratio = prop.ratio))
     }
   }
 }
@@ -113,10 +115,8 @@ ed.mig.death.new <- function(ED, n.deme){
 
   selected.node <- sample.vector(migration.nodes, 1)  #Sample migration node
   selected.row <- which(ED[,1] == selected.node)  #Row in ED in case of non-sequential node labels
-  #node.parent <- ED[selected.row, 2]
-  #parent.row <- which(ED[,1] == node.parent)
 
-  node.child <- ED[selected.node, 3] #Child of selected.node
+  node.child <- ED[selected.row, 3] #Child of selected.node
   subtree.nodes <- c(selected.node, node.child)
   active.nodes <- c(selected.node, node.child)
 
@@ -140,7 +140,7 @@ ed.mig.death.new <- function(ED, n.deme){
   }
 
     if (TRUE %in% (subtree.nodes %in% leaf.nodes)){
-      return("REJECT")
+      return(list(ED = ED, prop.ratio = 0))
     } else{
       #Check whether proposal.deme provides a consistent deme labelling
       proposal.deme <- ED[selected.row, 5]  #Deme of edge above selected.node
@@ -150,11 +150,20 @@ ed.mig.death.new <- function(ED, n.deme){
         leaf.row <- which(ED[,1] == i)
         exterior.deme <- c(exterior.deme, ED[which(ED[,1] == ED[leaf.row, 3]), 5])
       }
+      exterior.deme <- unique(exterior.deme)
 
       if (proposal.deme %in% exterior.deme){
         #Proposal would introduce a migration from a deme into itself -> reject proposal
-        return("REJECT")
+        return(list(ED = ED, prop.ratio = 0))
       } else{
+
+        #Tree length needed for proposal ratio
+        edge.length <- numeric(dim(ED)[1] - 1)
+        for (i in (1:dim(ED)[1])[-root.node]){
+          edge.length[i] <- ED[i,6] - ED[which(ED[,1] == ED[i,2]),6]
+        }
+        tree.length <- sum(edge.length)
+
         node.parent <- ED[selected.row, 2]  #Parent of selected.node
         parent.row <- which(ED[,1] == node.parent)
 
@@ -168,9 +177,11 @@ ed.mig.death.new <- function(ED, n.deme){
         }
 
         ED <- ED[-selected.row,]
-        return(ED)
+
+        prop.ratio <- length(migration.nodes) / (tree.length * (n.deme - length(exterior.deme) - 1))
+
+        return(list(ED = ED, prop.ratio = prop.ratio))
       }
 
     }
   }
-}
