@@ -27,7 +27,7 @@ ed.mig.birth.3 <- function(ED, n.deme, fix.node.deme = TRUE){
   #Calculating subtree containing edge <new.node, child.node> terminating in migration or leaf nodes
   subtree.nodes <- child.node
   active.nodes <- child.node
-  while (TRUE %in% (active.nodes %in% coalescence.nodes)){
+  while (any(active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
     for (j in active.nodes){
@@ -37,7 +37,7 @@ ed.mig.birth.3 <- function(ED, n.deme, fix.node.deme = TRUE){
     }
   }
 
-  if ((fix.node.deme == TRUE) && (TRUE %in% (subtree.nodes %in% leaf.nodes))){
+  if ((fix.node.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
     return(list(ED = ED, prop.ratio = 0))
   } else{
@@ -108,7 +108,7 @@ ed.mig.death.3 <- function(ED, n.deme, fix.node.deme = TRUE){
   #Calculating subtree containing edge <new.node, child.node> terminating in migration or leaf nodes
   subtree.nodes <- child.node
   active.nodes <- child.node
-  while (TRUE %in% (active.nodes %in% coalescence.nodes)){
+  while (any(active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
     for (i in active.nodes){
@@ -118,7 +118,7 @@ ed.mig.death.3 <- function(ED, n.deme, fix.node.deme = TRUE){
     }
   }
 
-  if ((fix.node.deme == TRUE) && (TRUE %in% (subtree.nodes %in% leaf.nodes))){
+  if ((fix.node.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
     return(list(ED = ED, prop.ratio = 0))
   } else{
