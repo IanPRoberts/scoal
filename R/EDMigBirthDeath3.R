@@ -1,5 +1,5 @@
 #### Redoing mig birth
-ed.mig.birth.3 <- function(ED, n.deme){
+ed.mig.birth.3 <- function(ED, n.deme, fix.node.deme = TRUE){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -7,8 +7,10 @@ ed.mig.birth.3 <- function(ED, n.deme){
   migration.nodes <- ED[!ED[,1] %in% c(root.node, coalescence.nodes, leaf.nodes), 1]
 
   edge.length <- numeric(dim(ED)[1])
-  for (i in c(coalescence.nodes, leaf.nodes, migration.nodes)){
-    node.row <- which(ED[,1] == i)
+  non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
+  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
+  for (j in non.root.nodes){
+    node.row <- which(ED[,1] == j)
     parent.row <- which(ED[,1] == ED[node.row, 2])
     edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
   }
@@ -28,14 +30,14 @@ ed.mig.birth.3 <- function(ED, n.deme){
   while (TRUE %in% (active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
-    for (i in active.nodes){
-      i.row <- which(ED[,1] == i)
-      subtree.nodes <- c(subtree.nodes, ED[i.row, 3:4])  #Add children of i to subtree
-      active.nodes <- c(active.nodes[active.nodes != i], ED[i.row, 3:4])  #Remove i from active nodes, add children
+    for (j in active.nodes){
+      j.row <- which(ED[,1] == j)
+      subtree.nodes <- c(subtree.nodes, ED[j.row, 3:4])  #Add children of i to subtree
+      active.nodes <- c(active.nodes[active.nodes != j], ED[j.row, 3:4])  #Remove i from active nodes, add children
     }
   }
 
-  if (TRUE %in% (subtree.nodes %in% leaf.nodes)){
+  if ((fix.node.deme == TRUE) && (TRUE %in% (subtree.nodes %in% leaf.nodes))){
     # REJECT
     return(list(ED = ED, prop.ratio = 0))
   } else{
@@ -43,11 +45,11 @@ ed.mig.birth.3 <- function(ED, n.deme){
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
     forbidden.demes <- ED[child.row, 5]  #Cannot propose deme already on interior of subtree
     old.deme <- ED[child.row,5]
-    for (i in subtree.leaves){  #Cannot propose deme already adjacent to subtree
-      i.row <- which(ED[,1] == i)
-      i.child <- ED[i.row, 3]
-      i.child.row <- which(ED[,1] == i.child)
-      forbidden.demes <- c(forbidden.demes, ED[i.child.row, 5])  #Deme below node i
+    for (j in subtree.leaves){  #Cannot propose deme already adjacent to subtree
+      j.row <- which(ED[,1] == j)
+      j.child <- ED[j.row, 3]
+      j.child.row <- which(ED[,1] == j.child)
+      forbidden.demes <- c(forbidden.demes, ED[j.child.row, 5])  #Deme below node i
     }
     forbidden.demes <- unique(forbidden.demes)
 
@@ -59,8 +61,8 @@ ed.mig.birth.3 <- function(ED, n.deme){
 
     proposal.deme <- sample.vector((1:n.deme)[-forbidden.demes], 1)
     #Update deme across subtree
-    for (i in subtree.nodes){
-      row <- which(ED[,1] == i)
+    for (j in subtree.nodes){
+      row <- which(ED[,1] == j)
       ED[row, 5] <- proposal.deme
     }
 
@@ -74,7 +76,8 @@ ed.mig.birth.3 <- function(ED, n.deme){
     ED[parent.row, 2 + which.child] <- new.node  #which.child either 1 or 2 so add 2 to get to col no.
 
     #Add row for new.node
-    new.age <- ED[child.row, 6] - (new.location - max(cumsum(edge.length)[cumsum(edge.length) < new.location])) #Age of new.node (currently have distance along tree from new.location)
+    cumulative.edge.length <- c(0, cumsum(edge.length)[-length(edge.length)])  #Offset cumsum(edge.length) by 1 in case new.location is on first edge in edge length
+    new.age <- ED[child.row, 6] - (new.location - max(cumulative.edge.length[cumulative.edge.length < new.location])) #Age of new.node (currently have distance along tree from new.location)
 
     ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
 
@@ -84,13 +87,18 @@ ed.mig.birth.3 <- function(ED, n.deme){
 
 
 #### Redoing Mig death
-ed.mig.death.3 <- function(ED, n.deme){
+ed.mig.death.3 <- function(ED, n.deme, fix.node.deme = TRUE){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
   leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
   migration.nodes <- ED[!ED[,1] %in% c(root.node, coalescence.nodes, leaf.nodes), 1]
 
+
+  if (length(migration.nodes) == 0){
+    #REJECT
+    return(list(ED = ED, prop.ratio = 0))
+  }
   selected.node <- sample.vector(migration.nodes, 1)
   selected.row <- which(ED[,1] == selected.node)
 
@@ -110,7 +118,7 @@ ed.mig.death.3 <- function(ED, n.deme){
     }
   }
 
-  if (TRUE %in% (subtree.nodes %in% leaf.nodes)){
+  if ((fix.node.deme == TRUE) && (TRUE %in% (subtree.nodes %in% leaf.nodes))){
     # REJECT
     return(list(ED = ED, prop.ratio = 0))
   } else{
