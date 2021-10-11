@@ -98,8 +98,6 @@ Begin by testing a MCMC algorithm with a single type of move (migration birth/de
 
 TESTING MIGRATION BIRTH/DEATH MOVE ONLY
 
-%%%%%% THERE IS HUGE PROBLEM SOMEWHERE IN MIGATION DEATH MOVE - CAUSES R SESSION TO ABORT
-%%%%%% PROBABLY APE PLOTTING PROBLEM?????
 ```{r}
 n <- 10
 n.deme <- 5
@@ -123,7 +121,8 @@ for (i in 1 : 10){
 Burn in phase 100 iterations, main run 1000 iterations; prior ratio 1 and likelihood ratio given by ratio of poisson(1) distributions on number of migration events. Select migration birth w/prob p and migration death w/prob 1-p
 
 ```{r}
-N0 <- 10^2 #Burn in phase
+set.seed(1)
+N0 <-  10^2 #Burn in phase
 N <- 10^3
 p <- 1/2
 sample <- numeric(N)
@@ -138,9 +137,9 @@ for (i in 1:(N0 + N)){
   U <- runif(1)
   
   if (U <= p){ #Birth
-    proposal <- ed.mig.birth.3(ED, n.deme) #ed.mig.birth.new(ED, n.deme)
+    proposal <- ed.mig.birth.3(ED, n.deme, FALSE) #ed.mig.birth.new(ED, n.deme)
   } else{ #Death
-    proposal <- ed.mig.death.3(ED, n.deme) #ed.mig.death.new(ED, n.deme)
+    proposal <- ed.mig.death.3(ED, n.deme, FALSE) #ed.mig.death.new(ED, n.deme)
   }
   
   ED.n.mig <- length(ED[is.na(ED[,4]) & (! is.na(ED[,3])), 1])  #Number of migrations in current tree
@@ -202,13 +201,11 @@ Run the MCMC with Poisson likelihood for this artificial tree. The minimum numbe
 
 ```{r}
 N <- 1e3
-p <- 0.8
+p <- 0.5
 sample <- numeric(N)
 
 ED <- fake.ED
 for (i in 1:N){
-  U <- runif(1)
-  
   if (i/2 != floor(i/2)){ #Birth
     proposal <- ed.mig.birth.3(ED, n.deme) #ed.mig.birth.new(ED, n.deme)
   } else{ #Death
@@ -233,4 +230,119 @@ structured.plot(ed.to.phylo(fake.ED))
 structured.plot(ed.to.phylo(ED))
 hist(sample)
 structured.plot(ed.to.phylo(proposal$ED))
+```
+
+
+
+## Testing MCMC with a single-colour input
+
+Generate a structured coalescent genealogy with no migration events and run the MCMC algorithm with Poisson likelihoods. Still permit migration events to be added, but also permit leaf demes to be changed as necessary.
+
+```{r}
+#set.seed(10)
+N <- 1e5  #Number of MCMC iterations
+
+n <- 10  #Number of leaves in the tree
+n.deme <- 5
+phylo <- Homochronous.Sim(1:n, 1, 1)
+phylo$node.deme <- rep(1, 2*n - 1)
+
+ED <- phylo.to.ed(phylo)
+structured.plot(phylo)
+
+migration.mat <- matrix(0.3, n.deme, n.deme)
+diag(migration.mat) <- 0
+
+Sample <- numeric(N)
+
+for (i in 1:N){
+  #if (i >= 118){ browser()}
+  
+  U <- runif(1)
+  
+  if (U <= 0.5){
+    proposal <- ed.mig.birth.3(ED, n.deme, FALSE)
+  } else {
+    proposal <- ed.mig.death.3(ED, n.deme, FALSE)
+  }
+  
+  ED.n.mig <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])
+  prop.n.mig <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+  
+  accept.prob <- min(1, factorial(ED.n.mig)/factorial(prop.n.mig) * proposal$prop.ratio)
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){  #ACCEPT
+    ED <- proposal$ED
+    #browser()
+    #structured.plot(ed.to.phylo(ED))
+    Sample[i] <- prop.n.mig
+  } else{  #REJECT
+    Sample[i] <- ED.n.mig
+  }
+}
+
+hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, 1)))
+```
+
+## Testing MCMC algorithm with multi-colour input tree
+
+Stick with homochronous leaves, but relax the assumption that the initial tree remains in deme 1 throughout. Generate a tree using Structured.sim with $n=10$ tips and initial demes sampled from 1:n.deme with replacement. Add also 100 burn-in iterations to avoid skewing the number of migrations by the intial tree.
+
+```{r}
+N0 <- 1e2  #Number of burn-in iterations
+N <- 1e5  #Number of MCMC iterations
+
+n <- 10  #Number of leaves in the tree
+n.deme <- 5
+
+Data <- matrix(c(1:n, rep(0, n), sample.vector(1:n.deme, n, TRUE)), n, 3)
+migration.mat <- matrix(0.3, n.deme, n.deme)
+diag(migration.mat) <- 0
+
+phylo <- Structured.sim(Data, 1, 1, n.deme, migration.mat)
+
+ED <- phylo.to.ed(phylo)
+
+Sample <- numeric(N)
+
+for (i in (-N0):N){
+  #if (i >= 118){ browser()}
+  
+  U <- runif(1)
+  
+  if (U <= 0.5){
+    proposal <- ed.mig.birth.3(ED, n.deme, FALSE)
+  } else {
+    proposal <- ed.mig.death.3(ED, n.deme, FALSE)
+  }
+  
+  ED.n.mig <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])
+  prop.n.mig <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+  
+  accept.prob <- min(1, factorial(ED.n.mig)/factorial(prop.n.mig) * proposal$prop.ratio)
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){  #ACCEPT
+    ED <- proposal$ED
+    #browser()
+    #structured.plot(ed.to.phylo(ED))
+    if (i > 0){
+      Sample[i] <- prop.n.mig
+    }
+  } else{  #REJECT
+    if (i > 0){
+      Sample[i] <- ED.n.mig
+    }
+  }
+}
+
+hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, 1)))
+
 ```
