@@ -45,7 +45,7 @@ ed.mig.birth.3 <- function(ED, n.deme, fix.node.deme = TRUE){
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
     forbidden.demes <- ED[child.row, 5]  #Cannot propose deme already on interior of subtree
     old.deme <- ED[child.row,5]
-    for (j in subtree.leaves){  #Cannot propose deme already adjacent to subtree
+    for (j in subtree.leaves){  #Cannot propose deme adjacent to subtree
       j.row <- which(ED[,1] == j)
       j.child <- ED[j.row, 3]
       j.child.row <- which(ED[,1] == j.child)
@@ -80,8 +80,9 @@ ed.mig.birth.3 <- function(ED, n.deme, fix.node.deme = TRUE){
     new.age <- ED[child.row, 6] - (new.location - max(cumulative.edge.length[cumulative.edge.length < new.location])) #Age of new.node (currently have distance along tree from new.location)
 
     ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
-
-    return(list(ED= ED, prop.ratio = 1))
+    prop.ratio <- length((1:n.deme)[-forbidden.demes]) * tree.length / (length(migration.nodes) + 1)
+    return(list(ED= ED, prop.ratio = prop.ratio))
+    #return(list(ED = ED, prop.ratio = 1))
   }
 }
 
@@ -156,7 +157,8 @@ ed.mig.death.3 <- function(ED, n.deme, fix.node.deme = TRUE){
     ED[parent.row, 2 + which.child] <- child.node
 
     ED <- ED[-selected.row,]
-
-    return(list(ED = ED, prop.ratio = 1))
+    prop.ratio <- length(migration.nodes)/ (length((1:n.deme)[-forbidden.demes]) * tree.length)
+    return(list(ED = ED, prop.ratio = prop.ratio))
+    #return(list(ED = ED, prop.ratio = 1))
   }
 }
