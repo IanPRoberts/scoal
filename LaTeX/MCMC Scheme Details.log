@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  27 SEP 2021 11:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  26 OCT 2021 14:04
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -944,32 +944,44 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 67.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
-{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] [2] [3] (MCMC S
-cheme Details.aux)
+{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] [2] [3] [4]
+Underfull \hbox (badness 10000) in paragraph at lines 218--220
+
+ []
+
+[5] [6] [7] [8]
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 339
+.
+ (C:\Users\ian_p\AppData\Roaming\MiKTeX\tex/latex/bbm\ubbm.fd
+File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
+)
+[9] (MCMC Scheme Details.aux)
 Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
-(rerunfilecheck)             Checksum: 479C5AFBBDF369408713290A2C5D12C7;1342.
+(rerunfilecheck)             Checksum: CE0F40E3C7A8F43ED00D1B2C0F089845;3999.
  ) 
 Here is how much of TeX's memory you used:
- 28996 strings out of 479173
- 561395 string characters out of 2864085
- 892740 words of memory out of 3000000
- 46095 multiletter control sequences out of 15000+600000
- 409906 words of font info for 51 fonts, out of 8000000 for 9000
+ 29057 strings out of 479173
+ 562504 string characters out of 2864085
+ 896744 words of memory out of 3000000
+ 46121 multiletter control sequences out of 15000+600000
+ 410301 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,16n,104p,622b,338s stack positions out of 5000i,500n,10000p,200000b,80000s
-<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Progra
-m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/typ
-e1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr1
-2.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Prog
-ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/Mi
-KTeX/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/ty
-pe1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/am
-sfonts/symbols/msbm10.pfb>
-Output written on "MCMC Scheme Details.pdf" (3 pages, 137842 bytes).
+ 99i,16n,104p,1040b,437s stack positions out of 5000i,500n,10000p,200000b,80000s
+ <C:\Users\ian_p\AppData\Local\MiKTeX\fonts/pk/ljfour/public/bbm/dpi600\bbm12
+.pk><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Prog
+ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/Mi
+KTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+r12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Pr
+ogram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/Mi
+KTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
+msfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbo
+ls/msbm10.pfb>
+Output written on "MCMC Scheme Details.pdf" (9 pages, 188297 bytes).
 PDF statistics:
- 135 PDF objects out of 1000 (max. 8388607)
- 15 named destinations out of 1000 (max. 500000)
- 205 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 233 PDF objects out of 1000 (max. 8388607)
+ 44 named destinations out of 1000 (max. 500000)
+ 293 words of extra memory for PDF output out of 10000 (max. 10000000)
 

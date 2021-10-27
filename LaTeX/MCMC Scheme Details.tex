@@ -122,16 +122,225 @@
 						\frac{Q(\calT | \calT')}{Q(\calT' | \calT)} = \frac{c_d M}{c_b (n+M - 2) (t_i -t_{\hat{i}})}.
 					\]
 				
-		\subsubsection{Updated Version (Uniform location on tree for birth, deterministic deme update for death)}
+		\subsubsection{Updated Version 1 (Uniform location on tree for birth, deterministic deme update for death)}
 			If a migration birth proposal is attempted, a location is selected uniformly on the tree for a new migration node $\hat{i}$ to be born. Otherwise, a migration death proposal is attempted similarly to the migration death proposal of Ewing et al. The key difference for the migration death proposal is that the updated deme is selected deterministically to be the same as the deme above the selected migration event.
 			
 			This results in the modified proposal ratios
 				\[
-					\frac{Q(\calT | \calT')}{Q(\calT' | \calT)} = \frac{c_b \calL}{M+1}
+					\frac{Q_B(\calT | \calT')}{Q_B(\calT' | \calT)} = \frac{c_b \calL}{M+1}
 				\]
 			for the birth proposal, and
 				\[
-					\frac{Q(\calT | \calT')}{Q(\calT' | \calT)} = \frac{M}{c_b \calL}
+					\frac{Q_D(\calT | \calT')}{Q_D(\calT' | \calT)} = \frac{M}{c_b \calL}
 				\]
 			for the death proposal.
+			
+		\subsubsection{Updated Version 2 (Simplified deme selection on birth)}
+			If a migration birth proposal is attempted, continue selecting the location uniformly on the tree, but now select the proposal deme for the newly modified edge from all other demes except the current deme of the edge. This results in always selecting from a set of $d-1$ demes, and may also propose inconsistent deme labellings. To avoid this problem, now reject proposals via the likelihood so that inconsistent configurations are assigned likelihood 0.
+			
+			This new change results in the modified proposal ratios
+				\[
+					\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} = \frac{(d-1) \calL}{M+1}
+				\]
+			for the birth proposal, and
+				\[
+					\frac{Q_D (\calT | \calT')}{Q_D (\calT' | \calT)} = \frac{M}{(d-1)\calL}
+				\]
+			for the death proposal.
+	
+		\subsection{Migration Pair Birth/Death Proposal}
+			The migration pair birth/death proposal aims to add or remove a pair of migration nodes from the migration history, reassigning demes as necessary to require a consistent migration history. With probability $\frac{1}{2}$ a pair birth proposal is attempted, and otherwise a pair death proposal is attempted.
+			
+			\subsubsection{Ewing et al. (2004) Version}
+				Begin by selecting an edge $e = \langle i,j \rangle \in \calE$ is selected uniformly at random. If a migration pair birth event is attempted, two new nodes $\ihat_1, \ihat_2$ are placed at locations uniformly along $e$, hence splitting edge $e$ into 3 new edges. The demes of these 3 edges are then updated so that the outer edges (ending on either $i$ or $j$) have the same deme as edge $e$, and the central edge $\langle \ihat_1, \ihat_2 \rangle$ has a deme not equal to that of edge $e$.
+				
+				Otherwise, if a migration pair death event is attempted, the nodes $i$ and $j$ are removed from the tree subject to both $i$ and $j$ being migration nodes, and all of the edges adjacent to $e$ arising from the same deme. If either of these conditions fail, the proposal is assigned a proposal ratio of 0.
+				
+				The proposal ratio for the migration pair birth proposal is then given by
+					\begin{align*}
+						Q_B(\calT' | \calT) & = \bbP [\substack{\text{Selected} \\ \text{edge}}] \cdot \bbP [\substack{\text{Selected} \\ \text{deme}}] \cdot \bbP [\substack{\text{New node} \\ \text{times}}] \\
+							& = \frac{1}{2n + M - 2} \cdot \frac{1}{d-1} \cdot \frac{2}{\delta t^2} \\
+							& = \frac{2}{(2n + M - 2) (d-1) \delta t^2}, \\
+						Q_B (\calT | \calT') & = \bbP [ \substack{\text{Selected} \\ \text{edge}}] \\
+							& = \frac{1}{2n + M}, \\
+						\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} & = \frac{(2n + M - 2) (d-1) \delta t^2}{2(2n + M)}
+					\end{align*}
+				where $\delta t$ denotes the time between the targetted pair of migration nodes.
+				
+				Similarly, the proposal ratio for the migration death proposal is given by
+					\[
+						\frac{Q_D( \calT | \calT')}{Q_D (\calT' | \calT)} = \frac{2 (2n+M-2)}{(2n + M - 4) (d-1) \delta t^2}.
+					\]
+					
+			\subsubsection{Updated Version 1}
+				Begin by selecting a branch of the \textbf{genealogy}, with probability proportional to its length (sufficient to sample a point uniformly along the tree and take the edge of the genealogy where it lands). If a migration pair birth is proposal is attempted, sample two locations uniformly along the selected branch and a deme selected uniformly from the $d$ possible demes. The proposal will fail if
+				
+					\begin{enumerate}[(i)]
+						\item There exists a migration event between the two proposed times
+						\item The deme selected leads to an incompatible deme labelling (rejected via the likelihood not the proposal ratio).
+					\end{enumerate}
+				
+				If a migration death proposal is attempted, let $M_b$ denote the number of migration nodes on the selected branch. If $M_b \geq 2$, select a pair of consecutive migration nodes along the branch (if $M_b < 2$, reject the proposal). Then the proposal is completed by deleting the two selected migration nodes.The proposal will fail if
+					
+					\begin{enumerate}[(i)]
+						\item There are fewer than 2 migration nodes along the branch ($M_b < 2$) 
+						\item The exterior demes lead to an incompatible deme labelling (rejected via the likelihood not the proposal ratio).
+					\end{enumerate}
+				
+				This change to the proposal mechanism results in the new proposal ratios
+					\begin{align*}
+						Q_B(\calT' | \calT) & = \bbP[ \substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[ \substack{\text{New node} \\ \text{times}}] \cdot \bbP[\substack{\text{Selected} \\ \text{deme}}] \\
+							& = \frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{d} \\
+							& = \frac{2}{\calL \calL_b d}, \\
+						Q_B (\calT | \calT') & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{Selected pair} \\ \text{of nodes}}] \\
+							& = \frac{\calL_b}{\calL} \cdot \frac{1}{M_b - 1} \\
+							& = \frac{\calL_b}{\calL (M_b - 1)}, \\
+						\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} & = \frac{\calL_b ^2 d}{2(M_b - 1)}
+					\end{align*}
+			
+			\subsubsection{Updated Version 2 (Jere's version?)}
+				Pair birth:
+					\begin{enumerate}[(i)]
+						\item Sample branch from the genealogy proportional to its length
+						\item Sample two locations uniformly along the branch
+						\item Sample 2 demes to be pulled inwards from the proposed locations (can sample deme uniformly from set of demes not equal to current deme at that location)
+						\item Pull proposed demes inwards from proposed locations towards centre of branch until hitting a migration node (or the other sampled location)
+					\end{enumerate}
+			
+				\begin{align*}
+					Q_B (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{New node} \\ \text{times}}] \cdot \bbP[\substack{\text{Selected} \\ \text{demes}}] \\
+						& = \frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}.
+				\end{align*}
+			
+				\begin{align*}
+					\frac{Q_D(\calT | \calT')}{Q_B(\calT' | \calT)} & = \frac{\frac{\calL_b}{\calL} \cdot \frac{2}{(M_b + 1)(M_b + 2)} \cdot \frac{1}{(d-1)^2}}{\frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}} \\
+						& = \frac{\calL_b^2}{(M_b + 1) (M_b + 2)}
+				\end{align*}
+			\\[2ex]
+			
+			Pair death:
+				\begin{enumerate}[(i)]
+					\item Sample branch from the genealogy proportional to its length
+					\item If there are at least 2 migration events on the branch, sample two migration nodes
+					\item Sample 2 demes to be pulled inwards from the proposed locations (if the locations are consecutive, special case recovers Ewing pair death move if both proposed demes are the same)
+					\item Pull proposed demes inwards from proposed locations towards centre of branch until hitting a migration node (including the other sampled migration node)
+				\end{enumerate}
+				\begin{align*}
+					Q_D (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{Selected} \\ \text{nodes}}] \cdot \bbP[\substack{\text{Selected} \\ \text{demes}}] \\
+						& = \frac{\calL_b}{\calL} \cdot \frac{2}{M_b (M_b - 1)} \cdot \frac{1}{(d-1)^2}
+				\end{align*}
+			
+				\begin{align*}
+					\frac{Q_B(\calT | \calT')}{Q_D (\calT' | \calT)} & = \frac{\frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}}{\frac{\calL_b}{\calL} \cdot \frac{2}{M_b (M_b - 1)} \cdot \frac{1}{(d-1)^2}} \\
+						& = \frac{M_b (M_b - 1)}{\calL_b^2}.
+				\end{align*}
+			
+		\subsection{Coalescent Node Merge/Split Proposal}
+			\subsubsection{Ewing et al. (2004) Version}
+				NOTE THAT THE ROOT OF THE TREE IS NOT CLASSED AS A COALESCENT NODE FOR THIS TO WORK
+			
+				Sample a coalescent  node $c$ uniformly at random. With probability $\frac{1}{2}$, a coalescent node split proposal is attempted, and otherwise a coalescent node merge proposal is attempted.
+				
+				If a split proposal is attempted, a coalescent node $i$ is sampled. Denote by $ip$ the parent of $i$ and by $i_1$ and $i_2$ denote the children of $i$. If $ip$ is a migration node, the proposal proceeds by removing node $ip$ and adding nodes $\ihat_1$, $\ihat_2$ at locations uniformly along edges $\langle i_1, i \rangle$ and $\langle i_2, i \rangle$ respectively. Then the demes on edges $\langle i_1, \ihat_1 \rangle$ and $\langle i_2, \ihat_2 \rangle$ are assigned to be the same as the initial demes on edges $\langle i_1, i \rangle$ and $\langle i_2, i \rangle$, and the demes on edges $\langle \ihat_1, i \rangle$ and $\langle \ihat_2, i \rangle$ are assigned to be the same as the initial deme on edge $\langle i, ip \rangle$. If $ip$ is not a migration node, the proposed step is rejected without the MCMC algorithm recording a proposal.
+				
+				If a merge move is attempted, a coalescent node $i$ is sampled. Denote by $ip$ the parent of $i$ and by $i_1$ and $i_2$ denote the children of $i$. If both $i_1$ and $i_2$ are migration nodes, let $ic_1$ and $ic_2$ be the children of $i_1$ and $i_2$. If the demes of edges $\langle ic_1, i_1 \rangle$ and $\langle ic_2, i_2 \rangle$ are not the same, the proposed step is rejected without the MCMC algorithm recording a proposal. Otherwise, the proposal proceeds by removing nodes $i_1$ and $i_2$ and adding node $\ihat$ uniformly along edge $\langle i, \ihat \rangle$. The demes on edges $\langle ic_1, i \rangle$, $\langle ic_2, i \rangle$ and $\langle i, \ihat \rangle$ are set the same as the initial deme on edge $\langle ic_1, i_1 \rangle$. Finally, the deme on edge $\langle \ihat, ip \rangle$ is updated to be same as the initial deme on edge $\langle i_1, i \rangle$. If either $i_1$ or $i_2$ is not a migration node, the proposed step is rejected without the MCMC algorithm recording a proposal.
+				
+				The proposal ratio for the coalescent node split proposal is then given by
+					\begin{align*}
+						Q_S (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{node}}] \cdot \bbP[ \substack{\text{New node} \\ \text{times}} ] \\
+							& = \frac{1}{n-2} \cdot \frac{1}{\delta t_1 \delta t_2} \\
+						Q_M (\calT | \calT') & = \bbP[\substack{\text{Selected} \\ \text{node}}] \cdot \bbP[\substack{\text{New node} \\ \text{time}} ] \\
+							& = \frac{1}{n-2} \cdot \frac{1}{\delta t} \\
+						\frac{Q_M(\calT | \calT')}{Q_S (\calT' | \calT)} & = \frac{\delta t_1 \delta t_2}{\delta t}
+					\end{align*}
+				where $\delta t_j$ denotes the time between the selected node and its $j^\text{th}$ child, and $\delta t$ denotes the time between the selected node and its parent. Similarly, for the coalescent node merge proposal, the proposal ratio is given by
+					\[
+						\frac{Q_S(\calT | \calT')}{Q_M (\calT' | \calT)} = \frac{\delta t}{\delta t_1 \delta t_2}.
+					\]
+					
+			\subsubsection{Updated Version 1 (Treat root as a coalescent node):}
+				Could also treat the root of the tree as a coalescent node. For the split procedure, would need to sample a deme to add two new migration nodes below the root. For the merge procedure, would need to merge two migration nodes from below the root without adding a node above the root.
+				
+				Now need cases for the proposal ratios. If a non-root coalescent node is sampled, they remain unchanged (except $\frac{1}{n-1}$ instead of $\frac{1}{n-2}$) from the Ewing et al. version. If the root is the sampled node, the proposal ratios become for the split proposal
+				
+				\begin{align*}
+					Q_S (\calT' | \calT) & = \frac{1}{n-1} \cdot \frac{1}{d-1} \cdot \frac{1}{\delta t_1 \delta t_2} \\
+					Q_M (\calT | \calT') & = \frac{1}{n-1} \\
+					\frac{Q_M(\calT | \calT')}{Q_S (\calT' | \calT)} & = (d-1) \delta t_1 \delta t_2,
+				\end{align*}
+		
+				and for the merge proposal when sampling the root node,
+				
+				\[
+					\frac{Q_S(\calT | \calT')}{Q_M (\calT' | \calT)} = \frac{1}{(d-1) \delta t_1 \delta t_2}.
+				\]
+				
+	\section{MCMC Testing}
+		Due to the complexity of the proposals involved in a MCMC scheme on the structured coalescent model, verifying the results of the iterations can be difficult. One method to verify the iterations is to use the structured coalescent models to generate realisations from an alternative distribution. For example, this can be achieved by using a Poisson($\lambda$) prior on the number of migration events in the tree (with additional terms in the prior to obtain a full distribution over migration histories).
+		
+		Restricting attention to the case of using a Poisson prior on the number of migration events with only migration birth/death moves. The full prior for the verification model is given by
+			\[
+				p(\theta) = \frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!,
+			\]
+		where the term $\frac{\lambda^M e^{-\lambda}}{M!}$ arises as the Poisson-likelihood of having $m$ migration events on the tree; the term $\left( \frac{1}{\calL} \right)^M$ arises from selecting migration event locations uniformly on the tree; the term $\left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d}$ arises from selecting demes on the $M+1$ disjoint subtrees of the tree with roots either the root of the tree, or migration nodes ($d$ demes to select from for the subtree containing the root and $d-1$ to select from for each of the $M$ subtrees below migration nodes); and the term $M!$ arises from summing over all possible labellings of the $M$ migration events.
+		
+		An algorithm can then be derived which has acceptance probabilities
+			\[
+				\alpha (\calT' | \calT) = \min \left(1, \frac{p(\theta') Q(\calT | \calT')}{p(\theta) Q(\calT' | \calT)} || \calJ ||\right),
+			\]
+		noting that $\theta'$ corresponds to having either added a single migration node (migration birth proposal) or removed a single migration node (migration death proposal).
+		
+		\subsection{Migration Birth/Death Proposals}
+			The prior ratio for the migration birth move is given by
+				\begin{align*}
+					\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M+1} e^{-\lambda}}{(M+1)!} \cdot \left( \frac{1}{\calL} \right)^{M+1} \cdot \left( \frac{1}{d-1} \right)^{M+1} \cdot \frac{1}{d} \cdot (M+1)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+						& = \frac{\lambda}{(d-1) \calL },
+				\end{align*}
+			and the acceptance probability for the second updated version of the move culminates with
+				\[
+					\alpha_B (\calT' | \calT) = \min \left(1, \frac{\lambda}{(d-1) \calL} \frac{(d-1) \calL}{M+1}\right) = \min \left(1, \frac{\lambda }{M+1}\right).
+				\]
+			Similarly, for the migration death move
+				\begin{align*}
+					\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M-1} e^{-\lambda}}{(M-1)!} \cdot \left( \frac{1}{\calL} \right)^{M-1} \cdot \left( \frac{1}{d-1} \right)^{M-1} \cdot \frac{1}{d} \cdot (M-1)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+						& = \frac{(d-1) \calL }{\lambda}
+				\end{align*}
+			and
+				\[
+					\alpha_D (\calT' | \calT) = \min \left(1, \frac{(d-1) \calL}{\lambda} \frac{M}{(d-1) \calL} \right) = \min \left( 1, \frac{M}{\lambda} \right).
+				\]
+				
+			\subsection{Migration Pair Birth/Death Proposals}
+				The prior ratio for the migration birth move is given by
+					\begin{align*}
+						\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M+2} e^{-\lambda}}{(M+2)!} \cdot \left( \frac{1}{\calL} \right)^{M+2} \cdot \left( \frac{1}{d-1} \right)^{M+2} \cdot \frac{1}{d} \cdot (M+2)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+						& = \frac{\lambda^2}{(d-1)^2 \calL^2 },
+					\end{align*}
+				and the prior ratio for the migration death move is given by
+					\begin{align*}
+						\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M -2 } e^{-\lambda}}{(M-2)!} \cdot \left( \frac{1}{\calL} \right)^{M - 2} \cdot \left( \frac{1}{d-1} \right)^{M-2} \cdot \frac{1}{d} \cdot (M-2)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+						& = \frac{(d-1)^2 \calL^2 }{\lambda^2}.
+					\end{align*}
+				
+				The migration pair birth/death proposal MCMC scheme can only update the number of migrations by incrementing it by 2, thus the sample of $M$ will return only odd or even values depending on the initial configuration. Thus, given an $X \sim \text{Poi}(\lambda)$, the sample should be compared with either $X | (X \, \text{even})$ or $X | (X \, \text{odd} )$.
+				
+				In the even case,
+					\[
+						\bbP [X = k | X \, \text{even}] = \frac{\bbP[X = k]}{\bbP[X \, \text{even}]},
+					\]
+				where
+					\begin{align*}
+						\bbP[X \, \text{even}] & = \frac{1}{2} \sum_{j=0}^\infty \frac{\lambda^{j} e^{-\lambda}}{j!} (1 + (-1)^j) \\
+							& = \frac{1}{2} + \frac{e^{-\lambda}}{2} \sum_{j=0}^\infty \frac{(-\lambda)^j}{j!} \\
+							& = \frac{1}{2}(1 + e^{-2 \lambda}),
+					\end{align*}
+				thus
+					\[
+						\bbP [X = k | X \, \text{even}] = \frac{2\lambda^k e^{-\lambda}}{(1 + e^{-2 \lambda}) k!} \mathbbm{1} \{k \, \text{even} \},
+					\]
+				and
+					\[
+					\bbP [X = k | X \, \text{odd}] = \frac{2\lambda^k e^{-\lambda}}{(1 - e^{-2 \lambda}) k!} \mathbbm{1} \{k \, \text{odd} \}.
+					\]
+					
 \end{document}
