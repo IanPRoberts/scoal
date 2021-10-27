@@ -34,7 +34,7 @@ Run $N$ repetitions computing the recursive likelihood under Structured.sim and 
 ```{r}
 N <- 100  #Number of repetitions
 n <- 100  #Sample size
-n.deme <- 2
+n.deme <- 3
 migration.mat <- matrix(runif(n.deme^2, 0, 0.1),n.deme, n.deme)
 
 likelihoods <- matrix(0,nrow = N,ncol = 2)
@@ -344,5 +344,435 @@ for (i in (-N0):N){
 hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
 print("MCMC Sample"); summary(as.factor(Sample))
 print("Poisson Sample"); summary(as.factor(rpois(N, 1)))
+
+```
+
+## Testing MCMC with higher rate Poisson likelihood
+
+In place of the Poisson(1) likelihood used so far in the MCMC schenes, instead use a Poisson($\lambda$). Begin with $\lambda = 10$.
+
+```{r}
+lambda <- 10
+
+N0 <- 0 #1e2  #Number of burn-in iterations
+N <- 1e5  #Number of MCMC iterations
+
+p <- 1/2 #Probability of proposing a migration birth
+
+n <- 10  #Number of leaves in the tree
+n.deme <- 10
+
+Data <- matrix(c(1:n, rep(0, n), sample.vector(1:n.deme, n, TRUE)), n, 3)
+migration.mat <- matrix(0.03, n.deme, n.deme)
+diag(migration.mat) <- 0
+
+phylo <- Structured.sim(Data, 1, 1, n.deme, migration.mat)
+
+ED <- phylo.to.ed(phylo)
+
+Sample <- numeric(N)
+
+for (i in (-N0):N){
+  U <- runif(1)
+  M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+  if (U <= p){
+    proposal <- ed.mig.birth.4(ED, n.deme, FALSE)
+    accept.prob <- min(1, lambda/(M+1))
+    
+  } else {
+    proposal <- ed.mig.death.4(ED, n.deme, FALSE)
+    accept.prob <- min(1, M/lambda)
+    
+  }
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){  #ACCEPT
+    ED <- proposal$ED
+    if (i > 0){
+      Sample[i] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+      }
+  } else{  #REJECT
+    if (i > 0){
+      Sample[i] <- M
+    }
+  }
+}
+
+hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+lines(0:150, dpois(0:150, lambda))
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, lambda)))
+plot(Sample, type = 'l')
+```
+
+
+
+## Migration Pair Birth/Death MCMC
+
+Now test the Poisson($\lambda$) MCMC algorithm with only the use of migration pair birth/death moves.
+
+```{r}
+set.seed(10)
+lambda <- 10
+
+N0 <- 1e3 #Number of burn-in iterations
+N <- 1e5  #Number of MCMC iterations
+
+p <- 1/2 #Probability of proposing a migration birth
+
+n <- 10  #Number of leaves in the tree
+n.deme <- 2
+
+Data <- matrix(c(1:n, rep(0, n), sample.vector(1:n.deme, n, TRUE)), n, 3)
+migration.mat <- matrix(0.03, n.deme, n.deme)
+diag(migration.mat) <- 0
+
+phylo <- Homochronous.Sim(1:n, 1, 1)
+phylo$node.deme <- rep(1, 2 * n - 1)
+
+ED <- phylo.to.ed(phylo)
+
+Sample <- numeric(N)
+
+##### CALCULATE TREE LENGTH
+  root.node <- ED[is.na(ED[,2]), 1]
+  
+  edge.length <- numeric(dim(ED)[1])
+  non.root.nodes <- ED[ED[,1] != root.node, 1]
+  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
+  for (j in non.root.nodes){
+    node.row <- which(ED[,1] == j)
+    parent.row <- which(ED[,1] == ED[node.row, 2])
+    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
+  }
+  tree.length <- sum(edge.length)  #Total tree length
+
+
+for (i in (-N0):N){
+  #if (i >= 1170 ){
+  #  browser()
+  #  print(ED)
+  #  }
+  U <- runif(1)
+  M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+  if (U <= p){
+    proposal <- ed.mig.pair.birth(ED, n.deme)
+    accept.prob <- min(1, (lambda / ((n.deme - 1) * tree.length))^2 * proposal$prop.ratio )
+    
+  } else {
+    proposal <- ed.mig.pair.death(ED, n.deme)
+    accept.prob <- min(1, ((n.deme - 1) * tree.length / lambda)^2 * proposal$prop.ratio)
+  }
+  
+  V <- runif(1)
+  
+  if (V <= accept.prob){  #ACCEPT
+    ED <- proposal$ED
+    if (i > 0){
+      Sample[i] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+      }
+  } else{  #REJECT
+    if (i > 0){
+      Sample[i] <- M
+    }
+  }
+}
+
+hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+k <- seq(0, 150, 2)
+lines(k, 2*lambda^k * exp(-lambda) / ((1 + exp(-2 * lambda)) * factorial(k)))
+#lines(0:150, dpois(0:150, lambda/2))
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, lambda)))
+plot(Sample, type = 'l')
+```
+
+```{r}
+n <- 3
+n.deme <- 5
+
+Data <- matrix(c(1:n, rep(0, n), sample.vector(1:n.deme, n, TRUE)), n, 3)
+migration.mat <- matrix(0.03, n.deme, n.deme)
+diag(migration.mat) <- 0
+
+phylo <- Structured.sim(Data, 1, 1, n.deme, migration.mat)
+structured.plot(phylo); tiplabels(frame = "none"); nodelabels(frame = "none")
+ED <- phylo.to.ed(phylo)
+
+for (i in 1:100){
+  ED <- ed.mig.pair.birth.2(ED, n.deme)$ED
+}
+structured.plot(ed.to.phylo(ED))
+for (i in 1:100){
+  ED <- ed.mig.pair.death.2(ED, n.deme)$ED
+}
+```
+
+
+```{r}
+#set.seed(10)
+lambda <- 50
+
+N0 <- 1e3 #Number of burn-in iterations
+N <- 1e7  #Number of MCMC iterations
+
+p <- 1/2 #Probability of proposing a migration birth
+
+n <- 20  #Number of leaves in the tree
+n.deme <- 10
+
+phylo <- Homochronous.Sim(1:n, 1, 1)
+phylo$node.deme <- rep(1, 2 * n - 1)
+
+ED <- phylo.to.ed(phylo)
+
+Sample <- matrix(0, N, 3)
+
+##### CALCULATE TREE LENGTH
+  root.node <- ED[is.na(ED[,2]), 1]
+  
+  edge.length <- numeric(dim(ED)[1])
+  non.root.nodes <- ED[ED[,1] != root.node, 1]
+  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
+  for (j in non.root.nodes){
+    node.row <- which(ED[,1] == j)
+    parent.row <- which(ED[,1] == ED[node.row, 2])
+    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
+  }
+  tree.length <- sum(edge.length)  #Total tree length
+
+for (i in (-N0):N){
+  #if (i >= 1170 ){
+  #  browser()
+  #  print(ED)
+  #  }
+  
+  W <- runif(1)
+
+  if (W < 0.01){
+    U <- runif(1)
+    M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+    if (U <= p){
+      proposal <- ed.mig.birth.4(ED, n.deme, FALSE)
+      accept.prob <- min(1, lambda/(M+1))
+      if (i > 0){
+        Sample[i, 2] <- 1
+      }
+      
+    } else {
+      proposal <- ed.mig.death.4(ED, n.deme, FALSE)
+      accept.prob <- min(1, M/lambda)
+      if (i > 0){
+        Sample[i, 2] <- 2
+      }
+    }
+    
+    V <- runif(1)
+    
+    if (V <= accept.prob){  #ACCEPT
+      #browser()
+      ED <- proposal$ED
+      if (i > 0){
+        Sample[i,1] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+        Sample[i,3] <- 1
+        }
+    } else{  #REJECT
+      if (i > 0){
+        Sample[i,1] <- M
+      }
+    }
+  } else{
+    U <- runif(1)
+    M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+    if (U <= p){
+      proposal <- ed.mig.pair.birth(ED, n.deme)
+      accept.prob <- min(1, (lambda / ((n.deme - 1) * tree.length))^2 * proposal$prop.ratio )
+      if (i > 0){
+        Sample[i, 2] <- 3
+      }
+    } else {
+      proposal <- ed.mig.pair.death(ED, n.deme)
+      accept.prob <- min(1, ((n.deme - 1) * tree.length / lambda)^2 * proposal$prop.ratio)
+      if (i > 0){
+        Sample[i, 2] <- 4
+      }
+    }
+    
+    V <- runif(1)
+    
+    if (V <= accept.prob){  #ACCEPT
+      ED <- proposal$ED
+      if (i > 0){
+        Sample[i,1] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+        Sample[i,3] <- 1
+        }
+    } else{  #REJECT
+      if (i > 0){
+        Sample[i,1] <- M
+      }
+    }
+  }
+}
+  
+hist(Sample[,1], breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+k <- seq(0, 150, 2)
+#lines(k, 2*lambda^k * exp(-lambda) / ((1 + exp(-2 * lambda)) * factorial(k)))
+lines(0:150, dpois(0:150, lambda))
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, lambda)))
+plot(Sample[,1], type = 'l')
+summary(as.factor(Sample[,2]))
+sum(Sample[Sample[,2] %in% c(3, 4),3] )
+sum(Sample[,3])
+
+```
+
+
+## Full MCMC Scheme Testing
+
+```{r}
+#set.seed(10)
+lambda <- 10
+
+N0 <- 1e3 #Number of burn-in iterations
+N <- 1e7  #Number of MCMC iterations
+
+p <- 1/2 #Probability of proposing a migration birth
+
+n <- 3  #Number of leaves in the tree
+n.deme <- 3
+
+phylo <- Homochronous.Sim(1:n, 1, 1)
+phylo$node.deme <- rep(1, 2 * n - 1)
+
+ED <- phylo.to.ed(phylo)
+
+Sample <- matrix(0, N, 3)
+
+##### CALCULATE TREE LENGTH
+  root.node <- ED[is.na(ED[,2]), 1]
+  
+  edge.length <- numeric(dim(ED)[1])
+  non.root.nodes <- ED[ED[,1] != root.node, 1]
+  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
+  for (j in non.root.nodes){
+    node.row <- which(ED[,1] == j)
+    parent.row <- which(ED[,1] == ED[node.row, 2])
+    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
+  }
+  tree.length <- sum(edge.length)  #Total tree length
+
+for (i in (-N0):N){
+  #if (max(ED[,1]) >= 65 ){browser(); print(ED)}
+  #if (i == -740) {browser()}
+  
+  W <- runif(1)
+
+  if (W < 0.01){
+    U <- runif(1)
+    M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+    if (U <= p){
+      proposal <- ed.mig.birth.4(ED, n.deme, FALSE)
+      accept.prob <- min(1, lambda/(M+1))
+      if (i > 0){
+        Sample[i, 2] <- 1
+      }
+      
+    } else {
+      proposal <- ed.mig.death.4(ED, n.deme, FALSE)
+      accept.prob <- min(1, M/lambda)
+      if (i > 0){
+        Sample[i, 2] <- 2
+      }
+    }
+    
+    V <- runif(1)
+    
+    if (V <= accept.prob){  #ACCEPT
+      #browser()
+      ED <- proposal$ED
+      if (i > 0){
+        Sample[i,1] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+        Sample[i,3] <- 1
+        }
+    } else{  #REJECT
+      if (i > 0){
+        Sample[i,1] <- M
+      }
+    }
+  } else if (W < 1/2) {
+    U <- runif(1)
+    M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+    if (U <= p){
+      proposal <- ed.mig.pair.birth(ED, n.deme)
+      accept.prob <- min(1, (lambda / ((n.deme - 1) * tree.length))^2 * proposal$prop.ratio )
+      if (i > 0){
+        Sample[i, 2] <- 3
+      }
+    } else {
+      proposal <- ed.mig.pair.death(ED, n.deme)
+      accept.prob <- min(1, ((n.deme - 1) * tree.length / lambda)^2 * proposal$prop.ratio)
+      if (i > 0){
+        Sample[i, 2] <- 4
+      }
+    }
+    
+    V <- runif(1)
+    
+    if (V <= accept.prob){  #ACCEPT
+      ED <- proposal$ED
+      if (i > 0){
+        Sample[i,1] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+        Sample[i,3] <- 1
+        }
+    } else{  #REJECT
+      if (i > 0){
+        Sample[i,1] <- M
+      }
+    }
+  } else{
+    U <- runif(1)
+    M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
+    if (U <= p){
+      proposal <- ed.coal.split(ED, n.deme)
+      accept.prob <- min(1, (lambda / ((n.deme - 1) * tree.length)) * proposal$prop.ratio )
+      if (i > 0){
+        Sample[i, 2] <- 5
+      }
+    } else {
+      proposal <- ed.coal.merge(ED, n.deme)
+      accept.prob <- min(1, ((n.deme - 1) * tree.length / lambda) * proposal$prop.ratio)
+      if (i > 0){
+        Sample[i, 2] <- 6
+      }
+    }
+    
+    V <- runif(1)
+    
+    if (V <= accept.prob){  #ACCEPT
+      ED <- proposal$ED
+      if (i > 0){
+        Sample[i,1] <- length(proposal$ED[ is.na(proposal$ED[,4]) & (!is.na(proposal$ED[,3])), 1])
+        Sample[i,3] <- 1
+        }
+    } else{  #REJECT
+      if (i > 0){
+        Sample[i,1] <- M
+      }
+    }
+  }
+}
+  
+hist(Sample[,1], breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+k <- seq(0, 150, 2)
+#lines(k, 2*lambda^k * exp(-lambda) / ((1 + exp(-2 * lambda)) * factorial(k)))
+lines(0:150, dpois(0:150, lambda))
+print("MCMC Sample"); summary(as.factor(Sample))
+print("Poisson Sample"); summary(as.factor(rpois(N, lambda)))
+plot(Sample[,1], type = 'l')
+summary(as.factor(Sample[,2]))
+sum(Sample[Sample[,2] %in% c(3, 4),3] )
+sum(Sample[,3])
 
 ```
