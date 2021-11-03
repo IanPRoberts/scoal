@@ -1,0 +1,115 @@
+#' Block Recolouring MCMC Proposal
+#'
+#' Performs a block recolouring MCMC proposal on a structured coalescent
+#' migration history. A block of the migration history currently in a single
+#' deme is migrated into a new deme selected uniformly from all other demes. If
+#' an inconsistent migration history is obtained, the move will be rejected.
+#'
+#' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
+#' @param n.deme Number of distinct demes in the population
+#'
+#' @return Updated extended data object with the proposal from the block recolouring proposal
+#'
+#' @export
+
+ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
+  root.node <- ED[is.na(ED[,2]), 1]
+  coalescence.nodes <- ED[!is.na(ED[,4]),1]
+  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
+  leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
+  migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
+
+  if (length(migration.nodes) == 0){
+    proposal.deme <- sample.vector((1:n.deme)[-ED[1, 5]], 1)
+    ED[,5] <- proposal.deme
+
+    return(list(ED = ED, prop.ratio = 1))
+  }
+
+
+  edge.length <- numeric(dim(ED)[1])
+  non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
+  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
+  for (j in non.root.nodes){
+    node.row <- which(ED[,1] == j)
+    parent.row <- which(ED[,1] == ED[node.row, 2])
+    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
+  }
+
+  tree.length <- sum(edge.length)  #Total tree length
+  new.location <- runif(1, 0, tree.length)  #Uniform location along tree.length
+
+  child.row <- min(which(cumsum(edge.length) >= new.location))
+  child.node <- ED[child.row, 1]
+
+  parent.node <- ED[child.row, 2]
+  parent.row <- which(ED[,1] == parent.node)
+
+  #Sweep upwards until hitting the root or a migration node
+  subtree.root <- parent.node
+  while (!(subtree.root %in% c(migration.nodes, root.node))){
+    subtree.root.row <- which(ED[,1] == subtree.root)
+    subtree.root <- ED[subtree.root.row, 2]
+  }
+
+  #Sweep downwards until hitting migration nodes
+  if (subtree.root == root.node){
+    subtree.root.row <- which(ED[,1] == subtree.root)
+    active.nodes <- ED[subtree.root.row, 3:4]
+    subtree.nodes <- c(subtree.root, active.nodes)
+  } else{
+    subtree.root.row <- which(ED[,1] == subtree.root)
+    active.nodes <- ED[subtree.root.row, 3]
+    subtree.nodes <- c(subtree.root, active.nodes)
+  }
+
+  while (! all(active.nodes %in% migration.nodes)){
+    active.nodes <- active.nodes[! (active.nodes %in% c(migration.nodes, leaf.nodes))]
+
+    for (j in active.nodes){
+      j.row <- which(ED[,1] == j)
+      subtree.nodes <- c(subtree.nodes, ED[j.row, 3:4])  #Add children of i to subtree
+      active.nodes <- c(active.nodes[active.nodes != j], ED[j.row, 3:4])  #Remove i from active nodes, add children
+    }
+  }
+
+  if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
+    # REJECT
+    return(list(ED = ED, prop.ratio = 0))
+  } else{
+    #Continue proposal
+    subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
+    if (subtree.root %in% subtree.leaves){
+      subtree.leaves <- subtree.leaves[subtree.leaves != subtree.root]
+    }
+    old.deme <- ED[child.row, 5]
+
+    proposal.deme <- sample.vector((1:n.deme)[- old.deme], 1)  #Propose deme update without accounting for surrounding demes
+
+    for (j in subtree.leaves){  #Verify proposal.deme does not add any migrations from one deme into itself
+      j.row <- which(ED[,1] == j)
+      j.child <- ED[j.row, 3]
+      j.child.row <- which(ED[,1] == j.child)
+
+      if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
+        #REJECT
+        return(list(ED = ED, prop.ratio = 0))
+      }
+    }
+
+    if (subtree.root != root.node){
+      if (ED[subtree.root.row, 5] == proposal.deme){
+        #REJECT
+        return(list(ED = ED, prop.ratio = 0))
+      }
+    }
+
+    #Update deme across subtree
+    for (j in subtree.nodes[subtree.nodes != subtree.root]){
+      row <- which(ED[,1] == j)
+      ED[row, 5] <- proposal.deme
+    }
+
+    return(list(ED = ED, prop.ratio = 1))
+  }
+}
