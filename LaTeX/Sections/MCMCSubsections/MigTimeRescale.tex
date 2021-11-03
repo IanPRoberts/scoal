@@ -1,0 +1,21 @@
+An alternative form of move which may be useful is to shift a migration node in time without modifying any other parameters. A migration node rescaling proposal will select a migration node uniformly at random and propose an update to the time of the event. To simplify the form of the move, the updated time will be required to still remain between the initial parent and child nodes within the migration history.
+
+\subsection{Option 1 (Resample event time uniformly along edge):}
+	The updated time of the migration node could be selected by simply resampling a uniform time between the time of the selected node's parent and child nodes. Similarly to the block recolouring move, the migration time rescaling move will be self-inverting. The proposal probability is given by
+		\begin{align*}
+			Q_{TR} (\calT' | \calT) & = \bbP[\substack{\text{Selected migration} \\ \text{node}}] \cdot \bbP [\substack{\text{New node} \\ \text{time}}] \\
+				& = \frac{1}{M} \frac{1}{\delta t}
+		\end{align*}
+	where $M$ denotes the number of migration nodes and $\delta t$ denotes the difference in times between the parent and child of the selected migration node. The proposal ratio is then given by
+		\[
+			\frac{Q_{TR} (\calT | \calT')}{Q_{TR} (\calT' | \calT)} = 1.
+		\]
+
+\subsection{Option 2 (Perturb current event time with reflecting boundaries):}
+	Alternatively, the updated time of the migration node could be selected by perturbing the current time according to a normal distribution centred on the current time. The new node time $t'$ would hence be given by
+		\[
+			t' \sim N(t, \sigma^2)
+		\]
+	for some suitably chosen variance $\sigma^2$ (POSSIBLY SELECTED USING ADAPTIVE MCMC??).
+	
+	To preserve the ordering of the migration history, reflecting boundaries should be introduced at the times of the parent and child nodes. So, if the proposed time would fall outside of the interval of interest, reflect the "excess difference" back into the interval.

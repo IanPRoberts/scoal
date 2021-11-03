@@ -1,0 +1,50 @@
+The migration birth/death proposal aims to add or remove a single migration node from the migration history, reassigning demes as necessary to maintain a consistent migration history. With probability $\frac{1}{2}$ a birth proposal is attempted, and otherwise a death proposal is attempted.
+
+\subsubsection{Ewing et al. (2004) Version}
+If a migration birth event is attempted, a new migration node $\ihat$ is proposed to be born at a location uniformly distributed along edge $\langle i, ip \rangle$. Otherwise, if a migration death event is attempted, set $\ihat$ to be the parent of $ip$ and remove node $ip$ from the edge $\langle i, \ihat \rangle$
+
+For any pair of vertices $i,j \in \calV$, let $\calT_{\langle i, j \rangle}$ denote the maximal subtree of $\calT$ containing edge $\langle i, j \rangle$ such that the terminal nodes of $\calT_{\langle i, j \rangle}$ are either migration or leaf nodes.
+
+Then the proposal is completed by selecting a deme $\hat{d}$ over the subtree $\calT_{\langle i, \ihat \rangle}$ such that $\hat{d}$ is not equal to the deme of any edge connected to $\calT_{\langle i, \ihat \rangle}$ or the deme of edge $\langle i, \ihat \rangle$ itself. If no deme $\hat{d}$ exists then the proposal is rejected with probability 1. Note that a migration birth/death move is not possible when there are only 2 demes as there is no way to choose a new deme consistent with the surrounding demes.
+
+The proposal ratio for the migration birth move is then given by
+\begin{align*}
+	Q( \calT' | \calT) & = \bbP \left[ \substack{\text{Selected node} \\ \text{from} \, \calT} \right] \cdot \bbP[\substack{\text{Selected}\\ \text{deme}}] \cdot \bbP[\substack{\text{New node} \\ \text{time}}] \\
+	& = \frac{1}{n-1+M} \cdot \frac{1}{c_b} \frac{1}{t_i - t_{ip}} \\
+	& = \frac{1}{(n+M-1)c_b (t_i - t_{ip})}; \\[1ex]
+	Q(\calT | \calT') & = \bbP[\substack{\text{Selected migration} \\ \text{node from} \, \calT'}] \cdot \bbP[\substack{\text{Selected} \\ \text{deme}}] \\
+	& = \frac{1}{M+1} \cdot \frac{1}{c_d}; \\
+	\frac{Q(\calT | \calT')}{Q(\calT' | \calT)} & = \frac{c_b (n+M-1) (t_i - t_{ip})}{c_d(M+1)}
+\end{align*}
+where $c_b$ and $c_d$ are the number of demes which could be proposed for the birth and death proposals respectively.
+
+Similarly, the proposal ratio for the migration death move is given by
+\[
+\frac{Q(\calT | \calT')}{Q(\calT' | \calT)} = \frac{c_d M}{c_b (n+M - 2) (t_i -t_{\hat{i}})}.
+\]
+
+\subsubsection{Updated Version 1 (Uniform location on tree for birth, deterministic deme update for death)}
+If a migration birth proposal is attempted, a location is selected uniformly on the tree for a new migration node $\hat{i}$ to be born. Otherwise, a migration death proposal is attempted similarly to the migration death proposal of Ewing et al. The key difference for the migration death proposal is that the updated deme is selected deterministically to be the same as the deme above the selected migration event.
+
+This results in the modified proposal ratios
+\[
+\frac{Q_B(\calT | \calT')}{Q_B(\calT' | \calT)} = \frac{c_b \calL}{M+1}
+\]
+for the birth proposal, and
+\[
+\frac{Q_D(\calT | \calT')}{Q_D(\calT' | \calT)} = \frac{M}{c_b \calL}
+\]
+for the death proposal.
+
+\subsubsection{Updated Version 2 (Simplified deme selection on birth)}
+If a migration birth proposal is attempted, continue selecting the location uniformly on the tree, but now select the proposal deme for the newly modified edge from all other demes except the current deme of the edge. This results in always selecting from a set of $d-1$ demes, and may also propose inconsistent deme labellings. To avoid this problem, now reject proposals via the likelihood so that inconsistent configurations are assigned likelihood 0.
+
+This new change results in the modified proposal ratios
+\[
+\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} = \frac{(d-1) \calL}{M+1}
+\]
+for the birth proposal, and
+\[
+\frac{Q_D (\calT | \calT')}{Q_D (\calT' | \calT)} = \frac{M}{(d-1)\calL}
+\]
+for the death proposal.

@@ -1,0 +1,38 @@
+\subsubsection{Ewing et al. (2004) Version}
+	NOTE THAT THE ROOT OF THE TREE IS NOT CLASSED AS A COALESCENT NODE FOR THIS TO WORK
+	
+	Sample a coalescent  node $c$ uniformly at random. With probability $\frac{1}{2}$, a coalescent node split proposal is attempted, and otherwise a coalescent node merge proposal is attempted.
+	
+	If a split proposal is attempted, a coalescent node $i$ is sampled. Denote by $ip$ the parent of $i$ and by $i_1$ and $i_2$ denote the children of $i$. If $ip$ is a migration node, the proposal proceeds by removing node $ip$ and adding nodes $\ihat_1$, $\ihat_2$ at locations uniformly along edges $\langle i_1, i \rangle$ and $\langle i_2, i \rangle$ respectively. Then the demes on edges $\langle i_1, \ihat_1 \rangle$ and $\langle i_2, \ihat_2 \rangle$ are assigned to be the same as the initial demes on edges $\langle i_1, i \rangle$ and $\langle i_2, i \rangle$, and the demes on edges $\langle \ihat_1, i \rangle$ and $\langle \ihat_2, i \rangle$ are assigned to be the same as the initial deme on edge $\langle i, ip \rangle$. If $ip$ is not a migration node, the proposed step is rejected without the MCMC algorithm recording a proposal.
+	
+	If a merge move is attempted, a coalescent node $i$ is sampled. Denote by $ip$ the parent of $i$ and by $i_1$ and $i_2$ denote the children of $i$. If both $i_1$ and $i_2$ are migration nodes, let $ic_1$ and $ic_2$ be the children of $i_1$ and $i_2$. If the demes of edges $\langle ic_1, i_1 \rangle$ and $\langle ic_2, i_2 \rangle$ are not the same, the proposed step is rejected without the MCMC algorithm recording a proposal. Otherwise, the proposal proceeds by removing nodes $i_1$ and $i_2$ and adding node $\ihat$ uniformly along edge $\langle i, \ihat \rangle$. The demes on edges $\langle ic_1, i \rangle$, $\langle ic_2, i \rangle$ and $\langle i, \ihat \rangle$ are set the same as the initial deme on edge $\langle ic_1, i_1 \rangle$. Finally, the deme on edge $\langle \ihat, ip \rangle$ is updated to be same as the initial deme on edge $\langle i_1, i \rangle$. If either $i_1$ or $i_2$ is not a migration node, the proposed step is rejected without the MCMC algorithm recording a proposal.
+	
+	The proposal ratio for the coalescent node split proposal is then given by
+		\begin{align*}
+			Q_S (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{node}}] \cdot \bbP[ \substack{\text{New node} \\ \text{times}} ] \\
+			& = \frac{1}{n-2} \cdot \frac{1}{\delta t_1 \delta t_2} \\
+			Q_M (\calT | \calT') & = \bbP[\substack{\text{Selected} \\ \text{node}}] \cdot \bbP[\substack{\text{New node} \\ \text{time}} ] \\
+			& = \frac{1}{n-2} \cdot \frac{1}{\delta t} \\
+			\frac{Q_M(\calT | \calT')}{Q_S (\calT' | \calT)} & = \frac{\delta t_1 \delta t_2}{\delta t}
+		\end{align*}
+	where $\delta t_j$ denotes the time between the selected node and its $j^\text{th}$ child, and $\delta t$ denotes the time between the selected node and its parent. Similarly, for the coalescent node merge proposal, the proposal ratio is given by
+		\[
+			\frac{Q_S(\calT | \calT')}{Q_M (\calT' | \calT)} = \frac{\delta t}{\delta t_1 \delta t_2}.
+		\]
+
+\subsubsection{Updated Version 1 (Treat root as a coalescent node):}
+	Could also treat the root of the tree as a coalescent node. For the split procedure, would need to sample a deme to add two new migration nodes below the root. For the merge procedure, would need to merge two migration nodes from below the root without adding a node above the root.
+	
+	Now need cases for the proposal ratios. If a non-root coalescent node is sampled, they remain unchanged (except $\frac{1}{n-1}$ instead of $\frac{1}{n-2}$) from the Ewing et al. version. If the root is the sampled node, the proposal ratios become for the split proposal
+	
+	\begin{align*}
+		Q_S (\calT' | \calT) & = \frac{1}{n-1} \cdot \frac{1}{d-1} \cdot \frac{1}{\delta t_1 \delta t_2} \\
+		Q_M (\calT | \calT') & = \frac{1}{n-1} \\
+		\frac{Q_M(\calT | \calT')}{Q_S (\calT' | \calT)} & = (d-1) \delta t_1 \delta t_2,
+	\end{align*}
+	
+	and for the merge proposal when sampling the root node,
+	
+	\[
+		\frac{Q_S(\calT | \calT')}{Q_M (\calT' | \calT)} = \frac{1}{(d-1) \delta t_1 \delta t_2}.
+	\]

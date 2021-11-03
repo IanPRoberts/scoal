@@ -1,0 +1,30 @@
+Fix a structured coalescent phylogeny and the evolutionary parameters (migration matrix, effective populations). Construct a MCMC algorithm inspired by Ewing et al. (2004) with the following three types of proposal move
+	\begin{enumerate}
+		\item Migration Birth/Death Move
+		\item Migration Pair Birth/Death Move
+		\item Coalescent Node Split/Merge Move
+	\end{enumerate}
+which obtain irreducibility over the space of migration histories on a fixed phylogeny with fixed evolutionary parameters.
+
+The acceptance probabilities of each of the above types of proposal move takes the form
+	\begin{equation}
+		\alpha(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT') Q(\calT | \calT')}{L(\calT) \pi(\calT) Q(\calT' | \calT)} || \calJ || \right)
+	\end{equation}
+where $L$ denotes the joint likelihood of the phylogeny and migration history, $\pi$ denotes the prior distribution on the phylogeny, $Q(\calT' | \calT)$ denotes the transition probability of obtaining $\calT'$ from $\calT$, and $\calJ$ denotes the Jacobian of the transformation.
+
+In all three cases, the transformations simply add or remove nodes from the migration history, and hence the term $||\calJ||$ is identically equal to 1. Similarly, the phylogeny is fixed and hence the prior ratio $\frac{\pi(\calT')}{\pi(\calT)} = 1$ also.
+
+\subsection{Migration Birth/Death Proposal}
+	\input{Sections/MCMCSubsections/MigBirthDeath}
+	
+\subsection{Migration Pair Birth/Death Proposal}
+	\input{Sections/MCMCSubsections/MigPairBirthDeath}
+	
+\subsection{Coalescent Node Split/Merge Proposal}
+	\input{Sections/MCMCSubsections/CoalSplitMerge}
+	
+\subsection{Block Recolouring Proposal}
+	\input{Sections/MCMCSubsections/BlockRecolour}
+	
+\subsection{Migration Time Rescale}
+	\input{Sections/MCMCSubsections/MigTimeRescale}

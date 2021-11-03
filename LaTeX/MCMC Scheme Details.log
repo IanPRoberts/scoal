@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  1 NOV 2021 08:28
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  3 NOV 2021 09:55
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -931,43 +931,47 @@ LaTeX Info: Redefining \nameref on input line 64.
 \@outlinefile=\write7
 \openout7 = `"MCMC Scheme Details.out"'.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 67.
 
-
-(C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
+(Sections/Notation.tex
+LaTeX Font Info:    Trying to load font information for U+msa on input line 2.
+ (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 67.
-
+LaTeX Font Info:    Trying to load font information for U+msb on input line 2.
 
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [1
+))
+(Sections/StrucCoalLike.tex) (Sections/MCMC.tex [1
 
-{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] [2] [3] [4]
-Underfull \hbox (badness 10000) in paragraph at lines 218--220
+{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] (Sections/MCMCS
+ubsections/MigBirthDeath.tex
+[2]) (Sections/MCMCSubsections/MigPairBirthDeath.tex [3] [4]
+Underfull \hbox (badness 10000) in paragraph at lines 67--69
 
  []
 
-[5] [6] [7] [8] [9]
-LaTeX Font Info:    Trying to load font information for U+bbm on input line 358
-.
+[5]) (Sections/MCMCSubsections/CoalSplitMerge.tex [6])
+(Sections/MCMCSubsections/BlockRecolour.tex [7])
+(Sections/MCMCSubsections/MigTimeRescale.tex [8])) (Sections/Testing.tex
+[9]
+LaTeX Font Info:    Trying to load font information for U+bbm on input line 61.
 
-(C:\Users\ian_p\AppData\Roaming\MiKTeX\tex/latex/bbm\ubbm.fd
+ (C:\Users\ian_p\AppData\Roaming\MiKTeX\tex/latex/bbm\ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
-) [10]
-(MCMC Scheme Details.aux)
+) [10])
+[11] (MCMC Scheme Details.aux)
 Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
-(rerunfilecheck)             Checksum: 0BCBA56205D30F1B0C9E848E1B58703D;4193.
+(rerunfilecheck)             Checksum: 40EE60CFF09EF4BB190A4250EB5DDC4F;5125.
  ) 
 Here is how much of TeX's memory you used:
- 29060 strings out of 479173
- 562541 string characters out of 2864085
- 899746 words of memory out of 3000000
- 46122 multiletter control sequences out of 15000+600000
+ 29124 strings out of 479173
+ 565013 string characters out of 2864085
+ 898746 words of memory out of 3000000
+ 46152 multiletter control sequences out of 15000+600000
  410301 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,16n,104p,1040b,437s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,16n,104p,1110b,437s stack positions out of 5000i,500n,10000p,200000b,80000s
  <C:\Users\ian_p\AppData\Local\MiKTeX\fonts/pk/ljfour/public/bbm/dpi600\bbm12
 .pk><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Prog
 ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/Mi
@@ -980,9 +984,9 @@ KTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/t
 ype1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
 msfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbo
 ls/msbm10.pfb>
-Output written on "MCMC Scheme Details.pdf" (10 pages, 191273 bytes).
+Output written on "MCMC Scheme Details.pdf" (11 pages, 197635 bytes).
 PDF statistics:
- 241 PDF objects out of 1000 (max. 8388607)
- 46 named destinations out of 1000 (max. 500000)
- 301 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 258 PDF objects out of 1000 (max. 8388607)
+ 50 named destinations out of 1000 (max. 500000)
+ 325 words of extra memory for PDF output out of 10000 (max. 10000000)
 

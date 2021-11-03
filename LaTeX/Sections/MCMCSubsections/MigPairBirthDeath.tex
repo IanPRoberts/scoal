@@ -1,0 +1,85 @@
+The migration pair birth/death proposal aims to add or remove a pair of migration nodes from the migration history, reassigning demes as necessary to require a consistent migration history. With probability $\frac{1}{2}$ a pair birth proposal is attempted, and otherwise a pair death proposal is attempted.
+
+\subsubsection{Ewing et al. (2004) Version}
+	Begin by selecting an edge $e = \langle i,j \rangle \in \calE$ is selected uniformly at random. If a migration pair birth event is attempted, two new nodes $\ihat_1, \ihat_2$ are placed at locations uniformly along $e$, hence splitting edge $e$ into 3 new edges. The demes of these 3 edges are then updated so that the outer edges (ending on either $i$ or $j$) have the same deme as edge $e$, and the central edge $\langle \ihat_1, \ihat_2 \rangle$ has a deme not equal to that of edge $e$.
+	
+	Otherwise, if a migration pair death event is attempted, the nodes $i$ and $j$ are removed from the tree subject to both $i$ and $j$ being migration nodes, and all of the edges adjacent to $e$ arising from the same deme. If either of these conditions fail, the proposal is assigned a proposal ratio of 0.
+	
+	The proposal ratio for the migration pair birth proposal is then given by
+		\begin{align*}
+			Q_B(\calT' | \calT) & = \bbP [\substack{\text{Selected} \\ \text{edge}}] \cdot \bbP [\substack{\text{Selected} \\ \text{deme}}] \cdot \bbP [\substack{\text{New node} \\ \text{times}}] \\
+			& = \frac{1}{2n + M - 2} \cdot \frac{1}{d-1} \cdot \frac{2}{\delta t^2} \\
+			& = \frac{2}{(2n + M - 2) (d-1) \delta t^2}, \\
+			Q_B (\calT | \calT') & = \bbP [ \substack{\text{Selected} \\ \text{edge}}] \\
+			& = \frac{1}{2n + M}, \\
+			\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} & = \frac{(2n + M - 2) (d-1) \delta t^2}{2(2n + M)}
+		\end{align*}
+	where $\delta t$ denotes the time between the targetted pair of migration nodes.
+	
+	Similarly, the proposal ratio for the migration death proposal is given by
+		\[
+			\frac{Q_D( \calT | \calT')}{Q_D (\calT' | \calT)} = \frac{2 (2n+M-2)}{(2n + M - 4) (d-1) \delta t^2}.
+		\]
+
+\subsubsection{Updated Version 1}
+	Begin by selecting a branch of the \textbf{genealogy}, with probability proportional to its length (sufficient to sample a point uniformly along the tree and take the edge of the genealogy where it lands). If a migration pair birth is proposal is attempted, sample two locations uniformly along the selected branch and a deme selected uniformly from the $d$ possible demes. The proposal will fail if
+	
+	\begin{enumerate}[(i)]
+		\item There exists a migration event between the two proposed times
+		\item The deme selected leads to an incompatible deme labelling (rejected via the likelihood not the proposal ratio).
+	\end{enumerate}
+	
+	If a migration death proposal is attempted, let $M_b$ denote the number of migration nodes on the selected branch. If $M_b \geq 2$, select a pair of consecutive migration nodes along the branch (if $M_b < 2$, reject the proposal). Then the proposal is completed by deleting the two selected migration nodes.The proposal will fail if
+	
+	\begin{enumerate}[(i)]
+		\item There are fewer than 2 migration nodes along the branch ($M_b < 2$) 
+		\item The exterior demes lead to an incompatible deme labelling (rejected via the likelihood not the proposal ratio).
+	\end{enumerate}
+	
+	This change to the proposal mechanism results in the new proposal ratios
+	\begin{align*}
+		Q_B(\calT' | \calT) & = \bbP[ \substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[ \substack{\text{New node} \\ \text{times}}] \cdot \bbP[\substack{\text{Selected} \\ \text{deme}}] \\
+		& = \frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{d} \\
+		& = \frac{2}{\calL \calL_b d}, \\
+		Q_B (\calT | \calT') & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{Selected pair} \\ \text{of nodes}}] \\
+		& = \frac{\calL_b}{\calL} \cdot \frac{1}{M_b - 1} \\
+		& = \frac{\calL_b}{\calL (M_b - 1)}, \\
+		\frac{Q_B (\calT | \calT')}{Q_B (\calT' | \calT)} & = \frac{\calL_b ^2 d}{2(M_b - 1)}
+	\end{align*}
+
+\subsubsection{Updated Version 2 (Jere's version?)}
+	Pair birth:
+	\begin{enumerate}[(i)]
+		\item Sample branch from the genealogy proportional to its length
+		\item Sample two locations uniformly along the branch
+		\item Sample 2 demes to be pulled inwards from the proposed locations (can sample deme uniformly from set of demes not equal to current deme at that location)
+		\item Pull proposed demes inwards from proposed locations towards centre of branch until hitting a migration node (or the other sampled location)
+	\end{enumerate}
+	
+	\begin{align*}
+		Q_B (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{New node} \\ \text{times}}] \cdot \bbP[\substack{\text{Selected} \\ \text{demes}}] \\
+		& = \frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}.
+	\end{align*}
+	
+	\begin{align*}
+		\frac{Q_D(\calT | \calT')}{Q_B(\calT' | \calT)} & = \frac{\frac{\calL_b}{\calL} \cdot \frac{2}{(M_b + 1)(M_b + 2)} \cdot \frac{1}{(d-1)^2}}{\frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}} \\
+		& = \frac{\calL_b^2}{(M_b + 1) (M_b + 2)}
+	\end{align*}
+	\\[2ex]
+	
+	Pair death:
+	\begin{enumerate}[(i)]
+		\item Sample branch from the genealogy proportional to its length
+		\item If there are at least 2 migration events on the branch, sample two migration nodes
+		\item Sample 2 demes to be pulled inwards from the proposed locations (if the locations are consecutive, special case recovers Ewing pair death move if both proposed demes are the same)
+		\item Pull proposed demes inwards from proposed locations towards centre of branch until hitting a migration node (including the other sampled migration node)
+	\end{enumerate}
+	\begin{align*}
+		Q_D (\calT' | \calT) & = \bbP[\substack{\text{Selected} \\ \text{branch}}] \cdot \bbP[\substack{\text{Selected} \\ \text{nodes}}] \cdot \bbP[\substack{\text{Selected} \\ \text{demes}}] \\
+		& = \frac{\calL_b}{\calL} \cdot \frac{2}{M_b (M_b - 1)} \cdot \frac{1}{(d-1)^2}
+	\end{align*}
+	
+	\begin{align*}
+		\frac{Q_B(\calT | \calT')}{Q_D (\calT' | \calT)} & = \frac{\frac{\calL_b}{\calL} \cdot \frac{2}{\calL_b^2} \cdot \frac{1}{(d-1)^2}}{\frac{\calL_b}{\calL} \cdot \frac{2}{M_b (M_b - 1)} \cdot \frac{1}{(d-1)^2}} \\
+		& = \frac{M_b (M_b - 1)}{\calL_b^2}.
+	\end{align*}

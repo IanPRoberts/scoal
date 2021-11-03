@@ -1,0 +1,66 @@
+Due to the complexity of the proposals involved in a MCMC scheme on the structured coalescent model, verifying the results of the iterations can be difficult. One method to verify the iterations is to use the structured coalescent models to generate realisations from an alternative distribution. For example, this can be achieved by using a Poisson($\lambda$) prior on the number of migration events in the tree (with additional terms in the prior to obtain a full distribution over migration histories).
+
+Restricting attention to the case of using a Poisson prior on the number of migration events with only migration birth/death moves. The full prior for the verification model is given by
+\[
+p(\theta) = \frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!,
+\]
+where the term $\frac{\lambda^M e^{-\lambda}}{M!}$ arises as the Poisson-likelihood of having $m$ migration events on the tree; the term $\left( \frac{1}{\calL} \right)^M$ arises from selecting migration event locations uniformly on the tree; the term $\left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d}$ arises from selecting demes on the $M+1$ disjoint subtrees of the tree with roots either the root of the tree, or migration nodes ($d$ demes to select from for the subtree containing the root and $d-1$ to select from for each of the $M$ subtrees below migration nodes); and the term $M!$ arises from summing over all possible labellings of the $M$ migration events.
+
+An algorithm can then be derived which has acceptance probabilities
+\[
+\alpha (\calT' | \calT) = \min \left(1, \frac{p(\theta') Q(\calT | \calT')}{p(\theta) Q(\calT' | \calT)} || \calJ ||\right),
+\]
+noting that $\theta'$ corresponds to having either added a single migration node (migration birth proposal) or removed a single migration node (migration death proposal).
+
+\subsection{Migration Birth/Death Proposals}
+The prior ratio for the migration birth move is given by
+\begin{align*}
+	\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M+1} e^{-\lambda}}{(M+1)!} \cdot \left( \frac{1}{\calL} \right)^{M+1} \cdot \left( \frac{1}{d-1} \right)^{M+1} \cdot \frac{1}{d} \cdot (M+1)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+	& = \frac{\lambda}{(d-1) \calL },
+\end{align*}
+and the acceptance probability for the second updated version of the move culminates with
+\[
+\alpha_B (\calT' | \calT) = \min \left(1, \frac{\lambda}{(d-1) \calL} \frac{(d-1) \calL}{M+1}\right) = \min \left(1, \frac{\lambda }{M+1}\right).
+\]
+Similarly, for the migration death move
+\begin{align*}
+	\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M-1} e^{-\lambda}}{(M-1)!} \cdot \left( \frac{1}{\calL} \right)^{M-1} \cdot \left( \frac{1}{d-1} \right)^{M-1} \cdot \frac{1}{d} \cdot (M-1)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+	& = \frac{(d-1) \calL }{\lambda}
+\end{align*}
+and
+\[
+\alpha_D (\calT' | \calT) = \min \left(1, \frac{(d-1) \calL}{\lambda} \frac{M}{(d-1) \calL} \right) = \min \left( 1, \frac{M}{\lambda} \right).
+\]
+
+\subsection{Migration Pair Birth/Death Proposals}
+The prior ratio for the migration birth move is given by
+\begin{align*}
+	\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M+2} e^{-\lambda}}{(M+2)!} \cdot \left( \frac{1}{\calL} \right)^{M+2} \cdot \left( \frac{1}{d-1} \right)^{M+2} \cdot \frac{1}{d} \cdot (M+2)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+	& = \frac{\lambda^2}{(d-1)^2 \calL^2 },
+\end{align*}
+and the prior ratio for the migration death move is given by
+\begin{align*}
+	\frac{p(\theta')}{p(\theta)} & = \frac{\frac{\lambda^{M -2 } e^{-\lambda}}{(M-2)!} \cdot \left( \frac{1}{\calL} \right)^{M - 2} \cdot \left( \frac{1}{d-1} \right)^{M-2} \cdot \frac{1}{d} \cdot (M-2)!}{\frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!} \\
+	& = \frac{(d-1)^2 \calL^2 }{\lambda^2}.
+\end{align*}
+
+The migration pair birth/death proposal MCMC scheme can only update the number of migrations by incrementing it by 2, thus the sample of $M$ will return only odd or even values depending on the initial configuration. Thus, given an $X \sim \text{Poi}(\lambda)$, the sample should be compared with either $X | (X \, \text{even})$ or $X | (X \, \text{odd} )$.
+
+In the even case,
+\[
+\bbP [X = k | X \, \text{even}] = \frac{\bbP[X = k]}{\bbP[X \, \text{even}]},
+\]
+where
+\begin{align*}
+	\bbP[X \, \text{even}] & = \frac{1}{2} \sum_{j=0}^\infty \frac{\lambda^{j} e^{-\lambda}}{j!} (1 + (-1)^j) \\
+	& = \frac{1}{2} + \frac{e^{-\lambda}}{2} \sum_{j=0}^\infty \frac{(-\lambda)^j}{j!} \\
+	& = \frac{1}{2}(1 + e^{-2 \lambda}),
+\end{align*}
+thus
+\[
+\bbP [X = k | X \, \text{even}] = \frac{2\lambda^k e^{-\lambda}}{(1 + e^{-2 \lambda}) k!} \mathbbm{1} \{k \, \text{even} \},
+\]
+and
+\[
+\bbP [X = k | X \, \text{odd}] = \frac{2\lambda^k e^{-\lambda}}{(1 - e^{-2 \lambda}) k!} \mathbbm{1} \{k \, \text{odd} \}.
+\]
