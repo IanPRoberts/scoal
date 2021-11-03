@@ -275,6 +275,25 @@
 					\frac{Q_S(\calT | \calT')}{Q_M (\calT' | \calT)} = \frac{1}{(d-1) \delta t_1 \delta t_2}.
 				\]
 				
+		\subsection{Block Recolouring Proposal}
+			Let a block of a structured coalescent genealogy be a maximal subtree of the migration history contained in a single deme. Then a block recolouring proposal aims to select a block within the migration history and resample the deme over that block.
+			
+			A block of the migration history is selected with probability proportional to the length of the edges contained in the block, and a new deme is proposed over the block (not equal to the current deme). If the proposed deme does not provide a consistent deme labelling, reject the move.
+			
+			The proposal ratio for the block recolouring proposal is then given by
+				\begin{align*}
+					Q_{BR}(\calT' | \calT) & = \bbP [\substack{\text{Selected} \\ \text{block}}] \cdot \bbP [\substack{\text{Proposed} \\ \text{deme}}] \\
+						& = \frac{\calL_\text{block}}{\calL} \cdot \frac{1}{d-1}.
+				\end{align*}
+			This move is symmetric in that
+				\[
+					Q_{BR} (\calT | \calT') = Q_{BR}(\calT' | \calT),
+				\]
+			and hence the proposal ratio is simply
+				\[
+					\frac{Q_{BR} (\calT | \calT')}{Q_{BR} (\calT' | \calT)} = 1.
+				\]
+			
 	\section{MCMC Testing}
 		Due to the complexity of the proposals involved in a MCMC scheme on the structured coalescent model, verifying the results of the iterations can be difficult. One method to verify the iterations is to use the structured coalescent models to generate realisations from an alternative distribution. For example, this can be achieved by using a Poisson($\lambda$) prior on the number of migration events in the tree (with additional terms in the prior to obtain a full distribution over migration histories).
 		
