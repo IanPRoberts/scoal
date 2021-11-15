@@ -1,0 +1,66 @@
+Let $\pi(\cdot)$ denote the stationary distribution of the RJMCMC algorithm (for testing purposes, $\pi(\calT) = (\frac{\lambda}{\calL (d-1)})^M \frac{e^{-\lambda}}{d}$) and $p(\cdot | \cdot)$ denote the one-step transition probabilities. Then the MCMC algorithm satisfies detailed balance if
+	\[
+		p(\calT_{k+1} | \calT_k) \pi (\calT_k) = p(\calT_k | \calT_{k+1}) \pi(\calT_{k+1}).
+	\]
+	
+Assuming that $\calT_{k+1} \neq \calT_k$, the transition $\calT_k \mapsto \calT_{k+1}$ can happen only by accepting a proposal, with transition probability
+	\[
+		p(\calT_{k+1} | \calT_k) = \alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k).
+	\]
+	
+	\subsection{Migration birth/death}
+		Let $\calT_{k+1} = \text{migration.birth}(\calT_k)$, then
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})}\\
+					& = \frac{\min \left( 1, \frac{\lambda}{M+1} \right) \cdot \frac{1}{(d-1) \calL}}{\min\left( 1, \frac{M+1}{\lambda} \right) \cdot \frac{1}{M+1}} \\
+					& = \frac{\lambda}{(d-1) \calL} \cdot \frac{\min(\lambda, M+1)}{\min(\lambda, M+1)} \\
+					& = \frac{\pi (\calT_{k+1})}{\pi(\calT_k)}.
+			\end{align*}
+		Otherwise, let $\calT_{k+1} = \text{migration.death}(\calT_k)$,
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})} \\
+					& = \frac{\min \left( 1, \frac{M}{\lambda} \right) \cdot \frac{1}{M}}{\min\left( 1, \frac{\lambda}{M} \right) \cdot \frac{1}{(d-1) \calL}} \\
+					& = \frac{(d-1) \calL}{\lambda} \cdot \frac{\min (\lambda, M)}{\min (\lambda. M)} \\
+					& = \frac{\pi (\calT_{k+1})}{\pi(\calT_k)}.
+			\end{align*}
+		Hence, detailed balance holds for the migration birth/death moves.
+		
+	\subsection{Migration pair birth/death}
+		Let $\calT_{k+1} = \text{pair.birth}(\calT_k)$, then
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})} \\
+					& = \frac{\min \left\{ 1, \left( \frac{\lambda}{(d-1) \calL} \right)^2 \frac{(2n + M - 2)(d-1) \delta t^2}{2 (2n + M)} \right\} \cdot \frac{2}{(2n + M - 2)(d-1) \delta t^2}}{\min \left\{1, \left( \frac{(d-1) \calL}{\lambda}\right)^2 \frac{2(2n + M)}{(2n + M - 2)(d-1) \delta t^2}\right\} \cdot \frac{1}{2n + M}} \\
+					& = \frac{\min \left\{ 2(2n + M), \left(\frac{\lambda}{(d-1) \calL}\right)^2 (2n + M - 2)(d-1) \delta t^2 \right\}}{\min \left\{ (2n + M - 2)(d-1) \delta t^2, \left( \frac{(d-1) \calL}{\lambda} \right)^2 \cdot 2(2n+M) \right\}} \\
+					& = \left( \frac{\lambda}{(d-1) \calL} \right)^2 \cdot \frac{\min \left\{ 2(2n + M) \left( \frac{(d-1) \calL}{\lambda} \right)^2, (2n + M - 2)(d-1) \delta t^2 \right\}}{\min \left\{ 2(2n + M) \left( \frac{(d-1) \calL}{\lambda} \right)^2, (2n + M - 2)(d-1) \delta t^2 \right\}} \\
+					& = \frac{\pi (\calT_{k+1})}{\pi (\calT_k)}.
+			\end{align*}
+		Otherwise, let $\calT_{k+1} = \text{pair.death}(\calT_k)$, then
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})} \\
+					& = \frac{\min \left\{ 1, \left( \frac{(d-1) \calL}{\lambda} \right)^2 \frac{2 (2n + M - 2)}{(2n + M - 4)(d-1) \delta t^2} \right\} \cdot \frac{1}{2n + M - 2}}{\min \left\{ 1, \left( \frac{\lambda}{(d-1) \calL} \right)^2 \frac{(2n + M - 4)(d-1) \delta t^2}{2 (2n + M - 2)} \right\} \cdot \frac{2}{(2n + M - 4)(d-1) \delta t^2}} \\
+					& = \frac{\min \left\{ (2n + M - 4)(d-1) \delta t^2, 2 \left( \frac{(d-1) \calL}{\lambda} \right)^2 (2n + M - 2) \right\}}{\min \left\{ 2(2n + M - 2), \left( \frac{\lambda}{(d-1) \calL} \right)^2 (2n + M - 4)(d-1) \delta t^2 \right\}} \\
+					& = \left(\frac{(d-1) \calL}{\lambda} \right)^2 \cdot \frac{\min \left\{(2n + M - 4)(d-1) \delta t^2 \left( \frac{\lambda}{(d-1) \calL} \right)^2 , 2(2n + M - 2)\right\}}{\min \left\{(2n + M - 4)(d-1) \delta t^2 \left( \frac{\lambda}{(d-1) \calL} \right)^2 , 2(2n + M - 2)\right\}} \\
+					& = \frac{\pi (\calT_{k+1})}{\pi (\calT_k)}.
+			\end{align*}
+		
+	\subsection{Coalescent Node Split/Merge}
+		Let $\calT_{k+1} = \text{coalescent.split} (\calT_k)$ and assume the split event does not target the root node, then
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})} \\
+					& = \frac{\min \left\{ 1, \frac{\delta t_1 \delta t_2}{\delta t} \cdot \frac{\lambda}{(d-1) \calL} \right\} \frac{1}{(n-1) \delta t_1 \delta t_2}}{\min \left\{ 1, \frac{\delta t}{\delta t_1 \delta t_2} \cdot \frac{(d-1) \calL}{\lambda} \right\} \frac{1}{(n-1) \delta t}} \\
+					& = \left( \frac{\lambda}{(d-1) \calL}\right) \cdot \frac{\min \left\{\frac{(d-1) \calL}{\lambda} \delta t, \delta t_1 \delta t_2 \right\}}{\min \left\{\frac{(d-1) \calL}{\lambda} \delta t, \delta t_1 \delta t_2 \right\}} \\
+					& = \frac{\pi (\calT_{k+1})}{\pi (\calT_k)}.
+			\end{align*}
+		The corresponding merge event (assuming it does not target the root node) is similar and also satisfies detailed balance.
+		
+		Now, let $\calT_{k+1} = \text{coalescent.split} (\calT_k)$ and assume the split event does target the root node, then
+			\begin{align*}
+				\frac{p(\calT_{k+1} | \calT_k)}{p(\calT_k | \calT_{k+1})} & = \frac{\alpha (\calT_{k+1} | \calT_k) Q(\calT_{k+1} | \calT_k)}{\alpha(\calT_k | \calT_{k+1}) Q(\calT_k |\calT_{k+1})} \\
+				& = \frac{\min \left\{ 1, \delta t_1 \delta t_2 (d-1) \cdot \frac{\lambda}{(d-1) \calL} \right\} \frac{1}{(n-1)(d-1) \delta t_1 \delta t_2}}{\min \left\{ 1, \frac{1}{(d-1)\delta t_1 \delta t_2} \cdot \frac{(d-1) \calL}{\lambda} \right\} \frac{1}{(n-1)}} \\
+				& = \left( \frac{\lambda}{(d-1) \calL}\right) \cdot \frac{\min \left\{\frac{(d-1) \calL}{\lambda}, \delta t_1 \delta t_2 (d-1) \right\}}{\min \left\{\frac{(d-1) \calL}{\lambda} , \delta t_1 \delta t_2 (d-1) \right\}} \\
+				& = \frac{\pi (\calT_{k+1})}{\pi (\calT_k)}.
+			\end{align*}
+		
+		The corresponding merge event (assuming it does not target the root node) is similar and also satisfies detailed balance.
+		
+		(NO DEPENDENCE ON $M$ SO THE MERGE EVENTS ARE JUST THE RECIPROCALS OF THE SPLIT EVENTS)

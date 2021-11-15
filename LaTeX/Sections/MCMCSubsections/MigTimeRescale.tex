@@ -18,4 +18,7 @@ An alternative form of move which may be useful is to shift a migration node in 
 		\]
 	for some suitably chosen variance $\sigma^2$ (POSSIBLY SELECTED USING ADAPTIVE MCMC??).
 	
-	To preserve the ordering of the migration history, reflecting boundaries should be introduced at the times of the parent and child nodes. So, if the proposed time would fall outside of the interval of interest, reflect the "excess difference" back into the interval.
+	To preserve the ordering of the migration history, reflecting boundaries should be introduced at the times of the parent and child nodes. So, if the proposed time would fall outside of the interval of interest, reflect the "excess difference" back into the interval. Notably, the proposed perturbations are proposed from a symmetric distribution, and so the proposal ratio will again by given by
+		\[
+			\frac{Q_{TR} (\calT | \calT')}{Q_{TR} (\calT' | \calT)} = 1.
+		\]
