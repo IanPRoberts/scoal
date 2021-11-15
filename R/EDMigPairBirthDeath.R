@@ -73,7 +73,9 @@ ed.mig.pair.death <- function(ED, n.deme){
     child.node <- ED[selected.row, 3]
     child.row <- which(ED[,1] == child.node)
 
-    prop.ratio <- 2 * (length(all.nodes) - 1) / ((length(all.nodes) - 3) * (n.deme - 1) * (ED[selected.row, 6] - ED[parent.row, 6])^2)
+    #prop.ratio <- 2 * (length(all.nodes) - 1) / ((length(all.nodes) - 3) * (n.deme - 1) * (ED[selected.row, 6] - ED[parent.row, 6])^2)
+
+    prop.ratio <- 2 * (length(all.nodes) - 1) / ((length(all.nodes) - 3) * (n.deme - 1) * (ED[child.row, 6] - ED[parent2.row, 6])^2)
 
     ED[parent2.row, 2 + which(ED[parent2.row, 3:4] == parent.node)] <- child.node
     ED[child.row, 2] <- parent2.node
