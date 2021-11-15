@@ -9,7 +9,7 @@ phylo$node.deme <- rep(1, 2 * n - 1)
 ED <- phylo.to.ed(phylo)
 M <- length(ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1])
 
-N <- 1e5
+N <- 1e7
 N0 <- 1e3
 
 lambda <- 50
@@ -17,7 +17,7 @@ lambda <- 50
 freq <- matrix(0, 2, 7)  #Row 1 no. of accepted proposals, row 2 no. of proposals
 M.freq = matrix(c(0:150, rep(0, 151)), 2, 151, byrow = TRUE)
 
-proposal.probs <- c(0.2, 1, 1, 1) #c(0.4, 0, 0.8, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
+proposal.probs <- c(0.2,0.8, 0.8, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
 root.node <- which(is.na(ED[,2]))
 non.root.nodes <- ED[ED[,1] != root.node, 1]
@@ -137,3 +137,5 @@ lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
 #hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
 #lines(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l')
 #lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
+
+beepr::beep()  #Laptop dings on completion...
