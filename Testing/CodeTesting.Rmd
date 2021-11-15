@@ -515,7 +515,7 @@ for (i in 1:100){
 lambda <- 10
 
 N0 <- 1e3 #Number of burn-in iterations
-N <- 1e6  #Number of MCMC iterations
+N <- 1e5  #Number of MCMC iterations
 
 p <- 1/2 #Probability of proposing a migration birth
 
@@ -545,7 +545,7 @@ tree.length <- sum(edge.length)  #Total tree length
 for (i in (-N0):N){
   W <- runif(1)
 
-  if (W < 0.04){
+  if (W < 10){#0.04){
     U <- runif(1)
     M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
     if (U <= p){
@@ -625,10 +625,10 @@ lines(lower:upper, freq/N, col = "blue", lty = 2)
 ## Full MCMC Scheme Testing
 
 ```{r}
-lambda <- 5
+lambda <- 10
 
 N0 <- 1e3 #Number of burn-in iterations
-N <- 1e7  #Number of MCMC iterations
+N <- 1e5  #Number of MCMC iterations
 
 n <- 2  #Number of leaves in the tree
 n.deme <- 3
@@ -662,7 +662,7 @@ for (i in (-N0):N){
   
   M <- length(ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1])  #Number of migration events in current ED
   
-  if (W < 0.04){ #Migration birth/death
+  if (W < 0.25){ #Migration birth/death
     if (U <= 1/2){
       proposal <- ed.mig.birth.4(ED, n.deme, FALSE)
       accept.prob <- min(1, lambda/(M+1))
@@ -693,7 +693,7 @@ for (i in (-N0):N){
       }
     }
     
-  } else if (W < 0.52) { #Migration Pair birth/death
+  } else if (W < 1) { #Migration Pair birth/death
     if (U <= 1/2){
       proposal <- ed.mig.pair.birth(ED, n.deme)
       accept.prob <- min(1, (lambda / ((n.deme - 1) * tree.length))^2 * proposal$prop.ratio )
