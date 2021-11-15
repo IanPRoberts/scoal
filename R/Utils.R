@@ -119,3 +119,37 @@ structured.plot <- function(phylo, n.demes = NA){
 
   plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
 }
+
+#' Normal Distribution with Reflecting Boundary
+#'
+#' Generates normally distributed variates subject to reflecting boundary
+#' conditions
+#'
+#' @param n Number of variates to generate
+#' @param mean Mean of the normal distribution
+#' @param sd Standard deviation of the normal distribution
+#' @param lower Lower reflecting boundary (possibly infinite)
+#' @param upper Upper reflecting boundary (possibly infinite)
+#'
+#' @export
+
+rnorm.reflect <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf){
+  sample <- rnorm(n, mean, sd)
+
+  if (upper < lower){
+    stop('upper < lower')
+  }
+
+  for (i in 1:n){
+    while ((sample[i] < lower) | (sample[i] > upper)){
+      if (sample[i] < lower){
+        sample[i] <- lower + (lower - sample[i])
+      } else{
+        sample[i] <- upper - (sample[i] - upper)
+      }
+    }
+  }
+
+  return(sample)
+}
+
