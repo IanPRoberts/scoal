@@ -31,7 +31,7 @@ ed.coal.merge <- function(ED, n.deme){
   }
 
   if (selected.node == root.node){
-    prop.ratio <- 1 / ((n.deme - 1)* (ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6]) )
+    prop.ratio <- 1 / ((n.deme - 1)* (ED[child.child.1.row, 6] - ED[selected.row, 6]) * (ED[child.child.2.row, 6] - ED[selected.row, 6]) )
 
     ED[selected.row, c(3:5)] <- c(child.child.1, child.child.2, exterior.deme.1)
     ED[c(child.child.1.row, child.child.2.row), 2] <- selected.row
@@ -52,7 +52,7 @@ ed.coal.merge <- function(ED, n.deme){
     which.child <- which(ED[parent.row, 3:4] == selected.node)
     ED[parent.row, 2 + which.child] <- new.node
 
-    prop.ratio <- (ED[selected.row, 6] - ED[parent.row ,6]) / ((ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6]))
+    prop.ratio <- (ED[selected.row, 6] - ED[parent.row ,6]) / ((ED[child.child.1.row, 6] - ED[selected.row, 6]) * (ED[child.child.2.row, 6] - ED[selected.row, 6]))
 
     ED <- ED[!ED[,1] %in% c(child.node.1, child.node.2), ] #Remove child migration nodes
     ED <- rbind(ED, c(new.node, parent.node, selected.node, NA, old.deme, new.node.time)) #Add new parent migration node
@@ -112,7 +112,7 @@ ed.coal.split <- function(ED, n.deme){
     new.node.time.1 <- runif(1, ED[selected.row, 6], ED[child.row.1, 6])
     new.node.time.2 <- runif(1, ED[selected.row, 6], ED[child.row.2, 6])
 
-    prop.ratio <- ((ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6])) / (ED[selected.row, 6] - ED[parent.row ,6])
+    prop.ratio <- ((ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6])) / (ED[selected.row, 6] - ED[parent.parent.row ,6])
 
     which.child <- which(ED[parent.parent.row, 3:4] == parent.node)
     ED[parent.parent.row, 2 + which.child] <- selected.node
