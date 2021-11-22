@@ -7,6 +7,7 @@
 #'
 #' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
 #' @param n.deme Number of distinct demes in the population
+#' @param fix.leaf.deme Logical; if TRUE, the deme of each leaf in the tree is fixed. Any proposal which attempts to change a leaf deme is automatically rejected
 #'
 #' @return Updated extended data object with the proposal from the block recolouring proposal
 #'
