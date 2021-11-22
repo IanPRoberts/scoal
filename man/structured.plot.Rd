@@ -4,7 +4,7 @@
 \alias{structured.plot}
 \title{Plot Structured Coalescent Tree}
 \usage{
-structured.plot(phylo)
+structured.plot(phylo, n.demes = NA)
 }
 \arguments{
 \item{phylo}{phylo object augmented with node demes}
