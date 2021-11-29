@@ -59,12 +59,12 @@ phylo.likelihood <- function(phylo, effective.pop, gen.length){
 structured.likelihood <- function(phylo, effective.pop, gen.length, migration.matrix){
   lambda <- effective.pop * gen.length
   n <- length(phylo$tip.label) #Number of tips
-  n.demes <- dim(migration.matrix)[1] #Number of demes
+  n.deme <- dim(migration.matrix)[1] #Number of demes
   n.migrations <- phylo$Nnode - n + 1 #Number of migration events
   diag(migration.matrix) <- 0  #Prevent self-migrations
 
   if (length(lambda) == 1){
-    lambda <- rep(lambda,n.demes)
+    lambda <- rep(lambda,n.deme)
   }
 
   #Identify node type (migration/coalescence/leaf)
@@ -84,22 +84,22 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 
   #Number of lineages in each deme between each event time
   check.time <- event.times[-length(event.times)] + 0.5 * time.increments
-  k <- matrix(0, nrow = length(check.time), ncol = n.demes)
+  k <- matrix(0, nrow = length(check.time), ncol = n.deme)
   for (i in 1 : length(time.increments)){
     current.edges <- which((aug.edge[,3] < check.time[i]) & (aug.edge[,4] > check.time[i]) )
-    for (j in 1 : n.demes){
+    for (j in 1 : n.deme){
       k[i,j] <- sum(phylo$node.deme[aug.edge[current.edges,2]] == j)
     }
   }
 
   #Number of coalescence events in each deme
-  c <- rep(0,n.demes)
-  for (j in 1 : n.demes){
+  c <- rep(0,n.deme)
+  for (j in 1 : n.deme){
     c[j] <- sum(phylo$node.deme[coalescence.nodes] == j)
   }
 
   #Number of migration events between each pair of demes
-  m <- matrix(0,nrow = n.demes, ncol = n.demes)
+  m <- matrix(0,nrow = n.deme, ncol = n.deme)
   for (nodes in migration.nodes){
     i <- phylo$node.deme[aug.edge[which(aug.edge[,1] == nodes),2]]
     j <- phylo$node.deme[nodes]
@@ -128,12 +128,12 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 #' @export
 
 ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
-  n.demes <- dim(migration.matrix)[1]
+  n.deme <- dim(migration.matrix)[1]
   diag(migration.matrix) <- 0  #Prevent self-migrations
 
   lambda <- effective.pop * gen.length
   if (length(lambda) == 1){
-    lambda <- rep(lambda,n.demes)
+    lambda <- rep(lambda,n.deme)
   }
 
   all.nodes <- ED[,1]
@@ -148,7 +148,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
   time.increments <- diff(event.times)
 
   #Number of lineages in each deme between each event time
-  k <- matrix(0, nrow = length(event.times) - 1, ncol = n.demes)
+  k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
   k[1,ED[root.node,5]] <- 2
   for (i in 2 : (length(event.times) - 1)){
     current.rows <- which(ED[,6] == event.times[i])
@@ -170,21 +170,9 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
     }
   }
 
-  #Number of coalescence events in each deme
-  c <- rep(0,n.demes)
-  for (j in 1 : n.demes){
-    c[j] <- sum(ED[coalescence.nodes, 5] == j)
-  }
-
-  #Number of migration events between each pair of demes
-  m <- matrix(0,nrow = n.demes, ncol = n.demes)
-  for (node in migration.nodes){
-    node.row <- which(ED[,1] == node)
-    child.row <- which(ED[, 1] == ED[node, 3])
-    i <- ED[child.row, 5]
-    j <- ED[node.row, 5]
-    m[i,j] <- m[i,j] + 1
-  }
+  nc <- ed.node.count(ED, n.deme)
+  c <- nc$c
+  m <- nc$m
 
   #Likelihood computation
   likelihood <- 0

@@ -57,5 +57,5 @@ eff.pop.update <- function(ED, effective.population, n.deme, alpha, beta){
   for (i in 1:n.deme){
     proposal.eff.pop[i] <- 1/rgamma(1, shape = alpha + c[i], scale = 1 / (beta + rate.constants[i]))  #Proposals are inverse-gamma
   }
-  return(pproposal.eff.pop)
+  return(proposal.eff.pop)
 }
