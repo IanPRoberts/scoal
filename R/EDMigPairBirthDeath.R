@@ -35,7 +35,8 @@ ed.mig.pair.birth <- function(ED, n.deme){
               )
 
   prop.ratio <- (n.deme - 1) * (length(all.nodes) - 1) * (ED[selected.row, 6] - ED[parent.row, 6])^2 / (2 * (length(all.nodes) + 1))
-  return(list(ED = ED, prop.ratio = prop.ratio))
+  log.prop.ratio <- log(n.deme - 1) + log(length(all.nodes) - 1) + 2 * log(abs(ED[selected.row, 6] - ED[parent.row, 6])) - log(2) - log(length(all.nodes) + 1)
+  return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
 }
 
 #' Migration Pair Death MCMC Move
@@ -76,13 +77,14 @@ ed.mig.pair.death <- function(ED, n.deme){
     #prop.ratio <- 2 * (length(all.nodes) - 1) / ((length(all.nodes) - 3) * (n.deme - 1) * (ED[selected.row, 6] - ED[parent.row, 6])^2)
 
     prop.ratio <- 2 * (length(all.nodes) - 1) / ((length(all.nodes) - 3) * (n.deme - 1) * (ED[child.row, 6] - ED[parent2.row, 6])^2)
+    log.prop.ratio <- log(2) + log(length(all.nodes) - 1) - log(length(all.nodes) - 3) - log(n.deme - 1) - 2 * log(abs(ED[child.row, 6] - ED[parent2.row, 6]))
 
     ED[parent2.row, 2 + which(ED[parent2.row, 3:4] == parent.node)] <- child.node
     ED[child.row, 2] <- parent2.node
     ED <- ED[-c(selected.row, parent.row),]
 
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   } else {
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   }
 }

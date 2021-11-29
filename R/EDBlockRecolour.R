@@ -24,7 +24,7 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
     proposal.deme <- sample.vector((1:n.deme)[-ED[1, 5]], 1)
     ED[,5] <- proposal.deme
 
-    return(list(ED = ED, prop.ratio = 1))
+    return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
   }
 
 
@@ -76,7 +76,7 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
@@ -94,14 +94,14 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
       if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
         #REJECT
-        return(list(ED = ED, prop.ratio = 0))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
       }
     }
 
     if (subtree.root != root.node){
       if (ED[subtree.root.row, 5] == proposal.deme){
         #REJECT
-        return(list(ED = ED, prop.ratio = 0))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
       }
     }
 
@@ -111,6 +111,6 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
       ED[row, 5] <- proposal.deme
     }
 
-    return(list(ED = ED, prop.ratio = 1))
+    return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
   }
 }

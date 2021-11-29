@@ -39,7 +39,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
@@ -54,7 +54,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
       if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
         #REJECT
-        return(list(ED = ED, prop.ratio = 0))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
       }
     }
 
@@ -79,7 +79,8 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
     ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
     prop.ratio <- (n.deme - 1) * tree.length / (length(migration.nodes) + 1)
-    return(list(ED= ED, prop.ratio = prop.ratio))
+    log.prop.ratio <- log(n.deme - 1) + log(tree.length) - log(length(migration.nodes) + 1)
+    return(list(ED= ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   }
 }
 
@@ -95,7 +96,7 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if (length(migration.nodes) == 0){
     #REJECT
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   }
   selected.node <- sample.vector(migration.nodes, 1)
   selected.row <- which(ED[,1] == selected.node)
@@ -118,7 +119,7 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
@@ -135,7 +136,7 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     if (proposal.deme %in% forbidden.demes){
       #Cannot change deme
       #REJECT
-      return(list(ED = ED, prop.ratio = 0))
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
     }
 
     parent.node <- ED[selected.row, 2]
@@ -154,7 +155,8 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     ED[parent.row, 2 + which.child] <- child.node
 
     ED <- ED[-selected.row,]
-    prop.ratio <- 0 #length(migration.nodes)/ ((n.deme - 1) * tree.length)
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    prop.ratio <- length(migration.nodes)/ ((n.deme - 1) * tree.length)
+    log.prop.ratio <- log(length(migration.nodes)) - log(n.deme - 1) - log(tree.length)
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   }
 }

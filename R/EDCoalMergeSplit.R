@@ -13,7 +13,7 @@ ed.coal.merge <- function(ED, n.deme){
 
   if ((!child.node.1 %in% migration.nodes) || (! child.node.2 %in% migration.nodes)){
     #REJECT as cannot delete coalescent node
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   }
 
   child.row.1 <- which(ED[,1] == child.node.1)
@@ -27,17 +27,18 @@ ed.coal.merge <- function(ED, n.deme){
 
   if (exterior.deme.1 != exterior.deme.2){
     #REJECT as exterior demes are not the same
-    return(list(ED = ED, prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
   }
 
   if (selected.node == root.node){
     prop.ratio <- 1 / ((n.deme - 1)* (ED[child.child.1.row, 6] - ED[selected.row, 6]) * (ED[child.child.2.row, 6] - ED[selected.row, 6]) )
+    log.prop.ratio <- -log(n.deme - 1) - log(abs(ED[child.child.1.row, 6] - ED[selected.row, 6])) - log(abs(ED[child.child.2.row, 6] - ED[selected.row, 6]))
 
     ED[selected.row, c(3:5)] <- c(child.child.1, child.child.2, exterior.deme.1)
     ED[c(child.child.1.row, child.child.2.row), 2] <- selected.row
     ED <- ED[!ED[,1] %in% c(child.node.1, child.node.2), ] #Remove child migration nodes
 
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   } else{
     parent.node <- ED[selected.row, 2]
     parent.row <- which(ED[,1] == parent.node)
@@ -53,11 +54,13 @@ ed.coal.merge <- function(ED, n.deme){
     ED[parent.row, 2 + which.child] <- new.node
 
     prop.ratio <- (ED[selected.row, 6] - ED[parent.row ,6]) / ((ED[child.child.1.row, 6] - ED[selected.row, 6]) * (ED[child.child.2.row, 6] - ED[selected.row, 6]))
+    log.prop.ratio <- log(abs(ED[selected.row, 6] - ED[parent.row ,6])) - log(abs(ED[child.child.1.row, 6] - ED[selected.row, 6])) - log(abs(ED[child.child.2.row, 6] - ED[selected.row, 6]))
+
 
     ED <- ED[!ED[,1] %in% c(child.node.1, child.node.2), ] #Remove child migration nodes
     ED <- rbind(ED, c(new.node, parent.node, selected.node, NA, old.deme, new.node.time)) #Add new parent migration node
 
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   }
 }
 
@@ -85,19 +88,20 @@ ed.coal.split <- function(ED, n.deme){
     proposal.deme <- sample.vector((1:n.deme)[- ED[selected.row, 5]], 1)  #Sample new deme not equal to current deme of the root
 
     prop.ratio <- (n.deme - 1)* (ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6])
+    log.prop.ratio <- log(n.deme - 1) + log(abs(ED[child.row.1, 6] - ED[selected.row, 6])) + log(abs(ED[child.row.2, 6] - ED[selected.row, 6]))
     ED[selected.row, 3:5] <- c(new.nodes, proposal.deme)
     ED[child.row.1, 2] <- new.nodes[1]
     ED[child.row.2, 2] <- new.nodes[2]
     ED <- rbind(ED,
                 c(new.nodes[1], selected.node, child.node.1, NA, proposal.deme, new.node.time.1),
                 c(new.nodes[2], selected.node, child.node.2, NA, proposal.deme, new.node.time.2))
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   } else{
     parent.node <- ED[selected.row, 2]
 
     if (!parent.node %in% migration.nodes){
       #REJECT
-      return(list(ED = ED, prop.ratio = 0))
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
     }
 
     parent.row <- which(ED[,1] == parent.node)
@@ -113,6 +117,7 @@ ed.coal.split <- function(ED, n.deme){
     new.node.time.2 <- runif(1, ED[selected.row, 6], ED[child.row.2, 6])
 
     prop.ratio <- ((ED[child.row.1, 6] - ED[selected.row, 6]) * (ED[child.row.2, 6] - ED[selected.row, 6])) / (ED[selected.row, 6] - ED[parent.parent.row ,6])
+    log.prop.ratio <- log(abs(ED[child.row.1, 6] - ED[selected.row, 6])) + log(abs(ED[child.row.2, 6] - ED[selected.row, 6])) - log(abs(ED[selected.row, 6] - ED[parent.parent.row ,6]))
 
     which.child <- which(ED[parent.parent.row, 3:4] == parent.node)
     ED[parent.parent.row, 2 + which.child] <- selected.node
@@ -124,6 +129,6 @@ ed.coal.split <- function(ED, n.deme){
                 c(new.nodes[1], selected.node, child.node.1, NA, ED[selected.node, 5], new.node.time.1),
                 c(new.nodes[2], selected.node, child.node.2, NA, ED[selected.node, 5], new.node.time.2))
 
-    return(list(ED = ED, prop.ratio = prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   }
 }
