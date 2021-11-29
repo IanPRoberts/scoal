@@ -1,0 +1,23 @@
+The migration rates update matrix can be updated element-wise according to a Gibbs move. The likelihood for a single element of the migration rates matrix with the tree topology, migration history, effective population sizes and all other elements of the migration rates matrix fixed satisfies
+	\[
+		L(\lambda_{ij} | \Lambda_{-(i,j)}, \theta, \calT) \propto \lambda_{ij}^{m_{ij}} \exp \left\{ - \left(\sum_{r=1}^{2n + M - 2} k_{ir} \delta t_r \right) \lambda_{ij} \right\},
+	\]
+where
+	\begin{itemize}
+		\item $\Lambda = (\lambda_{ij})$ is the matrix of backwards-in-time migration rates,
+		\item $(\delta t_r)$ is the vector of time intervals between events,
+		\item $k_{ir}$ gives the number of lineages in deme $i$ during time interval $r$,
+		\item $m_{ij}$ gives the total number of migration events $i \rightarrow j$.
+	\end{itemize}
+
+Appealing to the Gamma-Gamma conjugacy, this motivates a Gamma prior on $\lambda_{ij}$, 
+
+\fbox{\parbox{\linewidth}{Gamma shape, rate parameterisation: $X \sim \text{Gamma}(\alpha, \beta)$ has density $f(x) \propto x^{\alpha - 1} \exp\{ - \beta x \}$}}
+
+The posterior density then satisfies
+	\begin{align*}
+		\Pi(\lambda_{ij} | \Lambda_{-(i,j)}, \theta, \calT) & \propto L(\lambda_{ij} | \Lambda_{-(i,j)}, \theta, \calT) \cdot \pi(\lambda_{ij}) \\
+			& \propto \lambda_{ij}^{m_{ij}} \exp \left\{ - \left(\sum_{r=1}^{2n + M - 2} k_{ir} \delta t_r \right) \lambda_{ij} \right\} \cdot \lambda_{ij}^{\alpha - 1} e^{-\beta \lambda_{ij}} \\
+			& \propto \lambda_{ij}^{m_{ij} + \alpha - 1} \exp \left\{ - \left( \beta + \sum_{r=1}^{2n + M - 2} k_{ir} \delta t_r \right) \lambda_{ij} \right\},
+	\end{align*}
+i.e. $\lambda_{ij} | ... \sim \text{Gamma} \left( \alpha + m_{ij}, \beta + \sum k_{ir} \delta t_r \right)$.

@@ -1,0 +1,13 @@
+The effective population sizes vector can be updated similarly to the migration rates matrix with a Gibbs move. The likelihood for a single element of the effective population sizes vector with the tree topology, migration history, migration rates matrix and all other elements of the effective population sizes vector fixed satisfies
+	\[
+		L(\theta_i | \theta_{-i}, \lambda, \calT) \propto \frac{1}{\theta_i^{c_i}} \exp \left\{ - \left( \sum_{r=1}^{2n+M-2} \binom{k_{ir}}{2} \delta t_r \right) \frac{1}{\theta_i} \right\},
+	\]
+where $c_i$ denotes the total number of coalescence events in deme $i$.
+
+This likelihood corresponds to an inverse-gamma distribution on $\theta_i$ (equivalently a gamma distribution on $\frac{1}{\theta_i}$), hence appealing again to conjugacy, take an inverse gamma prior on $\theta_i$. The posterior density then satisfies
+	\begin{align*}
+		\Pi(\theta_i | \Lambda, \theta_{-i}, \calT) & \propto L(\theta_i | \Lambda, \theta_{-i}, \calT) \cdot \pi(\theta_i) \\
+		& \propto \frac{1}{\theta_i^{c_i}} \exp \left\{ - \left( \sum_{r=1}^{2n+M-2} \binom{k_{ir}}{2} \delta t_r \right) \frac{1}{\theta_i} \right\} \cdot \theta_i^{-\alpha - 1} e^{- \frac{\beta}{\theta_i}} \\
+		& \propto \theta_i^{-\alpha - c_i - 1} \exp \left\{ - \left( \beta + \sum_{r=1}^{2n + M - 2} \binom{k_{ir}}{2} \delta t_r \right) \frac{1}{\theta_i} \right\},
+	\end{align*}
+i.e. $\theta_i | ... \sim \text{Inverse-gamma} (\alpha + c_i, \beta + \sum \binom{k_{ir}}{2} \delta t_r)$.

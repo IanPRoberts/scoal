@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  10 NOV 2021 15:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  23 NOV 2021 12:51
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -953,55 +953,47 @@ Underfull \hbox (badness 10000) in paragraph at lines 67--69
 
 [5]) (Sections/MCMCSubsections/CoalSplitMerge.tex [6])
 (Sections/MCMCSubsections/BlockRecolour.tex [7])
-(Sections/MCMCSubsections/MigTimeRescale.tex [8])) (Sections/Testing.tex
-[9] [10]
+(Sections/MCMCSubsections/MigTimeRescale.tex [8])
+(Sections/MCMCSubsections/MigRateUpdate.tex
+Overfull \hbox (6.79999pt too wide) in paragraph at lines 15--16
+[][] 
+ []
+
+[9]) (Sections/MCMCSubsections/EffPopUpdate.tex)) (Sections/Testing.tex
+[10] [11]
 LaTeX Font Info:    Trying to load font information for U+bbm on input line 61.
 
  (C:\Users\ian_p\AppData\Roaming\MiKTeX\tex/latex/bbm\ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
 ))
-(Sections/DB.tex [11] [12] [13]) [14] (MCMC Scheme Details.aux)
-
-Package rerunfilecheck Warning: File `"MCMC Scheme Details".out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `"MCMC Scheme Details".out':
-(rerunfilecheck)             Before: 08E73DAA55DA33B34221E293AD7A3E47;682
-(rerunfilecheck)             After:  DFAE95DDDC2972D5DDD8DD4E15F7109B;5773.
+(Sections/DB.tex [12] [13] [14]) [15] (MCMC Scheme Details.aux)
+Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
+(rerunfilecheck)             Checksum: 6B31184E87A0BB48146E53A8D8557267;6217.
  ) 
 Here is how much of TeX's memory you used:
- 29123 strings out of 479173
- 564975 string characters out of 2864085
- 900731 words of memory out of 3000000
- 46138 multiletter control sequences out of 15000+600000
- 410301 words of font info for 54 fonts, out of 8000000 for 9000
+ 29161 strings out of 479173
+ 565968 string characters out of 2864085
+ 897749 words of memory out of 3000000
+ 46169 multiletter control sequences out of 15000+600000
+ 410638 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,16n,104p,1110b,437s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{subsection.1.3} has been referenced but does not 
-exist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.1.2} has been referenced but does not ex
-ist, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.1.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
- <C:\Users\ian_p\AppData\Local\MiKTeX\fonts/pk/ljfour/public/bbm/dpi600\bbm12.p
-k><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Progra
-m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/typ
-e1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr1
-2.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Prog
-ram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/typ
-e1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbols
-/msbm10.pfb>
-Output written on "MCMC Scheme Details.pdf" (14 pages, 203986 bytes).
+ <C:\Users\ian_p\AppData\Local\MiKTeX\fonts/pk/ljfour/public/bbm/dpi600\bbm12
+.pk> <C:\Users\ian_p\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tc
+rm1200.pk><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C
+:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Fi
+les/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/f
+onts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmmi8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts
+/cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb>
+<C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Fi
+les/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/f
+onts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/pu
+blic/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts
+/symbols/msbm10.pfb>
+Output written on "MCMC Scheme Details.pdf" (15 pages, 223635 bytes).
 PDF statistics:
- 228 PDF objects out of 1000 (max. 8388607)
+ 305 PDF objects out of 1000 (max. 8388607)
  60 named destinations out of 1000 (max. 500000)
- 189 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 373 words of extra memory for PDF output out of 10000 (max. 10000000)
 
