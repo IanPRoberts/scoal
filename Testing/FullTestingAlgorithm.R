@@ -5,11 +5,12 @@ n.deme <- 3
 
 phylo <- Homochronous.Sim(1:n, 1, 1)
 phylo$node.deme <- rep(1, 2 * n - 1)
+#phylo <- ed.to.phylo(ED)
 
 ED <- phylo.to.ed(phylo)
 M <- length(ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1])
 
-N <- 1e7
+N <- 1e5
 N0 <- 1e3
 
 lambda <- 50
@@ -17,7 +18,7 @@ lambda <- 50
 freq <- matrix(0, 2, 7)  #Row 1 no. of accepted proposals, row 2 no. of proposals
 M.freq = matrix(c(0:150, rep(0, 151)), 2, 151, byrow = TRUE)
 
-proposal.probs <- c(0.2,0.8, 0.8, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
+proposal.probs <- c(0.4,1, 1, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
 root.node <- which(is.na(ED[,2]))
 non.root.nodes <- ED[ED[,1] != root.node, 1]
@@ -28,7 +29,7 @@ for (i in non.root.nodes){
   tree.length <- tree.length + (ED[i.row, 6] - ED[parent.row, 6])
 }
 
-#Sample <- numeric(N)
+Sample <- numeric(N)
 prior.ratio <- lambda / ((n.deme - 1) * tree.length)
 
 for (i in -N0 : N){
@@ -118,9 +119,9 @@ for (i in -N0 : N){
 
   freq[2, which.move] <- freq[2, which.move] + 1
 
-  #if (i > 0){
-  #  Sample[i] <- M
-  #}
+  if (i > 0){
+    Sample[i] <- M
+  }
 
   if (i %in% floor(0:100 * ((N+N0)/100))){
     print(i * 100 / (N+N0))
@@ -132,10 +133,10 @@ upper <- lower + max(which(M.freq[2, (lower+1):151] > 0))
 plot(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l', xlab = "M", ylab = "Density", main = paste(n, "leaves,", n.deme, "demes, lambda =", lambda, ", ", N, "iterations"))
 lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
 
-#plot(Sample, type = 'l')
+plot(Sample, type = 'l')
 
-#hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
-#lines(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l')
-#lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
+hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
+lines(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l')
+lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
 
 beepr::beep()  #Laptop dings on completion...
