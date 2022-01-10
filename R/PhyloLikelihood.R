@@ -160,7 +160,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
     } else{
       if (current.rows %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- ED[current.rows, 3]
+        current.child <- which(ED[,1] == ED[current.rows, 3])
         k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
       } else if (current.rows %in% coalescence.nodes){ #Coalescence event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
@@ -178,5 +178,5 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
   likelihood <- 0
   likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
     sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
-  return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
+  return(list(log.likelihood = likelihood, likelihood = exp(likelihood)))
 }

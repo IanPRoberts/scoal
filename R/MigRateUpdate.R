@@ -13,7 +13,7 @@
 #' @export
 
 mig.rate.update <- function(ED, migration.matrix, n.deme = NA, alpha = 1, beta = 10){
-  m <- ed.node.count(ED)$m
+  m <- ed.node.count(ED, n.deme)$m
 
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){

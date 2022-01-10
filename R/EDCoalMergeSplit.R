@@ -126,8 +126,8 @@ ed.coal.split <- function(ED, n.deme){
     ED[selected.row, 2:5] <- c(parent.parent.node, new.nodes, ED[parent.row, 5])
     ED <- ED[-parent.row, ]
     ED <- rbind(ED,
-                c(new.nodes[1], selected.node, child.node.1, NA, ED[selected.node, 5], new.node.time.1),
-                c(new.nodes[2], selected.node, child.node.2, NA, ED[selected.node, 5], new.node.time.2))
+                c(new.nodes[1], selected.node, child.node.1, NA, ED[selected.row, 5], new.node.time.1),
+                c(new.nodes[2], selected.node, child.node.2, NA, ED[selected.row, 5], new.node.time.2))
 
     return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
   }

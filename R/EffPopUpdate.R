@@ -12,8 +12,8 @@
 #'
 #' @export
 
-eff.pop.update <- function(ED, effective.population, n.deme, alpha, beta){
-  c <- ed.node.count(ED)$c
+eff.pop.update <- function(ED, effective.population, n.deme, alpha = 1, beta = 1){
+  c <- ed.node.count(ED, n.deme)$c
 
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
@@ -43,7 +43,8 @@ eff.pop.update <- function(ED, effective.population, n.deme, alpha, beta){
       if (current.rows %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
         current.child <- ED[current.rows, 3]
-        k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
+        current.child.row <- which(ED[,1] == current.child)
+        k[i, ED[current.child.row, 5]] <- k[i, ED[current.child.row, 5]] + 1
       } else if (current.rows %in% coalescence.nodes){ #Coalescence event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
       } else{ #Single leaf added

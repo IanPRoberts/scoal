@@ -83,7 +83,7 @@ ed.node.count <- function(ED, n.deme = NA){
       count <- count + 1
     }
     m[,i] <- summary(factor(origin.deme, 1:n.deme))
+    c[i] <- sum((ED[,1] %in% coalescence.nodes) & (ED[,5] == i))
   }
-  c <- as.vector(summary(factor(ED[(ED[,1] %in% coalescence.nodes), 5])))
   return(list(c = c, m = m))
 }

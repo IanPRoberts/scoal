@@ -16,22 +16,48 @@ phylo.to.ed <- function(phylo){
   n.nodes <- length(nodes)
   n.edges <- dim(phylo$edge)[1]
 
-  Out <- matrix(NA, n.nodes, 6, dimnames = list(NULL, c("Node ID", "Parent", "Child 1", "Child 2", "Deme", "Node Age")))
-  Out[,c(1,5,6)] <- c(nodes, phylo$node.deme, node.depth.edgelength(phylo))
+  ED <- matrix(NA, n.nodes, 6, dimnames = list(NULL, c("Node ID", "Parent", "Child 1", "Child 2", "Deme", "Node Age")))
+  ED[,c(1,5,6)] <- c(nodes, phylo$node.deme, node.depth.edgelength(phylo))
 
   for (i in (1 : n.nodes)[-(length(phylo$tip.label)+1)]){
-    Out[i,2] <- phylo$edge[which(phylo$edge[,2] == Out[i,1]),1]
+    ED[i,2] <- phylo$edge[which(phylo$edge[,2] == ED[i,1]),1]
   }
 
   for (i in (length(phylo$tip.label)+1):n.nodes){
-    children <- phylo$edge[which(phylo$edge[,1] == Out[i,1]),2]
+    children <- phylo$edge[which(phylo$edge[,1] == ED[i,1]),2]
     if (length(children) == 1){
-      Out[i,3] <- children
+      ED[i,3] <- children
     } else {
-      Out[i,c(3,4)] <- children
+      ED[i,c(3,4)] <- children
     }
   }
-  return(Out)
+
+  #Label root node n+1, coalescence nodes (n+2):(2n-1), migration nodes (2n-1):(2n+M-1)
+
+  migration.nodes <- ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1]
+  coalescence.nodes <- ED[!is.na(ED[,4]),1]
+  n <- length(ED[(is.na(ED[,3])) & (is.na(ED[,4])),1])
+  spare.label <- max(ED[,1]) + 1
+
+  if (! all((n+1):(2*n-1) %in% coalescence.nodes)){
+    missing.labels <-((n+1):(2*n-1))[! ((n+1):(2*n-1) %in% coalescence.nodes)]
+    extra.labels <- coalescence.nodes[! (coalescence.nodes %in% (n+1):(2*n-1))]
+
+    node.label.mat <- ED[,1:4]
+
+    for (i in 1 : length(missing.labels)){
+      mig.row <- which(ED[,1] == missing.labels[i])
+      coal.row <- which(ED[,1] == extra.labels[i])
+
+      node.label.mat[node.label.mat == missing.labels[i]] <- spare.label
+      node.label.mat[node.label.mat == extra.labels[i]] <- missing.labels[i]
+      node.label.mat[node.label.mat == spare.label] <- extra.labels[i]
+    }
+
+    ED[, 1:4] <- node.label.mat
+    ED <- ED[order(ED[,1]),]
+  }
+  return(ED)
 }
 
 #' Extended Data to Phylo Object
