@@ -1,18 +1,18 @@
-Fix a structured coalescent phylogeny and the evolutionary parameters (migration matrix, effective populations). Construct a MCMC algorithm inspired by Ewing et al. (2004) with the following three types of proposal move
+Fix a structured coalescent phylogeny and the evolutionary parameters (migration matrix, effective populations). Construct a MCMC algorithm based on a subset of the proposal moves attempted by Ewing et al. (2004),
 	\begin{enumerate}
 		\item Migration Birth/Death Move
 		\item Migration Pair Birth/Death Move
 		\item Coalescent Node Split/Merge Move
 	\end{enumerate}
-which obtain irreducibility over the space of migration histories on a fixed phylogeny with fixed evolutionary parameters.
+which obtain irreducibility over the space of migration histories on a fixed phylogenetic tree with fixed evolutionary parameters.
 
-The acceptance probabilities of each of the above types of proposal move takes the form
+The acceptance probabilities for a reversible jump MCMC scheme take the form
 	\begin{equation}
 		\alpha(\calT' | \calT) = \min \left( 1, \frac{L(\calT') \pi(\calT') Q(\calT | \calT')}{L(\calT) \pi(\calT) Q(\calT' | \calT)} || \calJ || \right)
 	\end{equation}
-where $L$ denotes the joint likelihood of the phylogeny and migration history, $\pi$ denotes the prior distribution on the phylogeny, $Q(\calT' | \calT)$ denotes the transition probability of obtaining $\calT'$ from $\calT$, and $\calJ$ denotes the Jacobian of the transformation.
+where $L$ denotes the joint likelihood of the phylogenetic tree and migration history, $\pi$ denotes the prior distribution on the phylogeny, $Q(\calT' | \calT)$ denotes the transition probability of obtaining $\calT'$ from $\calT$, and $\calJ$ denotes the Jacobian of the transformation.
 
-In all three cases, the transformations simply add or remove nodes from the migration history, and hence the term $||\calJ||$ is identically equal to 1. Similarly, the phylogeny is fixed and hence the prior ratio $\frac{\pi(\calT')}{\pi(\calT)} = 1$ also.
+In the three proposal methods listed above, the transformations act on the migration history by adding or removing migration events, resulting in the Jacobian term $||\calJ ||$ remaining equal to 1 throughout.
 
 \subsection{Migration Birth/Death Proposal}
 	\input{Sections/MCMCSubsections/MigBirthDeath}

@@ -11,3 +11,47 @@ This likelihood corresponds to an inverse-gamma distribution on $\theta_i$ (equi
 		& \propto \theta_i^{-\alpha - c_i - 1} \exp \left\{ - \left( \beta + \sum_{r=1}^{2n + M - 2} \binom{k_{ir}}{2} \delta t_r \right) \frac{1}{\theta_i} \right\},
 	\end{align*}
 i.e. $\theta_i | ... \sim \text{Inverse-gamma} (\alpha + c_i, \beta + \sum \binom{k_{ir}}{2} \delta t_r)$.
+
+\subsection{Forward-in-time Migration Rates}
+	Again substituting the relation from De Iorio and Griffiths (2004), the likelihood for the structured coalescent with forward-in-time migration rates satisfies
+			\begin{align*}
+			L_{n,d}(\calT) & = \prod_{i=1}^d \frac{1}{\theta_i^{c_i}} \exp \left\{ -\frac{1}{\theta_i} \sum_{r = 1}^{2n + M - 2} \binom{k_{ir}}{2} \delta t_r \right\} \prod_{\substack{j=1 \\ j \neq i}} \tilde{\lambda}_{ji}^{m_{ij}} \left(\frac{\theta_j}{\theta_i} \right)^{m_{ij}} \exp \left\{ - \frac{\theta_j}{\theta_i} \tilde{\lambda}_{ji} \sum_{r=1}^{2n+M-1} k_{i r} \delta t_r \right\} \\
+				& \propto_{\theta_1} \frac{1}{\theta_1^{c_1}} \exp \left\{- \frac{1}{\theta_1} \sum_r \binom{k_{1r}}{2} \delta t_r \right\} \times \underbrace{\left[\prod_{\alpha = 2}^d \frac{1}{\theta_1^{m_1\alpha}} \exp \left\{ - \frac{1}{\theta_1} \left( \theta_\alpha \tilde{\lambda}_{\alpha 1} \sum_\gamma k_{1\gamma} \delta t_\gamma \right) \right\} \right]}_{i=1} \\
+				& \qquad \qquad \times \underbrace{\left[ \prod_{\eta = 2}^d \theta_1^{m_{\eta 1}} \exp \left\{ - \theta_1 \left( \frac{\tilde{\lambda}_{1 \eta}}{\theta_\eta} \sum_\nu k_{\eta \nu} \delta t_\nu \right) \right\} \right]}_{i \neq 1} \\
+				& \propto_{\theta_1} \theta_1^{m_{+ 1} - m_{1 +} - c_1} \exp \left\{ -\frac{1}{\theta_1} \sum_r \left[ \binom{k_{1r}}{2} + k_{1r} \sum_{\alpha=2}^d \theta_\alpha \tilde{\lambda}_{\alpha 1}  \right] \delta t_r - \theta_1 \sum_{\beta = 2}^d \frac{\tilde{\lambda}_{1 \beta}}{\theta_\beta} \sum_r k_{\beta r} \delta t_r   \right\} \\
+				& \sim_{\theta_1} \theta_1^{-a - 1} \exp \left\{ - \frac{b}{\theta} - c \theta \right\},
+		\end{align*}
+	where $m_{+i} = \sum_{\alpha = 1}^d m_{\alpha i}$, $m_{i+} = \sum_{\alpha = 1}^d m_{i \alpha}$ and $a,b,c$ are constants satisfying
+		\begin{itemize}
+			\item $a \in \mathbb{Z}$
+			\item $b \in (0,\infty)$
+			\item $c \in (0, \infty)$.
+		\end{itemize}
+	This density resembles a product of the densities for a gamma distribution and inverse gamma distribution, however is not itself a common distribution. This suggests that if samples can be drawn from this distribution, either a Gamma or Inverse-gamma prior would be conjugate under this likelihood.
+	
+	Samples can be drawn using a rejection sampling method, by noting that for $b,c,x \geq 0$, both $e^-b/x \leq 1$ and $e^-cx \leq 1$ hold.
+	
+	\textbf{Rejection Sampling:}
+		\begin{enumerate}[1.]
+			\item If $a \geq 0$, sample $X \sim \text{Inv-Gamma}(a,b)$ [with density $f(x) \propto x^{-a-1} e^{-b/x}$]. Accept $X$ with probability
+				\[
+					\frac{x^{-a-1} e^{-\frac{b}{x} - cx}}{x^{-a-1} e^{-b/x}} = e^{-cx}.
+				\]
+			\item Otherwise, if $a < 0$, sample $X \sim \text{Gamma}(a,c)$ [with density $f(x) \propto x^{-a -1} e^{-cx}$]. Accept $X$ with probability
+				\[
+					\frac{x^{-a-1} e^{-\frac{b}{x} - cx}}{x^{-a-1} e^{-cx}} = e^{-\frac{b}{x}}.
+				\]
+		\end{enumerate}
+	
+	\textcolor{red}{Do I need to do something with $M$ - I'm not sure whether $M=1$ is sufficient here since, or whether I need to think more about relative size of my bounding functions?}
+	
+	\fbox{\parbox{\linewidth}{\textbf{Rejection Sampling Algorithm:} \\
+	Given two densities $f,g$ with $f(x) \leq M \cdot g(x)$ for all $x$, a sample can be generated from $f$ as follows:
+	\begin{enumerate}[1.]
+		\item Draw $X \sim g$
+		\item Accept $X$ as a sample from $f$ with probability
+			\[
+				\frac{f(X)}{M \cdot g(X)},
+			\]
+			otherwise return to step 1.
+\end{enumerate}}}

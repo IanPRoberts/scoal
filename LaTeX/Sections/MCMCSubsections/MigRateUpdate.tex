@@ -21,3 +21,15 @@ The posterior density then satisfies
 			& \propto \lambda_{ij}^{m_{ij} + \alpha - 1} \exp \left\{ - \left( \beta + \sum_{r=1}^{2n + M - 2} k_{ir} \delta t_r \right) \lambda_{ij} \right\},
 	\end{align*}
 i.e. $\lambda_{ij} | ... \sim \text{Gamma} \left( \alpha + m_{ij}, \beta + \sum k_{ir} \delta t_r \right)$.
+
+\subsection{Forwards-in-time Migration Rates}
+	De Iorio and Griffiths (2004) obtain a relation between the forward-in-time and backward-in-time migration rates given by
+		\[
+			\tilde{\lambda}_{ij} = \frac{\theta_j}{\theta_i} \lambda_{ji},
+		\]
+	where $\tilde{\lambda}_{\cdot \cdot}$ denotes a forward-in-time migration rate. Substituting (the inverse of) this relation into the likelihood for the structured coalescent yields
+		\begin{align*}
+			L_{n,d}(\calT) & = \prod_{i=1}^d \frac{1}{\theta_i^{c_i}} \exp \left\{ -\frac{1}{\theta_i} \sum_{r = 1}^{2n + M - 2} \binom{k_{ir}}{2} \delta t_r \right\} \prod_{\substack{j=1 \\ j \neq i}} \tilde{\lambda}_{ji}^{m_{ij}} \left(\frac{\theta_j}{\theta_i} \right)^{m_{ij}} \exp \left\{ - \frac{\theta_j}{\theta_i} \tilde{\lambda}_{ji} \sum_{r=1}^{2n+M-1} k_{i r} \delta t_r \right\} \\
+				& \propto_{\tilde{\lambda}_{ij}} \tilde{\lambda}_{ij}^{m_ji} \exp \left\{ - \left( \frac{\theta_i}{\theta_j} \sum_{r = 1}^{2n + M - 2} k_{jr} \delta t_r \right) \tilde{\lambda}_{ij} \right\},
+		\end{align*}
+	motivating a similar Gibbs update scheme to the backward-in-time migration rates, with a Gamma conjugate prior.

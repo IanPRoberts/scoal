@@ -1,4 +1,10 @@
 (Based on Ewing et al. (2004))
 \begin{equation}
-	L_{n,d}(\calT) = \prod_{i=1}^d \prod_{\substack{j=1 \\ j \neq i}}^d \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \prod_{r=2}^{2n + M -1} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_{r-1} - t_r) \right\}
+	\xcancel{
+		L_{n,d}(\calT) = \prod_{i=1}^d \prod_{\substack{j=1 \\ j \neq i}}^d \frac{1}{\theta_i^{c_i}} \lambda_{ij}^{m_{ij}} \prod_{r=2}^{2n + M -1} \exp \left\{ - \left( \frac{k_{i r} (k_{i r} - 1)}{2 \theta_i} + k_{i r} \lambda_{i j} \right)(t_{r-1} - t_r) \right\}
+	}
+\end{equation}
+
+\begin{equation}
+	L_{n,d}(\calT) = \prod_{i=1}^d \frac{1}{\theta_i^{c_i}} \exp \left\{ -\sum_{r=1}^{2n+M-2} \frac{1}{\theta_i} \binom{k_{ir}}{2} \delta t_r \right\} \prod_{\substack{j=1 \\ j \neq i}}^d \lambda_{ij}^{m_{ij}} \exp \left\{ - \sum_{r=1}^{2n + M - 2} k_{ir} \lambda_{ij} \delta t_r \right\}
 \end{equation}
