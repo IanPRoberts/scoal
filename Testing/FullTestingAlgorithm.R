@@ -13,12 +13,12 @@ M <- length(ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1])
 N <- 1e5
 N0 <- 1e3
 
-lambda <- 50
+lambda <- 10
 
 freq <- matrix(0, 2, 7)  #Row 1 no. of accepted proposals, row 2 no. of proposals
 M.freq = matrix(c(0:150, rep(0, 151)), 2, 151, byrow = TRUE)
 
-proposal.probs <- c(0.4,1, 1, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
+proposal.probs <- c(0.1,0.5, 0.9, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
 root.node <- which(is.na(ED[,2]))
 non.root.nodes <- ED[ED[,1] != root.node, 1]
