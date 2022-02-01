@@ -129,19 +129,18 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 
 ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
   n.deme <- dim(migration.matrix)[1]
-  diag(migration.matrix) <- 0  #Prevent self-migrations
 
   lambda <- effective.pop * gen.length
   if (length(lambda) == 1){
     lambda <- rep(lambda,n.deme)
   }
 
-  all.nodes <- ED[,1]
-  leaf.nodes <- all.nodes[is.na(ED[,3])]
-  root.node <- all.nodes[is.na(ED[,2])]
-  coalescence.nodes <- all.nodes[!is.na(ED[,4])]
+  #all.nodes <- ED[,1]
+  leaf.nodes <- ED[is.na(ED[,3]),1]
+  root.node <- ED[is.na(ED[,2]),1]
+  coalescence.nodes <- ED[!is.na(ED[,4]), 1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
-  migration.nodes <- all.nodes[! all.nodes %in% c(root.node, leaf.nodes, coalescence.nodes)]
+  migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
 
   node.heights <- ED[,6]
   event.times <- sort(unique(node.heights))  #Times of events, root at time=0
@@ -155,10 +154,10 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves added simultaneously
       for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] + 1
+        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
       }
     } else{
-      if (current.rows %in% migration.nodes){ #Migration event
+      if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
         current.child <- which(ED[,1] == ED[current.rows, 3])
         k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
@@ -176,7 +175,9 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
 
   #Likelihood computation
   likelihood <- 0
+  log.migration.matrix <- log(migration.matrix)
+  diag(log.migration.matrix) <- 0
   likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
-    sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
+    sum(c * log(lambda)) + sum(log.migration.matrix * m)
   return(list(log.likelihood = likelihood, likelihood = exp(likelihood)))
 }

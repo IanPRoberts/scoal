@@ -21,10 +21,14 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
   migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
 
   if (length(migration.nodes) == 0){
-    proposal.deme <- sample.vector((1:n.deme)[-ED[1, 5]], 1)
-    ED[,5] <- proposal.deme
+    if (fix.leaf.deme == TRUE){
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    } else{
+      proposal.deme <- sample.vector((1:n.deme)[-ED[1, 5]], 1)
+      ED[,5] <- proposal.deme
 
-    return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
+      return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
+    }
   }
 
 
@@ -108,6 +112,11 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
     #Update deme across subtree
     for (j in subtree.nodes[subtree.nodes != subtree.root]){
       row <- which(ED[,1] == j)
+      ED[row, 5] <- proposal.deme
+    }
+
+    if (subtree.root == root.node){
+      row <- which(ED[,1] == subtree.root)
       ED[row, 5] <- proposal.deme
     }
 

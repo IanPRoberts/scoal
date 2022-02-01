@@ -105,7 +105,13 @@ get.edge.id <- function(start, end, edge){
 #'
 #' @export
 
-structured.plot <- function(phylo, n.demes = NA){
+structured.plot <- function(x, n.demes = NA){
+  if (! ('phylo' %in% class(x))){
+    phylo <- ed.to.phylo(x)
+  } else{
+    phylo <- x
+  }
+
   edge <- phylo$edge
 
   if (is.na(n.demes)){
@@ -118,6 +124,7 @@ structured.plot <- function(phylo, n.demes = NA){
   }
 
   plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
+  par(mar = 0.1 + c(5,4,4,2))
 }
 
 #' Normal Distribution with Reflecting Boundary
