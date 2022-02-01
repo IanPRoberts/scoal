@@ -37,7 +37,7 @@ eff.pop.update <- function(ED, effective.population, n.deme, alpha = 1, beta = 1
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves added simultaneously
       for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] + 1
+        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
       }
     } else{
       if (current.rows %in% migration.nodes){ #Migration event

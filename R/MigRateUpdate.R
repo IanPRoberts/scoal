@@ -17,7 +17,7 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, alpha = 1, beta =
 
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
-    n.deme <- length(observed.demes)
+    n.deme <- max(observed.demes)
   }
   proposal.matrix <- matrix(0, n.deme, n.deme)
 
@@ -30,20 +30,28 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, alpha = 1, beta =
   migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
   leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
 
+  counted <- rep(0, dim(ED)[1])
+  counted[which(ED[,1] == root.node)] <- 1
+
   k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
-  k[1,ED[which(ED[,1] == root.node),5]] <- 2
+  root.row <- which(ED[,1] == root.node)
+  root.child.1 <- ED[root.row, 3]
+  k[1,ED[which(ED[,1] == root.child.1),5]] <- 2
   for (i in 2 : (length(event.times) - 1)){
-    current.rows <- which(ED[,6] == event.times[i])
+    time <- event.times[i]
+    current.rows <- which((ED[,6] <= time) & (counted == 0)) #which(ED[,6] == event.times[i])    #CANNOT USE == FOR FLOATING POINT VALUES
+    counted[current.rows] <- 1
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves added simultaneously
       for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] + 1
+        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
       }
     } else{
-      if (current.rows %in% migration.nodes){ #Migration event
+      if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
         current.child <- ED[current.rows, 3]
-        k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
+        current.child.row <- which(ED[,1] == current.child)
+        k[i, ED[current.child.row, 5]] <- k[i, ED[current.child.row, 5]] + 1
       } else if (current.rows %in% coalescence.nodes){ #Coalescence event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
       } else{ #Single leaf added
