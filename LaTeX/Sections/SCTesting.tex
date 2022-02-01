@@ -1,0 +1,12 @@
+Realisations of the structured coalescent process can be constructed recursively for a given set of tip data (containing a sample time and a sample deme for each leaf). 
+
+\subsection{Likelihood Testing}
+	The likelihood of a realisation of a structured coalescent process can be computed directly using \eqref{eq:SCLike}, or alternatively computed recursively throughout the generation of the simulation. One simple verification for the simulations is then to check that the two computed likelihoods agree for the tree.
+	
+\subsection{MLE for migration rates and effective population sizes}
+	An alternative method to verify the accuracy of the simulation method is to compare the maximum likelihood estimates of the migration rates matrix and effective population sizes to the simulation parameters. Maximum likelihood estimates can be obtained in the special case 
+
+	\begin{align*}
+		l_{n,d}(\calT) & = \sum_{i=1}^d \left[ -c_i \log \theta_i - \sum_{r=1}^{2n+M-2} \frac{1}{\theta_i} \binom{k_{ir}}{2} \delta t_r + \sum_{\substack{j=1 \\ j \neq i}}^d \left( m_{ij} \log \lambda_{ij} - \sum_{r=1}^{2n + M - 2} k_{ir} \lambda_{ij} \delta t_r \right) \right] \\
+			& = 
+	\end{align*}

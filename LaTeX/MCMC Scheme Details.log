@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  11 DEC 2021 08:21
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (MiKTeX 21.3) (preloaded format=pdflatex 2021.5.13)  1 FEB 2022 11:46
 entering extended mode
 **"./MCMC Scheme Details.tex"
 (MCMC Scheme Details.tex
@@ -942,58 +942,59 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 2.
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ))
-(Sections/StrucCoalLike.tex) (Sections/MCMC.tex [1
+(Sections/StrucCoalLike.tex) (Sections/SCTesting.tex [1
 
-{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}] (Sections/MCMCS
-ubsections/MigBirthDeath.tex
-[2]) (Sections/MCMCSubsections/MigPairBirthDeath.tex [3] [4]
+{C:/Users/ian_p/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]) (Sections/MCMC
+.tex
+(Sections/MCMCSubsections/MigBirthDeath.tex [2] [3])
+(Sections/MCMCSubsections/MigPairBirthDeath.tex [4] [5]
 Underfull \hbox (badness 10000) in paragraph at lines 67--69
 
  []
 
-[5]) (Sections/MCMCSubsections/CoalSplitMerge.tex [6])
-(Sections/MCMCSubsections/BlockRecolour.tex [7])
-(Sections/MCMCSubsections/MigTimeRescale.tex [8])
+[6]) (Sections/MCMCSubsections/CoalSplitMerge.tex [7])
+(Sections/MCMCSubsections/BlockRecolour.tex [8])
+(Sections/MCMCSubsections/MigTimeRescale.tex [9])
 (Sections/MCMCSubsections/MigRateUpdate.tex
 Overfull \hbox (6.79999pt too wide) in paragraph at lines 15--16
 [][] 
  []
 
-[9]
+[10]
 Overfull \hbox (14.66183pt too wide) detected at line 34
 []
  []
 
-) (Sections/MCMCSubsections/EffPopUpdate.tex [10]
+) (Sections/MCMCSubsections/EffPopUpdate.tex [11]
 Overfull \hbox (16.69855pt too wide) detected at line 23
 []
  []
 
-[11]))
-Overfull \hbox (6.79999pt too wide) in paragraph at lines 57--73
+[12]))
+Overfull \hbox (6.79999pt too wide) in paragraph at lines 57--76
 [][]
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 57--73
+Underfull \hbox (badness 10000) in paragraph at lines 57--76
 
  []
 
-(Sections/Testing.tex [12] [13]
+(Sections/Testing.tex [13] [14]
 LaTeX Font Info:    Trying to load font information for U+bbm on input line 61.
 
 
 (C:\Users\ian_p\AppData\Roaming\MiKTeX\tex/latex/bbm\ubbm.fd
 File: ubbm.fd 1999/03/15 V 1.2 Font definition for bbm font - TH
-)) (Sections/DB.tex [14] [15] [16]) [17] (MCMC Scheme Details.aux)
+)) (Sections/DB.tex [15] [16] [17]) [18] (MCMC Scheme Details.aux)
 Package rerunfilecheck Info: File `"MCMC Scheme Details".out' has not changed.
-(rerunfilecheck)             Checksum: 9B89D403597E7B7E3A4772F1E6BBF815;6662.
+(rerunfilecheck)             Checksum: E9DF842420A446B31DF2CAB721806B5A;7415.
  ) 
 Here is how much of TeX's memory you used:
- 29172 strings out of 479173
- 566086 string characters out of 2864085
- 900750 words of memory out of 3000000
- 46171 multiletter control sequences out of 15000+600000
+ 29186 strings out of 479173
+ 566371 string characters out of 2864085
+ 899811 words of memory out of 3000000
+ 46178 multiletter control sequences out of 15000+600000
  410638 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,20n,104p,1110b,445s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1011,9 +1012,9 @@ onts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/pu
 blic/amsfonts/cm/cmsy8.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts
 /latxfont/line10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbo
 ls/msbm10.pfb>
-Output written on "MCMC Scheme Details.pdf" (17 pages, 240590 bytes).
+Output written on "MCMC Scheme Details.pdf" (18 pages, 245413 bytes).
 PDF statistics:
- 332 PDF objects out of 1000 (max. 8388607)
- 69 named destinations out of 1000 (max. 500000)
- 389 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 351 PDF objects out of 1000 (max. 8388607)
+ 73 named destinations out of 1000 (max. 500000)
+ 413 words of extra memory for PDF output out of 10000 (max. 10000000)
 

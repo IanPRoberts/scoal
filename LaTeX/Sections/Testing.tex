@@ -4,7 +4,7 @@ Restricting attention to the case of using a Poisson prior on the number of migr
 \[
 p(\theta) = \frac{\lambda^M e^{-\lambda}}{M!} \cdot \left( \frac{1}{\calL} \right)^M \cdot \left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d} \cdot M!,
 \]
-where the term $\frac{\lambda^M e^{-\lambda}}{M!}$ arises as the Poisson-likelihood of having $m$ migration events on the tree; the term $\left( \frac{1}{\calL} \right)^M$ arises from selecting migration event locations uniformly on the tree; the term $\left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d}$ arises from selecting demes on the $M+1$ disjoint subtrees of the tree with roots either the root of the tree, or migration nodes ($d$ demes to select from for the subtree containing the root and $d-1$ to select from for each of the $M$ subtrees below migration nodes); and the term $M!$ arises from summing over all possible labellings of the $M$ migration events.
+where the term $\frac{\lambda^M e^{-\lambda}}{M!}$ arises as the Poisson-likelihood of having $M$ migration events on the tree; the term $\left( \frac{1}{\calL} \right)^M$ arises from selecting migration event locations uniformly on the tree; the term $\left( \frac{1}{d-1} \right)^M \cdot \frac{1}{d}$ arises from selecting demes on the $M+1$ disjoint subtrees of the tree with roots either the root of the tree, or migration nodes ($d$ demes to select from for the subtree containing the root and $d-1$ to select from for each of the $M$ subtrees below migration nodes); and the term $M!$ arises from summing over all possible labellings of the $M$ migration events.
 
 An algorithm can then be derived which has acceptance probabilities
 \[
