@@ -57,6 +57,8 @@ phylo.to.ed <- function(phylo){
     ED[, 1:4] <- node.label.mat
     ED <- ED[order(ED[,1]),]
   }
+
+  class(ED) <- 'ED'
   return(ED)
 }
 
@@ -107,6 +109,8 @@ ed.to.phylo <- function(ED){
   phylo$tip.label <- 1:n.tips #ED[1:n.tips,1]
   phylo$Nnode <- n.nodes - n.tips
   phylo$node.deme <- ED[order(ED[,1]),5]  #Order supplies the ordering of the rows in ED to get node demes in correct order
+
+  phylo <- ladderize(phylo)
 
   return(phylo)
 }
