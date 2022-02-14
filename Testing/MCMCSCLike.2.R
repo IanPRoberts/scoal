@@ -2,10 +2,10 @@
 #require(magick)
 #devtools::load_all()
 
-N0 <- 0 #1e3
+N0 <- 1e3
 N <- 1e6
 
-proposal.rates <- c(rep(1, 4), 1, 1) #c(1, 4, 4, 1, 0.1, 0.1) #Relative rates of selecting each type of proposal mechanism
+proposal.rates <- c(rep(5, 4), 1, 1) #c(1, 4, 4, 1, 0.1, 0.1) #Relative rates of selecting each type of proposal mechanism
 
 #Prior parameters (NOT CURRENTLY IN USE)
 eff.pop.alpha <- 10
@@ -16,7 +16,7 @@ mig.mat.beta <- 10
 
 #Proposal Parameters
 eff.pop.prop.mean <- 1
-eff.pop.prop.var <- 1/10
+eff.pop.prop.var <- 1
 
 mig.prop.mean <- 1/10
 mig.prop.var <- 1/20
@@ -24,19 +24,19 @@ mig.prop.var <- 1/20
 ##### Testing full MCMC algorithm using structured coalescent likelihood
 seed <- 10
 set.seed(seed)
-n <- 10
+n <- 100
 n.deme <- 3
 
 data <- matrix(0,nrow = n, ncol = 3)
 data[,1] <- 1:n
-data[,2] <- rep(2022, n) #runif(n, min = 2010, max = 2022)
+data[,2] <- sample(2020:2021, n, replace = TRUE)
 data[,3] <- sample.int(n.deme, n, replace = TRUE)
 
 
 #Simulation parameters
 gen.length <- 1
 sim.effective.pop <- rep(1, n.deme)  #1 / rgamma(n.deme, shape = eff.pop.alpha, scale = 1 /eff.pop.beta)
-sim.migration.matrix <-matrix(1, n.deme, n.deme) #matrix(rgamma(n.deme^2, shape = mig.mat.alpha, scale = 1/mig.mat.beta), n.deme, n.deme)
+sim.migration.matrix <-matrix(1/5, n.deme, n.deme) #matrix(rgamma(n.deme^2, shape = mig.mat.alpha, scale = 1/mig.mat.beta), n.deme, n.deme)
 diag(sim.migration.matrix) <- 0
 
 migration.matrix <- sim.migration.matrix
@@ -110,13 +110,13 @@ for (i in -N0 : N){
     which.move <- 7
   } else if (U < proposal.probs[5]){
     #effective.pop <- eff.pop.update(ED, effective.pop, n.deme, alpha = 1, beta = 1)
-    effective.pop <- eff.pop.update.2(ED, effective.pop, n.deme, alpha = 2 + eff.pop.prop.mean^2/eff.pop.prop.var, beta = (1 + eff.pop.prop.mean^2/ eff.pop.prop.var) * eff.pop.prop.mean)  #Update as Gibbs move for effective population sizes with update parameters alpha = beta = 1
+    effective.pop <- eff.pop.update.2(ED, effective.pop, n.deme, shape = 2 + eff.pop.prop.mean^2/eff.pop.prop.var, rate = (1 + eff.pop.prop.mean^2/ eff.pop.prop.var) * eff.pop.prop.mean)  #Update as Gibbs move for effective population sizes with update parameters alpha = beta = 1
     which.move <- 8
     ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix)$log.likelihood
   } else if (U < proposal.probs[6]){
     #migration.matrix <- mig.rate.update(ED, migration.matrix, n.deme, alpha = 1, beta = 1)
     #migration.matrix <- mig.rate.update(ED, migration.matrix, n.deme, alpha = mig.prop.mean^2/mig.prop.var, beta = mig.prop.mean/ mig.prop.var)  #Update as Gibbs move for migration rates with update parameters alpha = 1, beta = 10
-    migration.matrix <- mig.rate.update.2(ED, migration.matrix, n.deme, alpha = mig.prop.mean^2/mig.prop.var, beta = mig.prop.mean/ mig.prop.var)  #Update as Gibbs move for migration rates with update parameters alpha = 1, beta = 10
+    migration.matrix <- mig.rate.update.2(ED, migration.matrix, n.deme, shape = mig.prop.mean^2/mig.prop.var, rate = mig.prop.mean/ mig.prop.var)  #Update as Gibbs move for migration rates with update parameters alpha = 1, beta = 10
     which.move <- 9
     ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix)$log.likelihood
   }
