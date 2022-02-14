@@ -1,4 +1,4 @@
-mig.rate.update.2 <- function(ED, migration.matrix, n.deme = NA, alpha = 1, beta = 10){
+mig.rate.update.2 <- function(ED, migration.matrix, n.deme = NA, shape = 1, rate = 10){
 
   m <- ed.node.count(ED, n.deme)$m
 
@@ -31,14 +31,14 @@ mig.rate.update.2 <- function(ED, migration.matrix, n.deme = NA, alpha = 1, beta
 
   for (i in 1:n.deme){
     for (j in (1:n.deme)[-i]){
-      proposal.matrix[i,j] <- rgamma(1, shape = alpha + m[i,j], scale = 1 / (beta + deme.length[i]))
+      proposal.matrix[i,j] <- rgamma(1, shape = shape + m[i,j], scale = 1 / (rate + deme.length[i]))
     }
   }
   return(proposal.matrix)
 }
 
 
-eff.pop.update.2 <- function(ED, effective.population, n.deme, alpha = 1, beta = 1){
+eff.pop.update.2 <- function(ED, effective.population, n.deme, shape = 1, rate = 1){
   c <- ed.node.count(ED, n.deme)$c
 
   observed.demes <- unique(ED[,5])
@@ -79,32 +79,34 @@ eff.pop.update.2 <- function(ED, effective.population, n.deme, alpha = 1, beta =
     counted[current.rows] <- 1
     k[i,] <- k[i-1,]
 
-    if ((length(current.rows) == 0) && (i == length(check.times))){
-      current.rows <- which(counted == 0)
-    }
-
-    if (length(current.rows) > 1){
-      #Add multiple leaves
-      for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
+    if (length(current.rows) == 0){
+      if (i == length(check.times)){
+        current.rows <- which(counted == 0)
       }
     } else{
-      if (ED[current.rows,1] %in% migration.nodes){  #Migration event
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- ED[current.rows, 3]
-        current.child.row <- which(ED[,1] == current.child)
-        k[i, ED[current.child.row, 5]] <- k[i, ED[current.child.row, 5]] + 1
-      } else if (ED[current.rows,1] %in% coalescence.nodes){
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
-      } else if (ED[current.rows,1] %in% leaf.nodes){ #Single leaf added
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+      if (length(current.rows) > 1){
+        #Add multiple leaves
+        for (j in current.rows){
+          k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
+        }
+      } else{
+        if (ED[current.rows,1] %in% migration.nodes){  #Migration event
+          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+          current.child <- ED[current.rows, 3]
+          current.child.row <- which(ED[,1] == current.child)
+          k[i, ED[current.child.row, 5]] <- k[i, ED[current.child.row, 5]] + 1
+        } else if (ED[current.rows,1] %in% coalescence.nodes){
+          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
+        } else if (ED[current.rows,1] %in% leaf.nodes){ #Single leaf added
+          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+        }
       }
     }
   }
   rate.constants <- t(k * (k-1) / 2) %*% time.increments
 
   for (i in 1:n.deme){
-    proposal.eff.pop[i] <- 1/rgamma(1, shape = alpha + c[i], scale = 1 / (beta + rate.constants[i]))  #Proposals are inverse-gamma
+    proposal.eff.pop[i] <- 1/rgamma(1, shape = shape + c[i], scale = 1 / (rate + rate.constants[i]))  #Proposals are inverse-gamma
   }
   return(proposal.eff.pop)
 }
