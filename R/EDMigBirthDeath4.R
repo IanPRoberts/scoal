@@ -1,5 +1,5 @@
 #### Redoing mig birth
-ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
+ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -10,8 +10,8 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
   non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
   non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
   for (j in non.root.nodes){
-    node.row <- which(ED[,1] == j)
-    parent.row <- which(ED[,1] == ED[node.row, 2])
+    node.row <- node.indices[j, 2]
+    parent.row <- node.indices[ED[node.row, 2], 2]
     edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
   }
 
@@ -22,7 +22,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
   child.node <- ED[child.row, 1]
 
   parent.node <- ED[child.row, 2]
-  parent.row <- which(ED[,1] == parent.node)
+  parent.row <- node.indices[parent.node, 2]
 
   #Calculating subtree containing edge <new.node, child.node> terminating in migration or leaf nodes
   subtree.nodes <- child.node
@@ -31,7 +31,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
     for (j in active.nodes){
-      j.row <- which(ED[,1] == j)
+      j.row <- node.indices[j, 2]
       subtree.nodes <- c(subtree.nodes, ED[j.row, 3:4])  #Add children of i to subtree
       active.nodes <- c(active.nodes[active.nodes != j], ED[j.row, 3:4])  #Remove i from active nodes, add children
     }
@@ -39,7 +39,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
@@ -48,19 +48,19 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     proposal.deme <- sample.vector((1:n.deme)[- old.deme], 1)  #Propose deme update without accounting for surrounding demes
 
     for (j in subtree.leaves){  #Verify proposal.deme does not add any migrations from one deme into itself
-      j.row <- which(ED[,1] == j)
+      j.row <- node.indices[j, 2]
       j.child <- ED[j.row, 3]
-      j.child.row <- which(ED[,1] == j.child)
+      j.child.row <- node.indices[j.child, 2]
 
       if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
         #REJECT
-        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
       }
     }
 
     #Update deme across subtree
     for (j in subtree.nodes){
-      row <- which(ED[,1] == j)
+      row <- node.indices[j, 2]
       ED[row, 5] <- proposal.deme
     }
 
@@ -80,13 +80,13 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
     prop.ratio <- (n.deme - 1) * tree.length / (length(migration.nodes) + 1)
     log.prop.ratio <- log(n.deme - 1) + log(tree.length) - log(length(migration.nodes) + 1)
-    return(list(ED= ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+    return(list(ED= ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = rbind(node.indices, c(new.node, dim(ED)[1]))))
   }
 }
 
 
 #### Redoing Mig death
-ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
+ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -97,8 +97,8 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
   non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
   non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
   for (j in non.root.nodes){
-    node.row <- which(ED[,1] == j)
-    parent.row <- which(ED[,1] == ED[node.row, 2])
+    node.row <- node.indices[j, 2]
+    parent.row <-  node.indices[ED[node.row, 2], 2]
     edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
   }
 
@@ -106,13 +106,13 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if (length(migration.nodes) == 0){
     #REJECT
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   }
   selected.node <- sample.vector(migration.nodes, 1)
-  selected.row <- which(ED[,1] == selected.node)
+  selected.row <- node.indices[selected.node, 2]
 
   child.node <- ED[selected.row, 3]
-  child.row <- which(ED[,1] == child.node)
+  child.row <- node.indices[child.node, 2]
 
   #Calculating subtree containing edge <new.node, child.node> terminating in migration or leaf nodes
   subtree.nodes <- child.node
@@ -121,7 +121,7 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
     for (i in active.nodes){
-      i.row <- which(ED[,1] == i)
+      i.row <- node.indices[i, 2]
       subtree.nodes <- c(subtree.nodes, ED[i.row, 3:4])  #Add children of i to subtree
       active.nodes <- c(active.nodes[active.nodes != i], ED[i.row, 3:4])  #Remove i from active nodes, add children
     }
@@ -129,15 +129,15 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
     forbidden.demes <- numeric(0)
     for (i in subtree.leaves){  #Cannot change to deme adjacent to subtree
-      i.row <- which(ED[,1] == i)
+      i.row <- node.indices[i, 2]
       i.child <- ED[i.row, 3]
-      i.child.row <- which(ED[,1] == i.child)
+      i.child.row <- node.indices[i.child, 2]
       forbidden.demes <- c(forbidden.demes, ED[i.child.row, 5])  #Deme below node i
     }
     forbidden.demes <- unique(forbidden.demes)
@@ -146,15 +146,15 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     if (proposal.deme %in% forbidden.demes){
       #Cannot change deme
       #REJECT
-      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
     }
 
     parent.node <- ED[selected.row, 2]
-    parent.row <- which(ED[,1] == parent.node)
+    parent.row <- node.indices[parent.node, 2]
 
     #Update deme across subtree
     for (i in subtree.nodes){
-      i.row <- which(ED[,1] == i)
+      i.row <- node.indices[i, 2]
       ED[i.row, 5] <- proposal.deme
     }
 
@@ -164,9 +164,12 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE){
     which.child <- which(ED[parent.row, 3:4] == selected.node)
     ED[parent.row, 2 + which.child] <- child.node
 
+    node.indices[selected.node, 2] <- 0
+    node.indices[node.indices[,2] > selected.row, 2] <- node.indices[node.indices[,2] > selected.row, 2] - 1
+
     ED <- ED[-selected.row,]
     prop.ratio <- length(migration.nodes)/ ((n.deme - 1) * tree.length)
     log.prop.ratio <- log(length(migration.nodes)) - log(n.deme - 1) - log(tree.length)
-    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = node.indices))
   }
 }
