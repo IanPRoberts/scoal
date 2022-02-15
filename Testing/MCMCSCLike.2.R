@@ -76,7 +76,6 @@ dev.off()
 video.count <- 1
 
 for (i in -N0 : N){
-#for (i in -N0 : (-938)){
   U <- runif(1)
   V <- runif(1)
   W <- runif(1)
