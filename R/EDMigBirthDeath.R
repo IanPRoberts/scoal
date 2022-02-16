@@ -12,7 +12,7 @@
 #'
 #' @export
 
-ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
+ed.mig.birth <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -93,7 +93,16 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
     prop.ratio <- (n.deme - 1) * tree.length / (length(migration.nodes) + 1)
     log.prop.ratio <- log(n.deme - 1) + log(tree.length) - log(length(migration.nodes) + 1)
-    return(list(ED= ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = c(node.indices, dim(ED)[1])))
+
+    if (new.node > length(node.indices)){
+      new.node.indices <- numeric(new.node)
+      new.node.indices[1:length(node.indices)] <- node.indices
+    } else{
+      new.node.indices <- node.indices
+    }
+    new.node.indices[new.node] <- dim(ED)[1]
+
+    return(list(ED= ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = new.node.indices))
   }
 }
 
@@ -112,7 +121,7 @@ ed.mig.birth.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
 #'
 #' @export
 
-ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
+ed.mig.death <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -191,7 +200,8 @@ ed.mig.death.4 <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     ED[parent.row, 2 + which.child] <- child.node
 
     node.indices[selected.node] <- 0
-    node.indices[node.indices > selected.row] <- node.indices[node.indices > selected.row] - 1
+    index.changes <- (node.indices > selected.row)
+    node.indices[index.changes] <- node.indices[index.changes] - 1
 
     ED <- ED[-selected.row,]
     prop.ratio <- length(migration.nodes)/ ((n.deme - 1) * tree.length)
