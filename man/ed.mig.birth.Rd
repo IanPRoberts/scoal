@@ -4,7 +4,7 @@
 \alias{ed.mig.birth}
 \title{Migration Birth MCMC Move}
 \usage{
-ed.mig.birth(ED, n.deme)
+ed.mig.birth(ED, n.deme, fix.leaf.deme = TRUE, node.indices)
 }
 \arguments{
 \item{ED}{Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age}
