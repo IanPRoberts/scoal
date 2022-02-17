@@ -150,7 +150,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
   k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
   k[1,ED[root.node,5]] <- 2
   for (i in 2 : (length(event.times) - 1)){
-    current.rows <- node.indices[event.times[i]]
+    current.rows <- which(ED[,6] == event.times[i])
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves added simultaneously
       for (j in current.rows){

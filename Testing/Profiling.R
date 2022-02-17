@@ -39,16 +39,16 @@ profvis({
   phylo <- Structured.sim(data, effective.pop, gen.length, n.deme, migration.matrix, FALSE)
   ED <- phylo.to.ed(phylo)
 
-  ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix)$log.likelihood
-  freq <- matrix(0, 2, 9)  #Row 1 no. of accepted proposals, row 2 no. of proposals
-
-  proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
-
   max.label <- max(ED[,1])
   node.indices <- rep(0, max.label)
   for (j in 1 : dim(ED)[1]){
     node.indices[ED[j,1]] <- j
   }
+
+  ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
+  freq <- matrix(0, 2, 9)  #Row 1 no. of accepted proposals, row 2 no. of proposals
+
+  proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
   which.move <- max.move.fixed + 1
 
@@ -106,17 +106,17 @@ profvis({
     } else if (U < proposal.probs[5]){
       which.move <- 8
       effective.pop <- eff.pop.update.2(ED, effective.pop, n.deme, node.indices, shape = eff.pop.prior.shape, rate = eff.pop.prior.rate)
-      ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix)$log.likelihood
+      ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
     } else if (U < proposal.probs[6]){
       which.move <- 9
       migration.matrix <- mig.rate.update.2(ED, migration.matrix, n.deme, node.indices, shape = mig.prior.shape, rate = mig.prior.rate)
-      ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix)$log.likelihood
+      ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
     }
 
     freq[2, which.move] <- freq[2, which.move] + 1
 
     if ((which.move <= 7) && (proposal$prop.ratio > 0)){
-      proposal.like <- ed.likelihood(proposal$ED, effective.pop, gen.length, migration.matrix)$log.likelihood
+      proposal.like <- ed.likelihood(proposal$ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
       log.accept.prob <- min(0, proposal.like - ED.like + proposal$log.prop.ratio)
       if (log(W) <= log.accept.prob){
         freq[1, which.move] <- freq[1, which.move] + 1
