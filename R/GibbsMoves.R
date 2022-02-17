@@ -1,4 +1,4 @@
-mig.rate.update.2 <- function(ED, migration.matrix, n.deme = NA, node.indices, shape = 1, rate = 10){
+mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, shape = 1, rate = 10){
 
   m <- ed.node.count(ED, n.deme)$m
 
@@ -38,7 +38,7 @@ mig.rate.update.2 <- function(ED, migration.matrix, n.deme = NA, node.indices, s
 }
 
 
-eff.pop.update.2 <- function(ED, effective.population, n.deme, node.indices, shape = 1, rate = 1){
+eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape = 1, rate = 1){
   c <- ed.node.count(ED, n.deme)$c
 
   observed.demes <- unique(ED[,5])

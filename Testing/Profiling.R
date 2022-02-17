@@ -105,11 +105,11 @@ profvis({
       proposal <- ed.block.recolour(ED, n.deme, TRUE, node.indices)
     } else if (U < proposal.probs[5]){
       which.move <- 8
-      effective.pop <- eff.pop.update.2(ED, effective.pop, n.deme, node.indices, shape = eff.pop.prior.shape, rate = eff.pop.prior.rate)
+      effective.pop <- eff.pop.update(ED, effective.pop, n.deme, node.indices, shape = eff.pop.prior.shape, rate = eff.pop.prior.rate)
       ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
     } else if (U < proposal.probs[6]){
       which.move <- 9
-      migration.matrix <- mig.rate.update.2(ED, migration.matrix, n.deme, node.indices, shape = mig.prior.shape, rate = mig.prior.rate)
+      migration.matrix <- mig.rate.update(ED, migration.matrix, n.deme, node.indices, shape = mig.prior.shape, rate = mig.prior.rate)
       ED.like <- ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
     }
 
