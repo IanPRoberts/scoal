@@ -127,7 +127,7 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 #'
 #' @export
 
-ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
+ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.indices){
   n.deme <- dim(migration.matrix)[1]
 
   lambda <- effective.pop * gen.length
@@ -150,7 +150,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
   k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
   k[1,ED[root.node,5]] <- 2
   for (i in 2 : (length(event.times) - 1)){
-    current.rows <- which(ED[,6] == event.times[i])
+    current.rows <- node.indices[event.times[i]]
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves added simultaneously
       for (j in current.rows){
@@ -159,7 +159,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
     } else{
       if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- which(ED[,1] == ED[current.rows, 3])
+        current.child <- node.indices[ED[,1] == ED[current.rows, 3]]
         k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
       } else if (current.rows %in% coalescence.nodes){ #Coalescence event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
