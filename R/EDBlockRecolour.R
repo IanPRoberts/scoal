@@ -31,15 +31,10 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     }
   }
 
-
-  edge.length <- numeric(dim(ED)[1])
-  non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
-  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
-  for (j in non.root.nodes){
-    node.row <- node.indices[j]
-    parent.row <- node.indices[ED[node.row, 2]]
-    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
-  }
+  parent.rows <- node.indices[ED[,2]]
+  parent.times <- ED[parent.rows, 6]
+  parent.times[root.node] <- 0
+  edge.length <- ED[,6] - parent.times
 
   tree.length <- sum(edge.length)  #Total tree length
   new.location <- runif(1, 0, tree.length)  #Uniform location along tree.length
