@@ -57,7 +57,7 @@ node.count <- function(phylo, n.deme = NA){
 #'
 #' @export
 
-ed.node.count <- function(ED, n.deme = NA){
+ed.node.count <- function(ED, n.deme = NA, node.indices){
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
     n.deme <- length(observed.demes)
@@ -65,6 +65,7 @@ ed.node.count <- function(ED, n.deme = NA){
 
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
+  coalescence.rows <- node.indices[coalescence.nodes]
   migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
   leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
 
@@ -76,14 +77,14 @@ ed.node.count <- function(ED, n.deme = NA){
     origin.deme <- numeric(length(end.in.i))
     count <- 1
     for (j in end.in.i){
-      j.row <- which(ED[,1] == j)
+      j.row <- node.indices[j]
       j.child <- ED[j.row, 3]
-      j.child.row <- which(ED[,1] == j.child)
+      j.child.row <- node.indices[j.child]
       origin.deme[count] <- ED[j.child.row, 5]
       count <- count + 1
     }
     m[,i] <- summary(factor(origin.deme, 1:n.deme))
-    c[i] <- sum((ED[,1] %in% coalescence.nodes) & (ED[,5] == i))
+    c[i] <- sum((ED[coalescence.rows, 1]) & (ED[coalescence.rows, 5] == i))
   }
   return(list(c = c, m = m))
 }
