@@ -21,7 +21,7 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, sha
       parents <- ED[rows.in.deme, 2]
       parents.rows <- numeric(length(parents))
       for (i in 1 : length(parents)){
-        parents.rows[i] <- which(ED[,1] == parents[i])
+        parents.rows[i] <- node.indices[parents[i]]
       }
       deme.length[d] <- sum(ED[rows.in.deme, 6] - ED[parents.rows, 6])
     } else{
