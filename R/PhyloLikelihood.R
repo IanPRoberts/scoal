@@ -159,7 +159,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
     } else{
       if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- node.indices[ED[,1] == ED[current.rows, 3]]
+        current.child <- node.indices[ED[current.rows, 3]]
         k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
       } else if (current.rows %in% coalescence.nodes){ #Coalescence event
         k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
