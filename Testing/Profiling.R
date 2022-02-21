@@ -3,7 +3,7 @@ require(ape)
 devtools::load_all()
 
 profvis({
-  # max.move.fixed <- 6
+  max.move.fixed <- 9
 
   set.seed(1)
   N0 <- 1e4  #Burn in

@@ -135,12 +135,10 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
     lambda <- rep(lambda,n.deme)
   }
 
-  #all.nodes <- ED[,1]
-  leaf.nodes <- ED[is.na(ED[,3]),1]
-  root.node <- ED[is.na(ED[,2]),1]
-  coalescence.nodes <- ED[!is.na(ED[,4]), 1]
-  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
-  migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
+  # root.node <- ED[is.na(ED[,2]),1]
+  # coalescence.nodes <- ED[!is.na(ED[,4]), 1]
+  # coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
+  # migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
 
   node.heights <- ED[,6]
   event.times <- sort(unique(node.heights))  #Times of events, root at time=0
@@ -152,19 +150,24 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
   for (i in 2 : (length(event.times) - 1)){
     current.rows <- which(ED[,6] == event.times[i])
     k[i,] <- k[i-1,]
-    if (length(current.rows) > 1){ #Multiple leaves added simultaneously
+    if (length(current.rows) > 1){ #Multiple leaves
       for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
+        current.deme <- ED[j, 5]
+        k[i, current.deme] <- k[i, current.deme] - 1
       }
     } else{
-      if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- node.indices[ED[current.rows, 3]]
-        k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
-      } else if (current.rows %in% coalescence.nodes){ #Coalescence event
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
-      } else{ #Single leaf added
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
+      if (is.na(ED[current.rows, 3])){ #Leaf
+        current.deme <- ED[current.rows, 5]
+        k[i, current.deme] <- k[i, current.deme] - 1
+      } else if (!is.na(ED[current.rows, 4])){ #Coalescence
+        current.deme <- ED[current.rows, 5]
+        k[i, current.deme] <- k[i, current.deme] + 1
+      } else{ #Migration
+          current.deme <- ED[current.rows, 5]
+          k[i, current.deme] <- k[i, current.deme] - 1
+          current.child <- node.indices[ED[current.rows, 3]]
+          child.deme <- ED[current.child, 5]
+          k[i, child.deme] <- k[i, child.deme] + 1
       }
     }
   }
