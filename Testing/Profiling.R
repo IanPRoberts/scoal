@@ -3,8 +3,6 @@ require(ape)
 devtools::load_all()
 
 profvis({
-  max.move.fixed <- 9
-
   set.seed(1)
   N0 <- 1e4  #Burn in
   N <- 1e5  #Main MCMC run
@@ -49,8 +47,6 @@ profvis({
   freq <- matrix(0, 2, 9)  #Row 1 no. of accepted proposals, row 2 no. of proposals
 
   proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
-
-  which.move <- max.move.fixed + 1
 
   for (i in -N0 : N){
     U <- runif(1)
@@ -104,9 +100,7 @@ profvis({
         ED <- proposal$ED
         ED.like <- proposal.like
 
-        if (which.move <= max.move.fixed){
           node.indices <- proposal$node.indices
-        }
       }
     }
 
