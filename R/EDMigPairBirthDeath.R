@@ -81,6 +81,7 @@ ed.mig.pair.death <- function(ED, n.deme, node.indices){
     child.node <- ED[selected.row, 3]
     child.row <- node.indices[child.node]
 
+    n.nodes <- dim(ED)[1]
     prop.ratio <- 2 * (n.nodes - 1) / ((n.nodes - 3) * (n.deme - 1) * (ED[child.row, 6] - ED[parent2.row, 6])^2)
     log.prop.ratio <- log(2) + log(n.nodes - 1) - log(n.nodes - 3) - log(n.deme - 1) - 2 * log(abs(ED[child.row, 6] - ED[parent2.row, 6]))
 
