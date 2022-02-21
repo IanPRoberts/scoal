@@ -3,13 +3,13 @@ require(ape)
 devtools::load_all()
 
 profvis({
-  max.move.fixed <- 6
+  # max.move.fixed <- 6
 
   set.seed(1)
   N0 <- 1e4  #Burn in
   N <- 1e5  #Main MCMC run
 
-  n <- 20
+  n <- 50
   n.deme <- 3
   proposal.rates <- c(rep(5, 4), 1, 1) #c(1, 4, 4, 1, 0.1, 0.1) #Relative rates of selecting each type of proposal mechanism
 
@@ -57,25 +57,6 @@ profvis({
     V <- runif(1)
     W <- runif(1)
 
-
-    if (which.move > max.move.fixed){
-      max.label <- max(max(ED[,1]), length(node.indices))
-      node.indices <- rep(0, max.label)
-      for (j in 1 : dim(ED)[1]){
-        node.indices[ED[j,1]] <- j
-      }
-    }
-
-    if (which.move %in% 5:6){
-      max.label <- max(max(ED[,1]), length(node.indices))
-      temp.indices <- rep(0, max.label)
-      for (j in 1 : dim(ED)[1]){
-        temp.indices[ED[j,1]] <- j
-      }
-
-      if (any(temp.indices - node.indices != 0)) browser()
-    }
-
     if (U < proposal.probs[1]){
       if (V < 0.5){
         which.move <- 1
@@ -116,7 +97,7 @@ profvis({
     freq[2, which.move] <- freq[2, which.move] + 1
 
     if ((which.move <= 7) && (proposal$prop.ratio > 0)){
-      proposal.like <- ed.likelihood(proposal$ED, effective.pop, gen.length, migration.matrix, node.indices)$log.likelihood
+      proposal.like <- ed.likelihood(proposal$ED, effective.pop, gen.length, migration.matrix, proposal$node.indices)$log.likelihood
       log.accept.prob <- min(0, proposal.like - ED.like + proposal$log.prop.ratio)
       if (log(W) <= log.accept.prob){
         freq[1, which.move] <- freq[1, which.move] + 1
