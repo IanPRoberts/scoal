@@ -9,7 +9,7 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, sha
   proposal.matrix <- matrix(0, n.deme, n.deme)
 
   root.node <- ED[is.na(ED[,2]), 1]
-  root.row <- which(ED[,1] == root.node)
+  root.row <- node.indices[root.node]
 
   deme.length <- rep(NA, n.deme)
 
@@ -49,60 +49,8 @@ eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape
 
   event.times <- unique(sort(ED[,6]))
   time.increments <- diff(event.times)
-  check.times <- event.times[1:(length(event.times) - 1)] + time.increments/2
-  if (any(diff(check.times) == 0)){
-    problem.indices <- which(diff(check.times) == 0)
-    for (i in 1 : length(problem.indices)){
-      check.times <- check.times[-problem.indices[i]]
-      time.increments <- time.increments[-problem.indices[i]]
-    }
-  }
 
-  root.node <- ED[is.na(ED[,2]), 1]
-  coalescence.nodes <- ED[!is.na(ED[,4]),1]
-  migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
-  leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
-
-  root.row <- which(ED[,1] == root.node)
-
-  counted <- rep(0, dim(ED)[1])
-  counted[root.row] <- 1
-
-  k <- matrix(0, length(check.times), n.deme)
-  root.child <- ED[root.row, 3]
-  root.child.row <- which(ED[,1] == root.child)
-
-  k[1, ED[root.child.row, 5]] <- 2
-
-  for (i in 2 : length(check.times)){
-    current.rows <- which((ED[,6] <= check.times[i]) & (counted == 0))
-    counted[current.rows] <- 1
-    k[i,] <- k[i-1,]
-
-    if (length(current.rows) == 0){
-      if (i == length(check.times)){
-        current.rows <- which(counted == 0)
-      }
-    } else{
-      if (length(current.rows) > 1){
-        #Add multiple leaves
-        for (j in current.rows){
-          k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
-        }
-      } else{
-        if (ED[current.rows,1] %in% migration.nodes){  #Migration event
-          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-          current.child <- ED[current.rows, 3]
-          current.child.row <- which(ED[,1] == current.child)
-          k[i, ED[current.child.row, 5]] <- k[i, ED[current.child.row, 5]] + 1
-        } else if (ED[current.rows,1] %in% coalescence.nodes){
-          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
-        } else if (ED[current.rows,1] %in% leaf.nodes){ #Single leaf added
-          k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        }
-      }
-    }
-  }
+  k <- deme.decomp(ED, n.deme, node.indices)
   rate.constants <- t(k * (k-1) / 2) %*% time.increments
 
   for (i in 1:n.deme){

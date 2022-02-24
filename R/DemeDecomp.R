@@ -3,10 +3,12 @@ deme.decomp <- function(ED, n.deme, node.indices){
   time.increments <- diff(event.times)
 
   k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
-  k[1,ED[ED[is.na(ED[,2]),1],5]] <- 2
+  root.row <- node.indices[ED[is.na(ED[,2]),1]]
+  k[1,ED[root.row, 5]] <- 2
 
   for (i in 2 : (length(event.times) - 1)){
     current.rows <- which(ED[,6] == event.times[i])
+
     k[i,] <- k[i-1,]
     if (length(current.rows) > 1){ #Multiple leaves
       for (j in current.rows){
