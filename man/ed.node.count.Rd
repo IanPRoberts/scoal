@@ -4,7 +4,7 @@
 \alias{ed.node.count}
 \title{Counting of Migration and Coalescent Events}
 \usage{
-ed.node.count(ED, n.deme = NA)
+ed.node.count(ED, n.deme, node.indices)
 }
 \arguments{
 \item{ED}{Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age}

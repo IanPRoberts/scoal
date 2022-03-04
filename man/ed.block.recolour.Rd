@@ -4,7 +4,7 @@
 \alias{ed.block.recolour}
 \title{Block Recolouring MCMC Proposal}
 \usage{
-ed.block.recolour(ED, n.deme, fix.leaf.deme = TRUE)
+ed.block.recolour(ED, n.deme, fix.leaf.deme = TRUE, node.indices)
 }
 \arguments{
 \item{ED}{Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age}
