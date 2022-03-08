@@ -10,7 +10,7 @@ deme.decomp <- function(ED, n.deme, node.indices){
   for (i in 2 : (length(event.times) - 1)){
     k[i,] <- k[i-1,]
     active.rows <- node.indices[active.nodes]
-    current.indices <- which(ED[active.rows, 6] == event.times[i])
+    current.indices <- match(event.times[i], ED[active.rows, 6])
     current.rows <- active.rows[current.indices]
 
     if (length(current.rows) > 1){ #Multiple leaves
