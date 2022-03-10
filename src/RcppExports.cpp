@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // DemeDecompC
-NumericVector DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
+std::unordered_set<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
 RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
