@@ -4,5 +4,5 @@
 .Ruserdata
 MCMC_Results/
 Profile-10-2-2022.Rprofvis
-src/*.o
-src/*.dll
+*.o
+*.dll
