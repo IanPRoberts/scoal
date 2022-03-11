@@ -1,33 +1,33 @@
 ### Coalescent node Merge Proposal
 
-ed.coal.merge <- function(ED, n.deme){
+ed.coal.merge <- function(ED, n.deme, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
 
   selected.node <- sample.vector(coalescence.nodes, 1)
-  selected.row <- which(ED[,1] == selected.node)
+  selected.row <- node.indices[selected.node]
 
   child.node.1 <- ED[selected.row, 3]
   child.node.2 <- ED[selected.row, 4]
 
   if ((!child.node.1 %in% migration.nodes) || (! child.node.2 %in% migration.nodes)){
     #REJECT as cannot delete coalescent node
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   }
 
-  child.row.1 <- which(ED[,1] == child.node.1)
+  child.row.1 <- node.indices[child.node.1]
   child.child.1 <- ED[child.row.1, 3]
-  child.child.1.row <- which(ED[,1] == child.child.1)
+  child.child.1.row <- node.indices[child.child.1]
   exterior.deme.1 <- ED[child.child.1.row,5] #Deme below child 1
-  child.row.2 <- which(ED[,1] == child.node.2)
+  child.row.2 <- node.indices[child.node.2]
   child.child.2 <- ED[child.row.2, 3]
-  child.child.2.row <- which(ED[,1] == child.child.2)
+  child.child.2.row <- node.indices[child.child.2]
   exterior.deme.2 <- ED[child.child.2.row,5] #Deme below child 2
 
   if (exterior.deme.1 != exterior.deme.2){
     #REJECT as exterior demes are not the same
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   }
 
   if (selected.node == root.node){
@@ -35,13 +35,19 @@ ed.coal.merge <- function(ED, n.deme){
     log.prop.ratio <- -log(n.deme - 1) - log(abs(ED[child.child.1.row, 6] - ED[selected.row, 6])) - log(abs(ED[child.child.2.row, 6] - ED[selected.row, 6]))
 
     ED[selected.row, c(3:5)] <- c(child.child.1, child.child.2, exterior.deme.1)
-    ED[c(child.child.1.row, child.child.2.row), 2] <- selected.row
+    ED[c(child.child.1.row, child.child.2.row), 2] <- selected.node
     ED <- ED[!ED[,1] %in% c(child.node.1, child.node.2), ] #Remove child migration nodes
 
-    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+    node.indices[c(child.node.1, child.node.2)] <- 0
+    index.changes.1 <- (node.indices > child.row.1)
+    index.changes.2 <- (node.indices > child.row.2)
+    node.indices[index.changes.1] <- node.indices[index.changes.1] - 1
+    node.indices[index.changes.2] <- node.indices[index.changes.2] - 1
+
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = node.indices))
   } else{
     parent.node <- ED[selected.row, 2]
-    parent.row <- which(ED[,1] == parent.node)
+    parent.row <- node.indices[parent.node]
 
     new.node <- max(ED[,1]) + 1
     new.node.time <- runif(1, ED[parent.row, 6], ED[selected.row, 6])
@@ -60,26 +66,40 @@ ed.coal.merge <- function(ED, n.deme){
     ED <- ED[!ED[,1] %in% c(child.node.1, child.node.2), ] #Remove child migration nodes
     ED <- rbind(ED, c(new.node, parent.node, selected.node, NA, old.deme, new.node.time)) #Add new parent migration node
 
-    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+    node.indices[c(child.node.1, child.node.2)] <- 0
+    index.changes.1 <- (node.indices > child.row.1)
+    index.changes.2 <- (node.indices > child.row.2)
+    node.indices[index.changes.1] <- node.indices[index.changes.1] - 1
+    node.indices[index.changes.2] <- node.indices[index.changes.2] - 1
+
+    if (new.node > length(node.indices)){
+      new.node.indices <- numeric(new.node)
+      new.node.indices[1:length(node.indices)] <- node.indices
+    } else{
+      new.node.indices <- node.indices
+    }
+    new.node.indices[new.node] <- dim(ED)[1]
+
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = new.node.indices))
   }
 }
 
 
 ### Coalescent node split proposal
 
-ed.coal.split <- function(ED, n.deme){
+ed.coal.split <- function(ED, n.deme, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
 
   selected.node <- sample.vector(coalescence.nodes, 1)
-  selected.row <- which(ED[,1] == selected.node)
+  selected.row <- node.indices[selected.node]
 
   if (selected.node == root.node){
     child.node.1 <- ED[selected.row, 3]
-    child.row.1 <- which(ED[,1] == child.node.1)
+    child.row.1 <- node.indices[child.node.1]
     child.node.2 <- ED[selected.row, 4]
-    child.row.2 <- which(ED[,1] == child.node.2)
+    child.row.2 <- node.indices[child.node.2]
 
     new.nodes <- max(ED[,1]) + c(1,2)
     new.node.time.1 <- runif(1, ED[selected.row, 6], ED[child.row.1, 6])
@@ -95,23 +115,32 @@ ed.coal.split <- function(ED, n.deme){
     ED <- rbind(ED,
                 c(new.nodes[1], selected.node, child.node.1, NA, proposal.deme, new.node.time.1),
                 c(new.nodes[2], selected.node, child.node.2, NA, proposal.deme, new.node.time.2))
-    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+
+    if (new.nodes[2] > length(node.indices)){
+      new.node.indices <- numeric(new.nodes[2])
+      new.node.indices[1:length(node.indices)] <- node.indices
+    } else{
+      new.node.indices <- node.indices
+    }
+    new.node.indices[new.nodes] <- c(dim(ED)[1] - 1, dim(ED)[1])
+
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = new.node.indices))
   } else{
     parent.node <- ED[selected.row, 2]
 
     if (!parent.node %in% migration.nodes){
       #REJECT
-      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
     }
 
-    parent.row <- which(ED[,1] == parent.node)
+    parent.row <- node.indices[parent.node]
     child.node.1 <- ED[selected.row, 3]
-    child.row.1 <- which(ED[,1] == child.node.1)
+    child.row.1 <- node.indices[child.node.1]
     child.node.2 <- ED[selected.row, 4]
-    child.row.2 <- which(ED[,1] == child.node.2)
+    child.row.2 <- node.indices[child.node.2]
 
     parent.parent.node <- ED[parent.row, 2]
-    parent.parent.row <- which(ED[,1] == parent.parent.node)
+    parent.parent.row <- node.indices[parent.parent.node]
     new.nodes <- max(ED[,1]) + c(1,2)
     new.node.time.1 <- runif(1, ED[selected.row, 6], ED[child.row.1, 6])
     new.node.time.2 <- runif(1, ED[selected.row, 6], ED[child.row.2, 6])
@@ -129,6 +158,18 @@ ed.coal.split <- function(ED, n.deme){
                 c(new.nodes[1], selected.node, child.node.1, NA, ED[selected.row, 5], new.node.time.1),
                 c(new.nodes[2], selected.node, child.node.2, NA, ED[selected.row, 5], new.node.time.2))
 
-    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio))
+    node.indices[parent.node] <- 0
+    index.changes <- (node.indices > parent.row)
+    node.indices[index.changes] <- node.indices[index.changes] - 1
+
+    if (new.nodes[2] > length(node.indices)){
+      new.node.indices <- numeric(new.nodes[2])
+      new.node.indices[1:length(node.indices)] <- node.indices
+    } else{
+      new.node.indices <- node.indices
+    }
+    new.node.indices[new.nodes] <- c(dim(ED)[1] - 1, dim(ED)[1])
+
+    return(list(ED = ED, prop.ratio = prop.ratio, log.prop.ratio = log.prop.ratio, node.indices = new.node.indices))
   }
 }

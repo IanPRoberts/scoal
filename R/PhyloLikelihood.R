@@ -127,7 +127,7 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 #'
 #' @export
 
-ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
+ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.indices){
   n.deme <- dim(migration.matrix)[1]
 
   lambda <- effective.pop * gen.length
@@ -135,41 +135,17 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix){
     lambda <- rep(lambda,n.deme)
   }
 
-  #all.nodes <- ED[,1]
-  leaf.nodes <- ED[is.na(ED[,3]),1]
-  root.node <- ED[is.na(ED[,2]),1]
-  coalescence.nodes <- ED[!is.na(ED[,4]), 1]
-  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
-  migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
+  # root.node <- ED[is.na(ED[,2]),1]
+  # coalescence.nodes <- ED[!is.na(ED[,4]), 1]
+  # coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
+  # migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
 
-  node.heights <- ED[,6]
-  event.times <- sort(unique(node.heights))  #Times of events, root at time=0
+  event.times <- sort(unique(ED[,6]))  #Times of events, root at time=0
   time.increments <- diff(event.times)
 
-  #Number of lineages in each deme between each event time
-  k <- matrix(0, nrow = length(event.times) - 1, ncol = n.deme)
-  k[1,ED[root.node,5]] <- 2
-  for (i in 2 : (length(event.times) - 1)){
-    current.rows <- which(ED[,6] == event.times[i])
-    k[i,] <- k[i-1,]
-    if (length(current.rows) > 1){ #Multiple leaves added simultaneously
-      for (j in current.rows){
-        k[i, ED[j, 5]] <- k[i, ED[j, 5]] - 1
-      }
-    } else{
-      if (ED[current.rows, 1] %in% migration.nodes){ #Migration event
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-        current.child <- which(ED[,1] == ED[current.rows, 3])
-        k[i, ED[current.child, 5]] <- k[i, ED[current.child, 5]] + 1
-      } else if (current.rows %in% coalescence.nodes){ #Coalescence event
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] + 1
-      } else{ #Single leaf added
-        k[i, ED[current.rows, 5]] <- k[i, ED[current.rows, 5]] - 1
-      }
-    }
-  }
+  k <- deme.decomp(ED, n.deme, node.indices)
 
-  nc <- ed.node.count(ED, n.deme)
+  nc <- ed.node.count(ED, n.deme, node.indices)
   c <- nc$c
   m <- nc$m
 

@@ -4,7 +4,7 @@
 \alias{ed.mig.pair.birth}
 \title{Migration Pair Birth MCMC Move}
 \usage{
-ed.mig.pair.birth(ED, n.deme)
+ed.mig.pair.birth(ED, n.deme, node.indices)
 }
 \arguments{
 \item{ED}{Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age}

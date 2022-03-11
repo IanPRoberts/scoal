@@ -4,7 +4,7 @@
 \alias{ed.mig.pair.death}
 \title{Migration Pair Death MCMC Move}
 \usage{
-ed.mig.pair.death(ED, n.deme)
+ed.mig.pair.death(ED, n.deme, node.indices)
 }
 \arguments{
 \item{ED}{Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age}

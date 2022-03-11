@@ -13,7 +13,7 @@
 #'
 #' @export
 
-ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
+ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
   coalescence.nodes <- ED[!is.na(ED[,4]),1]
   coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
@@ -22,24 +22,19 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if (length(migration.nodes) == 0){
     if (fix.leaf.deme == TRUE){
-      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
     } else{
       proposal.deme <- sample.vector((1:n.deme)[-ED[1, 5]], 1)
       ED[,5] <- proposal.deme
 
-      return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
+      return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0, node.indices = node.indices))
     }
   }
 
-
-  edge.length <- numeric(dim(ED)[1])
-  non.root.nodes <- c(coalescence.nodes, leaf.nodes, migration.nodes)
-  non.root.nodes <- non.root.nodes[!is.na(non.root.nodes)]
-  for (j in non.root.nodes){
-    node.row <- which(ED[,1] == j)
-    parent.row <- which(ED[,1] == ED[node.row, 2])
-    edge.length[node.row] <- ED[node.row, 6] - ED[parent.row, 6]
-  }
+  parent.rows <- node.indices[ED[,2]]
+  parent.times <- ED[parent.rows, 6]
+  parent.times[root.node] <- 0
+  edge.length <- ED[,6] - parent.times
 
   tree.length <- sum(edge.length)  #Total tree length
   new.location <- runif(1, 0, tree.length)  #Uniform location along tree.length
@@ -48,22 +43,22 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
   child.node <- ED[child.row, 1]
 
   parent.node <- ED[child.row, 2]
-  parent.row <- which(ED[,1] == parent.node)
+  parent.row <- node.indices[parent.node]
 
   #Sweep upwards until hitting the root or a migration node
   subtree.root <- parent.node
   while (!(subtree.root %in% c(migration.nodes, root.node))){
-    subtree.root.row <- which(ED[,1] == subtree.root)
+    subtree.root.row <- node.indices[subtree.root]
     subtree.root <- ED[subtree.root.row, 2]
   }
 
   #Sweep downwards until hitting migration nodes
   if (subtree.root == root.node){
-    subtree.root.row <- which(ED[,1] == subtree.root)
+    subtree.root.row <- node.indices[subtree.root]
     active.nodes <- ED[subtree.root.row, 3:4]
     subtree.nodes <- c(subtree.root, active.nodes)
   } else{
-    subtree.root.row <- which(ED[,1] == subtree.root)
+    subtree.root.row <- node.indices[subtree.root]
     active.nodes <- ED[subtree.root.row, 3]
     subtree.nodes <- c(subtree.root, active.nodes)
   }
@@ -72,7 +67,7 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
     active.nodes <- active.nodes[! (active.nodes %in% c(migration.nodes, leaf.nodes))]
 
     for (j in active.nodes){
-      j.row <- which(ED[,1] == j)
+      j.row <- node.indices[j]
       subtree.nodes <- c(subtree.nodes, ED[j.row, 3:4])  #Add children of i to subtree
       active.nodes <- c(active.nodes[active.nodes != j], ED[j.row, 3:4])  #Remove i from active nodes, add children
     }
@@ -80,7 +75,7 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
     # REJECT
-    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+    return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
@@ -92,34 +87,34 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE){
     proposal.deme <- sample.vector((1:n.deme)[- old.deme], 1)  #Propose deme update without accounting for surrounding demes
 
     for (j in subtree.leaves){  #Verify proposal.deme does not add any migrations from one deme into itself
-      j.row <- which(ED[,1] == j)
+      j.row <- node.indices[j]
       j.child <- ED[j.row, 3]
-      j.child.row <- which(ED[,1] == j.child)
+      j.child.row <- node.indices[j.child]
 
       if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
         #REJECT
-        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
       }
     }
 
     if (subtree.root != root.node){
       if (ED[subtree.root.row, 5] == proposal.deme){
         #REJECT
-        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf))
+        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
       }
     }
 
     #Update deme across subtree
     for (j in subtree.nodes[subtree.nodes != subtree.root]){
-      row <- which(ED[,1] == j)
+      row <- node.indices[j]
       ED[row, 5] <- proposal.deme
     }
 
     if (subtree.root == root.node){
-      row <- which(ED[,1] == subtree.root)
+      row <- node.indices[subtree.root]
       ED[row, 5] <- proposal.deme
     }
 
-    return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0))
+    return(list(ED = ED, prop.ratio = 1, log.prop.ratio = 0, node.indices = node.indices))
   }
 }

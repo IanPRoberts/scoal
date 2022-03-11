@@ -4,7 +4,7 @@
 \alias{ed.likelihood}
 \title{Calculates the likelihood of a structured coalescent tree}
 \usage{
-ed.likelihood(ED, effective.pop, gen.length, migration.matrix)
+ed.likelihood(ED, effective.pop, gen.length, migration.matrix, node.indices)
 }
 \arguments{
 \item{ED}{Extended data representation of a structured coalescent process
