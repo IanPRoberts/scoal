@@ -10,7 +10,7 @@ using namespace Rcpp;
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 
-std::unordered_set<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+std::list<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int nrow = ED.nrow();
 
   NumericVector event_times = ED(_,5);
@@ -32,28 +32,40 @@ std::unordered_set<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector 
   }
   k(0, ED(root_row, 4) - 1) = 2;
 
-  std::unordered_set<int> active_nodes;
-  active_nodes.insert (ED(root_row, 2));
-  active_nodes.insert (ED(root_row, 3));
-
-  std::unordered_set<int> current_nodes;
+  std::list<int> active_nodes;
+  std::list<int> current_nodes;
+  std::list<int>::iterator node;  //Initialise iterator "node" to iterate over list objects
   double current_time;
+  int current_deme;
+  int current_row;
 
-  std::unordered_set<int>::iterator node;  //Initialise iterator for loop over active_nodes
-  //for (int i = 1; i < k.nrow(); ++i){
-  int i = 1;
-    current_time = event_times[i];
-    k(i,_) = k(i-1, _);
+  for (int i = 2; i < 4; ++i){
+    active_nodes.emplace_back(ED(root_row,i));
+  }
+
+  for (int i = 1; i < k.nrow(); ++i){
+    k(i,_) = k(i-1,_);
     current_nodes.clear();
+    current_time = event_times[i];
+
     for (node = active_nodes.begin(); node != active_nodes.end(); ++node){
-      if (ED(node_indices[*node - 1],5) == event_times[i]){
-        active_nodes.erase(*node); // *node dereferences iterator "node" to get value at current entry
-        current_nodes.insert (*node);
+      // *node dereferences iterator "node" to get value at current entry
+      if (ED(node_indices[*node - 1] - 1,5) == current_time){
+        current_nodes.emplace_back(*node);
+        active_nodes.erase(node);
       }
     }
-  //}
+    if (current_nodes.size() > 1){
+      for (node = current_nodes.begin(); node != current_nodes.end(); ++node){
+        current_deme = ED(node_indices[*node - 1] - 1,4);
+        k(i, current_deme) -= 1;
+      }
+    } else{
+      // TO DO STILL....
+    }
+  }
 
-  return current_nodes;
+  return active_nodes;
 }
 
 
