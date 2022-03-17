@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 MCMC_Results/
-.Rprofvis
-.o
-.dll
+*.Rprofvis
+src/*.o
+src/*.dll
