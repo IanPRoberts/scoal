@@ -6,3 +6,4 @@ MCMC_Results/
 *.Rprofvis
 *.o
 *.dll
+src/scoal.dll
