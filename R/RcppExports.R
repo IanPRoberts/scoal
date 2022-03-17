@@ -5,7 +5,3 @@ DemeDecompC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
-Test <- function(ED, n_deme, node_indices) {
-    .Call('_scoal_Test', PACKAGE = 'scoal', ED, n_deme, node_indices)
-}
-
