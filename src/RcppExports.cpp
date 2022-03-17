@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // DemeDecompC
-std::list<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
+NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
 RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -23,9 +23,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Testing
+int Testing(NumericMatrix ED, NumericVector node_indices);
+RcppExport SEXP _scoal_Testing(SEXP EDSEXP, SEXP node_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(Testing(ED, node_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
+    {"_scoal_Testing", (DL_FUNC) &_scoal_Testing, 2},
     {NULL, NULL, 0}
 };
 

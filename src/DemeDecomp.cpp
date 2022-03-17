@@ -10,10 +10,9 @@ using namespace Rcpp;
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 
-std::list<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int nrow = ED.nrow();
-
-  NumericVector event_times = ED(_,5);
+  NumericVector event_times = ED(_, 5);
   event_times = unique(event_times);
   std::sort(event_times.begin(), event_times.end());
 
@@ -34,16 +33,24 @@ std::list<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indi
 
   std::list<int> active_nodes;
   std::list<int> current_nodes;
-  std::list<int>::iterator node;  //Initialise iterator "node" to iterate over list objects
+  std::list<int>::iterator node;
   double current_time;
   int current_deme;
   int current_row;
+  int child_row;
+  int child_deme;
 
   for (int i = 2; i < 4; ++i){
     active_nodes.emplace_back(ED(root_row,i));
   }
 
   for (int i = 1; i < k.nrow(); ++i){
+    //Printing active_nodes to console
+    // Rprintf("Active nodes: ");
+    // for (node = active_nodes.begin(); node != active_nodes.end(); ++ node){
+    //   Rprintf("%d, ", *node);
+    // }
+    // Rprintf("\n");
     k(i,_) = k(i-1,_);
     current_nodes.clear();
     current_time = event_times[i];
@@ -55,50 +62,30 @@ std::list<int> DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indi
         active_nodes.erase(node);
       }
     }
-    if (current_nodes.size() > 1){
+    if (current_nodes.size() > 1){ // Multiple Leaves
       for (node = current_nodes.begin(); node != current_nodes.end(); ++node){
-        current_deme = ED(node_indices[*node - 1] - 1,4);
-        k(i, current_deme) -= 1;
+        current_deme = ED(node_indices[*node - 1] - 1, 4);
+        k(i, current_deme - 1) -= 1;
       }
     } else{
-      // TO DO STILL....
+      current_row = node_indices[*current_nodes.begin() - 1] - 1; // *current_nodes.begin() = dereferenced iterator giving the first (only) element in list; -1 to account for 0-counting
+      current_deme = ED(current_row, 4) - 1;
+      if (NumericMatrix::is_na(ED(current_row, 2)) == 1){ // Single leaf
+        k(i, current_deme) -= 1;
+      } else if (NumericMatrix::is_na(ED(current_row, 3)) == 0){ //Coalescence
+        k(i, current_deme) += 1;
+        for (int j = 2; j < 4; ++j){
+          active_nodes.emplace_back(ED(current_row, j));
+        }
+      } else{ //Migration
+        child_row = node_indices[ED(current_row, 2) - 1] - 1;
+        child_deme = ED(child_row, 4) - 1;
+
+        k(i, current_deme) -= 1;
+        k(i, child_deme) += 1;
+        active_nodes.emplace_back(ED(child_row, 0));
+      }
     }
   }
-
-  return active_nodes;
+  return k;
 }
-
-
-//   for (i in 2 : (length(event.times) - 1)){
-//     k[i,] <- k[i-1,]
-//     active.rows <- node.indices[active.nodes]
-//     current.indices <- which(ED[active.rows, 6] == event.times[i])
-//     current.rows <- active.rows[current.indices]
-//
-//     if (length(current.rows) > 1){ #Multiple leaves
-//       for (j in current.rows){
-//         current.deme <- ED[j, 5]
-//         k[i, current.deme] <- k[i, current.deme] - 1
-//       }
-//     } else{
-//       if (anyNA(ED[current.rows, 3])){ #Leaf
-//         current.deme <- ED[current.rows, 5]
-//         k[i, current.deme] <- k[i, current.deme] - 1
-//       } else if (!anyNA(ED[current.rows, 4])){ #Coalescence
-//         current.deme <- ED[current.rows, 5]
-//         k[i, current.deme] <- k[i, current.deme] + 1
-//         active.nodes <- c(active.nodes, ED[current.rows, 3:4])
-//       } else{ #Migration
-//         current.deme <- ED[current.rows, 5]
-//         k[i, current.deme] <- k[i, current.deme] - 1
-//         current.child <- node.indices[ED[current.rows, 3]]
-//         child.deme <- ED[current.child, 5]
-//         k[i, child.deme] <- k[i, child.deme] + 1
-//         active.nodes <- c(active.nodes, ED[current.rows, 3])
-//       }
-//     }
-//     active.nodes <- active.nodes[-current.indices]
-//   }
-//
-//   return(k)
-// }
