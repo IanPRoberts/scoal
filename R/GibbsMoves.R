@@ -47,11 +47,9 @@ eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape
   }
   proposal.eff.pop <- rep(0, n.deme)
 
-  event.times <- unique(sort(ED[,6]))
-  time.increments <- diff(event.times)
-
-  k <- DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
-  rate.constants <- t(k * (k-1) / 2) %*% time.increments
+  DemeDecomp <- DemeDecompC(ED, n.deme, node.indices)
+  k <- DemeDecomp$k #DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
+  rate.constants <- t(k * (k-1) / 2) %*% DemeDecomp$time.increments
 
   for (i in 1:n.deme){
     proposal.eff.pop[i] <- 1/rgamma(1, shape = shape + c[i], scale = 1 / (rate + rate.constants[i]))  #Proposals are inverse-gamma

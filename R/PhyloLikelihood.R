@@ -135,10 +135,9 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
     lambda <- rep(lambda,n.deme)
   }
 
-  event.times <- sort(unique(ED[,6]))  #Times of events, root at time=0
-  time.increments <- diff(event.times)
+  DemeDecomp <- DemeDecompC(ED, n.deme, node.indices)
 
-  k <- DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
+  k <- DemeDecomp$k #DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
 
   nc <- ed.node.count(ED, n.deme, node.indices)
   c <- nc$c
@@ -148,7 +147,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
   likelihood <- 0
   log.migration.matrix <- log(migration.matrix)
   diag(log.migration.matrix) <- 0
-  likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
+  likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * DemeDecomp$time.increments) -
     sum(c * log(lambda)) + sum(log.migration.matrix * m)
   return(list(log.likelihood = likelihood, likelihood = exp(likelihood)))
 }

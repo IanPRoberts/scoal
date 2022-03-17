@@ -1,8 +1,8 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-//' @title DemeDecomp
-//' @description Testing :)
+//' @title Deme Decomposition
+//' @description Decomposes an extended data object to give number of lineages in each deme during each time increment
 //' @param x numeric vector blah blah
 //' @returns mean(x) blah blah
 //'
@@ -10,23 +10,17 @@ using namespace Rcpp;
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 
-NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int nrow = ED.nrow();
-  NumericVector event_times = ED(_, 5);
-  event_times = unique(event_times);
-  std::sort(event_times.begin(), event_times.end());
-
-  int n_event = event_times.length();
-  NumericVector time_increments(n_event - 1);
-  time_increments = tail(event_times, n_event - 1) - head(event_times, n_event - 1);
-
-  NumericMatrix k(n_event - 1, n_deme);
+  NumericVector event_times = sort_unique(ED(_, 5));
+  NumericVector time_increments = diff(event_times);
+  NumericMatrix k(time_increments.length(), n_deme);
   int root_row;
 
-  for (int i = 0; i < nrow; ++i) {
+  for (int i = 0; i < nrow; ++i) { //Find root row
     if(NumericVector::is_na(ED(i,1))){
       root_row = i;
-      break;
+      break; //Exit loop once (unique) root found
     }
   }
   k(0, ED(root_row, 4) - 1) = 2;
@@ -40,22 +34,16 @@ NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indic
   int child_row;
   int child_deme;
 
-  for (int i = 2; i < 4; ++i){
+  for (int i = 2; i < 4; ++i){  //Add children of root to active_nodes
     active_nodes.emplace_back(ED(root_row,i));
   }
 
   for (int i = 1; i < k.nrow(); ++i){
-    //Printing active_nodes to console
-    // Rprintf("Active nodes: ");
-    // for (node = active_nodes.begin(); node != active_nodes.end(); ++ node){
-    //   Rprintf("%d, ", *node);
-    // }
-    // Rprintf("\n");
     k(i,_) = k(i-1,_);
     current_nodes.clear();
     current_time = event_times[i];
 
-    for (node = active_nodes.begin(); node != active_nodes.end(); ++node){
+    for (node = active_nodes.begin(); node != active_nodes.end(); ++node){ //Construct current_nodes from active_nodes
       // *node dereferences iterator "node" to get value at current entry
       if (ED(node_indices[*node - 1] - 1,5) == current_time){
         current_nodes.emplace_back(*node);
@@ -74,7 +62,7 @@ NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indic
         k(i, current_deme) -= 1;
       } else if (NumericMatrix::is_na(ED(current_row, 3)) == 0){ //Coalescence
         k(i, current_deme) += 1;
-        for (int j = 2; j < 4; ++j){
+        for (int j = 2; j < 4; ++j){ //Add children of current_nodes to active_nodes
           active_nodes.emplace_back(ED(current_row, j));
         }
       } else{ //Migration
@@ -83,9 +71,12 @@ NumericMatrix DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indic
 
         k(i, current_deme) -= 1;
         k(i, child_deme) += 1;
-        active_nodes.emplace_back(ED(child_row, 0));
+        active_nodes.emplace_back(ED(child_row, 0)); //Add child of current_nodes to active_nodes
       }
     }
   }
-  return k;
+
+  List out = List::create(_["k"] = k , _["event.times"] = event_times, _["time.increments"] = time_increments);
+
+  return out;
 }
