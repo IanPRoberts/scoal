@@ -135,15 +135,10 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
     lambda <- rep(lambda,n.deme)
   }
 
-  # root.node <- ED[is.na(ED[,2]),1]
-  # coalescence.nodes <- ED[!is.na(ED[,4]), 1]
-  # coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
-  # migration.nodes <- ED[(is.na(ED[,4])) & (!is.na(ED[,3])),1]
-
   event.times <- sort(unique(ED[,6]))  #Times of events, root at time=0
   time.increments <- diff(event.times)
 
-  k <- deme.decomp(ED, n.deme, node.indices)
+  k <- DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
 
   nc <- ed.node.count(ED, n.deme, node.indices)
   c <- nc$c

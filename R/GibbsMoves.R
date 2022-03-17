@@ -50,7 +50,7 @@ eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape
   event.times <- unique(sort(ED[,6]))
   time.increments <- diff(event.times)
 
-  k <- deme.decomp(ED, n.deme, node.indices)
+  k <- DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
   rate.constants <- t(k * (k-1) / 2) %*% time.increments
 
   for (i in 1:n.deme){
