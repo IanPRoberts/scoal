@@ -3,6 +3,6 @@
 .RData
 .Ruserdata
 MCMC_Results/
-Profile-10-2-2022.Rprofvis
-*.o
-*.dll
+.Rprofvis
+.o
+.dll
