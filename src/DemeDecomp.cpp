@@ -17,7 +17,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   NumericVector event_times = sort_unique(ED(_, 5));
   NumericVector time_increments = diff(event_times);
   NumericMatrix k(time_increments.length(), n_deme);
-  int root_row;
+  int root_row = -1;
 
   for (int i = 0; i < nrow; ++i) { //Find root row
     if(NumericVector::is_na(ED(i,1))){
@@ -37,7 +37,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int child_deme;
 
   for (int i = 2; i < 4; ++i){  //Add children of root to active_nodes
-    active_nodes.emplace_back(ED(root_row,i));
+    active_nodes.push_back(ED(root_row,i));
   }
 
   for (int i = 1; i < k.nrow(); ++i){
@@ -48,7 +48,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
     for (node = active_nodes.begin(); node != active_nodes.end(); ++node){ //Construct current_nodes from active_nodes
       // *node dereferences iterator "node" to get value at current entry
       if (ED(node_indices[*node - 1] - 1,5) == current_time){
-        current_nodes.emplace_back(*node);
+        current_nodes.push_back(*node);
         active_nodes.erase(node);
       }
     }
@@ -65,7 +65,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
       } else if (NumericMatrix::is_na(ED(current_row, 3)) == 0){ //Coalescence
         k(i, current_deme) += 1;
         for (int j = 2; j < 4; ++j){ //Add children of current_nodes to active_nodes
-          active_nodes.emplace_back(ED(current_row, j));
+          active_nodes.push_back(ED(current_row, j));
         }
       } else{ //Migration
         child_row = node_indices[ED(current_row, 2) - 1] - 1;
@@ -73,7 +73,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
 
         k(i, current_deme) -= 1;
         k(i, child_deme) += 1;
-        active_nodes.emplace_back(ED(child_row, 0)); //Add child of current_nodes to active_nodes
+        active_nodes.push_back(ED(child_row, 0)); //Add child of current_nodes to active_nodes
       }
     }
   }
