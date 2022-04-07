@@ -185,7 +185,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
       edge.color[i] <- color.palette[node.deme[edge[i,2]]]
     }
 
-    plot(Phylo.sim, edge.color = edge.color)
+    plot(Phylo.sim, edge.color = edge.color, edge.width = 2)
     axisPhylo(1, root.time = max(data[,2]) - time, backward = FALSE)
   }
   return(Phylo.sim)
