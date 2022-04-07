@@ -3,8 +3,8 @@ require(magick)
 devtools::load_all()
 
 set.seed(1)
-N0 <- 1e4  #Burn in
-N <- 1e5  #Main MCMC run
+N0 <- 1e5  #Burn in
+N <- 1e6  #Main MCMC run
 
 n <- 50
 n.deme <- 3
@@ -16,13 +16,9 @@ data[,2] <- rep(2022, n) #runif(n, min = 2010, max = 2022)
 data[,3] <- sample.int(n.deme, n, replace = TRUE)
 
 #Prior Parameters
-eff.pop.prior.mean <- 1
-eff.pop.prior.var <- 1
 mig.prior.mean <- 1/10
 mig.prior.var <- 1/20
 
-eff.pop.prior.shape <- eff.pop.prior.mean^2/eff.pop.prior.var + 2
-eff.pop.prior.rate <- eff.pop.prior.mean * (eff.pop.prior.mean^2/eff.pop.prior.var + 1)
 mig.prior.shape <- mig.prior.mean^2/mig.prior.var
 mig.prior.rate <- mig.prior.mean/mig.prior.var
 

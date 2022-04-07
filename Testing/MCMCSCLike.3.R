@@ -3,11 +3,11 @@ require(magick)
 devtools::load_all()
 
 set.seed(1)
-N0 <- 1e4  #Burn in
-N <- 1e5  #Main MCMC run
+N0 <- 1e5  #Burn in
+N <- 1e7  #Main MCMC run
 
 n <- 50
-n.deme <- 3
+n.deme <- 5
 proposal.rates <- c(rep(5, 4), 1, 1) #c(1, 4, 4, 1, 0.1, 0.1) #Relative rates of selecting each type of proposal mechanism
 
 data <- matrix(0,nrow = n, ncol = 3)
@@ -29,7 +29,7 @@ mig.prior.rate <- mig.prior.mean/mig.prior.var
 #Simulation Parameters
 gen.length <- 1
 effective.pop <- rep(1, n.deme)
-migration.matrix <-matrix(1, n.deme, n.deme)
+migration.matrix <-matrix(1/10, n.deme, n.deme)
 diag(migration.matrix) <- 0
 
 phylo <- Structured.sim(data, effective.pop, gen.length, n.deme, migration.matrix, FALSE)
@@ -78,6 +78,10 @@ png(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0),".png"))
 structured.plot(ed.to.phylo(ED), n.deme)
 dev.off()
 video.count <- 1
+
+file.create(paste0(new.directory, "/Time.txt"))
+writeLines(paste0(Sys.time()), paste0(new.directory, "/Time.txt"))
+
 
 for (i in -N0 : N){
   U <- runif(1)
@@ -172,10 +176,12 @@ for (i in -N0 : N){
   }
 }
 
-img_list <- sapply(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0:(k+1)), ".png"), image_read)
-img_joined <- image_join(img_list)
-img_animated <- image_animate(img_joined, fps = 2)
-image_write(image = img_animated, path = paste0(new.directory,"/Vid.gif"))
+writeLines(paste0(Sys.time()), paste0(new.directory, "/Time.txt"))
+
+# img_list <- sapply(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0:(k+1)), ".png"), image_read)
+# img_joined <- image_join(img_list)
+# img_animated <- image_animate(img_joined, fps = 2)
+# image_write(image = img_animated, path = paste0(new.directory,"/Vid.gif"))
 
 # Plot matrix plot of histograms for migration rates and effective population sizes
 
@@ -200,9 +206,9 @@ layout(matrix(1:n.deme^2, n.deme, n.deme, byrow = TRUE))
 for (i in 1:n.deme){
   for (j in 1:n.deme){
     if (i == j){
-      plot(mig.eff.pop.sample[i,j,], type = 'l', main = bquote(paste(theta[.(i)], ", mean =", .(round(mean(mig.eff.pop.sample[i,j,]), 4)))), ylab = bquote(theta[.(i)]) )
+      plot(mig.eff.pop.sample[i,j,] ~ samples.to.store, type = 'l', main = bquote(paste(theta[.(i)], ", mean =", .(round(mean(mig.eff.pop.sample[i,j,]), 4)))), ylab = bquote(theta[.(i)]) )
     } else{
-      plot(mig.eff.pop.sample[i,j,], type = 'l', main = bquote(paste(lambda[paste("(", .(i), ",", .(j), ")")], ", mean =", .(round(mean(mig.eff.pop.sample[i,j,]), 4)))), ylab = bquote(lambda[paste("(", .(i), ",", .(j), ")")]))
+      plot(mig.eff.pop.sample[i,j,] ~ samples.to.store, type = 'l', main = bquote(paste(lambda[paste("(", .(i), ",", .(j), ")")], ", mean =", .(round(mean(mig.eff.pop.sample[i,j,]), 4)))), ylab = bquote(lambda[paste("(", .(i), ",", .(j), ")")]))
     }
   }
 }
