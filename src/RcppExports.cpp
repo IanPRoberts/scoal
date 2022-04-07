@@ -23,9 +23,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// LoopTestC
+int LoopTestC(int max);
+RcppExport SEXP _scoal_LoopTestC(SEXP maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type max(maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(LoopTestC(max));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
+    {"_scoal_LoopTestC", (DL_FUNC) &_scoal_LoopTestC, 1},
     {NULL, NULL, 0}
 };
 

@@ -9,7 +9,7 @@ using namespace Rcpp;
 //' @returns List containing matrix k giving deme decomposition with number of lineages in each deme during each time interval, vector event.times containing sorted event times from phylogeny and vector time.increments giving time increments between events during phylogeny
 //'
 //' @export
-// [[Rcpp::plugins(cpp11)]]
+//'
 // [[Rcpp::export]]
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
@@ -44,6 +44,12 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
     k(i,_) = k(i-1,_);
     current_nodes.clear();
     current_time = event_times[i];
+
+    // Rcout << "Active_nodes at iter " << i << ": ";
+    // for (node = active_nodes.begin(); node != active_nodes.end(); ++node){
+    //   Rcout << *node << ", ";
+    // }
+    // Rcout << "\n";
 
     for (node = active_nodes.begin(); node != active_nodes.end(); ++node){ //Construct current_nodes from active_nodes
       // *node dereferences iterator "node" to get value at current entry
