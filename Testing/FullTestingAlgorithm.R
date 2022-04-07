@@ -1,24 +1,32 @@
-#set.seed(10)
-
+set.seed(1)
+N <- 1e6
+N0 <- 1e3
+lambda <- 20
 n <- 10
-n.deme <- 3
+n.deme <- 5
 
-phylo <- Homochronous.Sim(1:n, 1, 1)
-phylo$node.deme <- rep(1, 2 * n - 1)
-#phylo <- ed.to.phylo(ED)
 
+#############################################
+data <- matrix(0,nrow = n, ncol = 3)
+data[,1] <- 1:n
+data[,2] <- rep(2022, n) #runif(n, min = 2010, max = 2022)
+data[,3] <- sample.int(n.deme, n, replace = TRUE)
+
+#Simulation Parameters
+gen.length <- 1
+effective.pop <- rep(1, n.deme)
+migration.matrix <-matrix(1/10, n.deme, n.deme)
+diag(migration.matrix) <- 0
+
+phylo <- Structured.sim(data, effective.pop, gen.length, n.deme, migration.matrix, FALSE)
 ED <- phylo.to.ed(phylo)
+node.indices <- 1:dim(ED)[1]
+
 M <- length(ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1])
 
-N <- 1e5
-N0 <- 1e3
-
-lambda <- 10
-
 freq <- matrix(0, 2, 7)  #Row 1 no. of accepted proposals, row 2 no. of proposals
-M.freq = matrix(c(0:150, rep(0, 151)), 2, 151, byrow = TRUE)
 
-proposal.probs <- c(0.1,0.5, 0.9, 1)  #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
+proposal.probs <- (1:4)/4 #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
 root.node <- which(is.na(ED[,2]))
 non.root.nodes <- ED[ED[,1] != root.node, 1]
@@ -29,7 +37,12 @@ for (i in non.root.nodes){
   tree.length <- tree.length + (ED[i.row, 6] - ED[parent.row, 6])
 }
 
-Sample <- numeric(N)
+
+n.stored.samples <- min(1e6, N)
+Samples.to.store <- round(seq.int(1, N, length.out = n.stored.samples))
+Sample <- numeric(n.stored.samples)
+Count <- 1
+
 prior.ratio <- lambda / ((n.deme - 1) * tree.length)
 
 for (i in -N0 : N){
@@ -39,88 +52,61 @@ for (i in -N0 : N){
 
   if (U < proposal.probs[1]){
     if (V < 0.5){
-      proposal <- ed.mig.birth.4(ED, n.deme, FALSE)
+      proposal <- ed.mig.birth(ED, n.deme, TRUE, node.indices)
       accept.prob <- min(1, lambda/(M+1))
       which.move <- 1
     } else{
-      proposal <- ed.mig.death.4(ED, n.deme, FALSE)
+      proposal <- ed.mig.death(ED, n.deme, TRUE, node.indices)
       accept.prob <- min(1, M / lambda)
       which.move <- 2
     }
-
-    if (W <= accept.prob){
-      ED <- proposal$ED
-      M <- length(ED[(!is.na(ED[,3])) & (is.na(ED[,4])),1])
-      if (i > 0){
-        freq[1, which.move] <- freq[1, which.move] + 1
-        M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-      }
-    }  else if (i > 0){
-      M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-    }
   } else if (U < proposal.probs[2]){
     if (V < 0.5){
-      proposal <- ed.mig.pair.birth(ED, n.deme) #ed.pair.birth.3(ED, n.deme) #ed.mig.pair.birth(ED, n.deme)
+      proposal <- ed.mig.pair.birth(ED, n.deme, node.indices)
       accept.prob <- min(1, proposal$prop.ratio * prior.ratio^2)
       which.move <- 3
     } else{
-      proposal <- ed.mig.pair.death(ED, n.deme) #ed.pair.death.3(ED, n.deme) #ed.mig.pair.death(ED, n.deme)
+      proposal <- ed.mig.pair.death(ED, n.deme, node.indices)
       accept.prob <- min(1, proposal$prop.ratio * prior.ratio^(-2))
       which.move <- 4
     }
-
-    if (W <= accept.prob){
-      ED <- proposal$ED
-      M <- length(ED[(!is.na(ED[,3])) & is.na(ED[,4]), 1])
-      if (i > 0){
-        freq[1, which.move] <- freq[1, which.move] + 1
-        M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-      }
-    } else if (i > 0){
-      M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-    }
   } else if (U < proposal.probs[3]){
     if (V < 0.5){
-      proposal <- ed.coal.split(ED, n.deme)
+      proposal <- ed.coal.split(ED, n.deme, node.indices)
       proposal.M <- length(proposal$ED[(!is.na(proposal$ED[,3])) & is.na(proposal$ED[,4]), 1])
       dM <- proposal.M - M
+      accept.prob <- min(1, proposal$prop.ratio * prior.ratio^dM)
       which.move <- 5
     } else{
-      proposal <- ed.coal.merge(ED, n.deme)
+      proposal <- ed.coal.merge(ED, n.deme, node.indices)
       proposal.M <- length(proposal$ED[(!is.na(proposal$ED[,3])) & is.na(proposal$ED[,4]), 1])
       dM <- proposal.M - M
+      accept.prob <- min(1, proposal$prop.ratio * prior.ratio^dM)
       which.move <- 6
     }
-    accept.prob <- min(1, proposal$prop.ratio * (lambda / ((n.deme - 1) * tree.length))^dM)
-
-    if (W <= accept.prob){
-      ED <- proposal$ED
-      M <- proposal.M
-      if (i > 0){
-        freq[1, which.move] <- freq[1, which.move] + 1
-        M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-      }
-    } else if (i > 0){
-      M.freq[2, M + 1] <- M.freq[2, M + 1] + 1
-    }
   } else{
-    proposal <- ed.block.recolour(ED, n.deme, FALSE)
+    proposal <- ed.block.recolour(ED, n.deme, TRUE, node.indices)
     which.move <- 7
     if (proposal$prop.ratio > 0){
-      ED <- proposal$ED
-      if (i > 0){
-        freq[1, which.move] <- freq[1, which.move] + 1
-      }
+      accept.prob <- 1
+    } else{
+      accept.prob <- 0
     }
-    if (i > 0){
-      M.freq[2, M+1] <- M.freq[2, M+1] + 1
-    }
+  }
+
+  if (W <= accept.prob){
+    freq[1, which.move] <- freq[1, which.move] + 1
+    ED <- proposal$ED
+    node.indices <- proposal$node.indices
+    M <- length(ED[(!is.na(ED[,3])) & is.na(ED[,4]), 1])
+
   }
 
   freq[2, which.move] <- freq[2, which.move] + 1
 
   if (i > 0){
     Sample[i] <- M
+    #Count <- Count + 1
   }
 
   if (i %in% floor(0:100 * ((N+N0)/100))){
@@ -128,15 +114,15 @@ for (i in -N0 : N){
   }
 }
 
-lower <- min(which(M.freq[2,] > 0))
-upper <- lower + max(which(M.freq[2, (lower+1):151] > 0))
-plot(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l', xlab = "M", ylab = "Density", main = paste(n, "leaves,", n.deme, "demes, lambda =", lambda, ", ", N, "iterations"))
-lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
+lower <- min(Sample)
+upper <- max(Sample)
 
-plot(Sample, type = 'l')
+hist(Sample, freq = FALSE, breaks = (lower:(upper + 1)) - 0.5)
+lines(dpois(0:100, lambda), col = "red", lwd = 2, lty = 2)
 
-hist(Sample, breaks = (min(Sample)-0.5):(max(Sample)+1), probability = TRUE)
-lines(M.freq[1,lower:upper], M.freq[2,lower:upper]/N, type = 'l')
-lines(0:150, dpois(0:150, lambda), lty = 2, col = "red")
-
-beepr::beep()  #Laptop dings on completion...
+png("C:/Users/ian_p/Desktop/18-MonthPanelFigs/MoveValidation.png", width = 16, height = 12, units = "cm", res = 144)
+  layout(matrix(1:2, 1, 2))
+  plot(Sample, type = 'l', main = "Trace Plot")
+  hist(Sample, freq = FALSE, main = "Observed number of migrations", breaks = (lower:(upper + 1)) - 0.5)
+  lines(dpois(0:100, lambda), col = "red", lwd = 2, lty = 2)
+dev.off()
