@@ -4,6 +4,6 @@
 .Ruserdata
 MCMC_Results/
 *.Rprofvis
-*.o
-*.dll
-src/scoal.dll
+src/*.o
+src/*.dll
+LaTeX/
