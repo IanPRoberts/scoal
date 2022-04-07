@@ -7,3 +7,4 @@ MCMC_Results/
 src/*.o
 src/*.dll
 LaTeX/
+TestED.rds
