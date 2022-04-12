@@ -45,19 +45,19 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
     current_nodes.clear();
     current_time = event_times[i];
 
-    // Rcout << "Active_nodes at iter " << i << ": ";
-    // for (node = active_nodes.begin(); node != active_nodes.end(); ++node){
-    //   Rcout << *node << ", ";
-    // }
-    // Rcout << "\n";
-
     for (node = active_nodes.begin(); node != active_nodes.end(); ++node){ //Construct current_nodes from active_nodes
       // *node dereferences iterator "node" to get value at current entry
       if (ED(node_indices[*node - 1] - 1,5) == current_time){
         current_nodes.push_back(*node);
-        active_nodes.erase(node);
+        // active_nodes.erase(node);
       }
     }
+
+    for (node = current_nodes.begin(); node != current_nodes.end(); ++node){ //Remmove current_nodes from active_nodes
+     active_nodes.remove(*node);
+    }
+
+
     if (current_nodes.size() > 1){ // Multiple Leaves
       for (node = current_nodes.begin(); node != current_nodes.end(); ++node){
         current_deme = ED(node_indices[*node - 1] - 1, 4);
