@@ -2,9 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+LaTeX/
 MCMC_Results/
 *.Rprofvis
 src/*.o
 src/*.dll
-LaTeX/
 TestED.rds
