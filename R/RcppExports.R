@@ -14,9 +14,3 @@ DemeDecompC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
-#'
-#' @export
-LoopTestC <- function(max) {
-    .Call('_scoal_LoopTestC', PACKAGE = 'scoal', max)
-}
-

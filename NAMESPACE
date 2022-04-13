@@ -3,7 +3,6 @@
 export(DemeDecompC)
 export(Heterochronous.Sim)
 export(Homochronous.Sim)
-export(LoopTestC)
 export(Structured.sim)
 export(child.nodes)
 export(coal.split)
