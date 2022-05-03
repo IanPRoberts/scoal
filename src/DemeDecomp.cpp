@@ -1,16 +1,8 @@
 #include <Rcpp.h>
+#include "DemeDecomp.h"
 using namespace Rcpp;
 
-//' @title DemeDecompC
-//' @description Decomposes an extended data object to give number of lineages in each deme during each time increment
-//' @param ED NumericMatrix Extended data object representing structured phylogeny
-//' @param n_deme int Number of demes modelled under ED
-//' @param node_indices NumericVector Vector giving row numbers in ED for node labels
-//' @returns List containing matrix k giving deme decomposition with number of lineages in each deme during each time interval, vector event.times containing sorted event times from phylogeny and vector time.increments giving time increments between events during phylogeny
-//'
-//' @export
-//'
-// [[Rcpp::export]]
+// [[Rcpp::interfaces(r, cpp)]]
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int nrow = ED.nrow();
