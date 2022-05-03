@@ -139,7 +139,7 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
 
   k <- DemeDecomp$k #DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
 
-  nc <- ed.node.count(ED, n.deme, node.indices)
+  nc <- NodeCountC(ED, n.deme, node.indices) #ed.node.count(ED, n.deme, node.indices)
   c <- nc$c
   m <- nc$m
 

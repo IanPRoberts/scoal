@@ -1,6 +1,6 @@
 mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, shape = 1, rate = 10){
 
-  m <- ed.node.count(ED, n.deme, node.indices)$m
+  m <- NodeCountC(ED, n.deme, node.indices)$m #ed.node.count(ED, n.deme, node.indices)$m
 
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
@@ -39,7 +39,7 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, sha
 
 
 eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape = 1, rate = 1){
-  c <- ed.node.count(ED, n.deme, node.indices)$c
+  c <- NodeCountC(ED, n.deme, node.indices)$c #ed.node.count(ED, n.deme, node.indices)$c
 
   observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
