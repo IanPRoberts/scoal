@@ -56,12 +56,7 @@ List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_l
     lambda = eff_pop[i] * gen_len;
     like += - log(lambda) * c[i] - coal_term / (2 * lambda) - deme_length * mig_row_sum;
   }
-
-<<<<<<< HEAD
   List out = List::create(_["log.likelihood"] = like , _["likelihood"] = exp(like));
-=======
-  List out = List::create(_["log.likelhood"] = like , _["likelihood"] = exp(like));
->>>>>>> 064d98b640d7384f1eb2c03d152144af7eb2adc2
 
   return out;
 }
