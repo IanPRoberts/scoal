@@ -6,4 +6,4 @@ using namespace Rcpp;
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
 
-#endif // RCPP_scoal_H_GEN_
+#endif // RCPP_DemeDecompC_H_GEN_
