@@ -25,9 +25,9 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
   if (likelihood == "Structured"){
     likelihood.func <- StructuredLikelihoodC
   } else if (likelihood == "DTA"){
-    likelihood.func <- dta.likelihood  ##Need identical inputs in all likelihood funcs
+    likelihood.func <- dta.likelihood
   } else if (likelihood == "Synthetic"){
-    #### Add synthetic (Poi marginal) likelihood
+    likelihood.func <- synth.likelihood
   }
   else {
     stop("Input likelihood selected from Structured, DTA or Synthetic")
