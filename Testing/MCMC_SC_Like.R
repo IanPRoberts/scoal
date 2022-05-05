@@ -79,6 +79,9 @@ structured.plot(ed.to.phylo(ED), n.deme)
 dev.off()
 video.count <- 1
 
+#Progress bar
+pb <- txtProgressBar(min = 0, max = N0 + N, initial = 0, style = 3)
+
 for (i in -N0 : N){
   U <- runif(1)
   V <- runif(1)
@@ -167,10 +170,10 @@ for (i in -N0 : N){
   }
 
   #Progress bar
-  if ((i + N0) %in% floor(0:100 * ((N+N0)/100))){
-    print((i+N0) * 100 / (N+N0))
-  }
+  setTxtProgressBar(pb, i + N0)
 }
+
+close(pb)
 
 img_list <- sapply(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0:(k+1)), ".png"), image_read)
 img_joined <- image_join(img_list)

@@ -42,7 +42,7 @@ for (j in 1 : dim(ED)[1]){
   node.indices[ED[j,1]] <- j
 }
 
-ED.like <- dta.likelihood(ED, migration.matrix, effective.pop, node.indices)
+ED.like <- dta.likelihood(ED, migration.matrix, effective.pop, node.indices)$log.likelihood
 freq <- matrix(0, 2, 9)  #Row 1 no. of accepted proposals, row 2 no. of proposals
 
 proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
@@ -79,6 +79,9 @@ png(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0),".png"))
 structured.plot(ed.to.phylo(ED), n.deme)
 dev.off()
 video.count <- 1
+
+#Progress bar
+pb <- txtProgressBar(min = 0, max = N0 + N, initial = 0, style = 3)
 
 for (i in -N0 : N){
   U <- runif(1)
@@ -117,13 +120,13 @@ for (i in -N0 : N){
     migration.matrix <- dta.mig.rate.update(ED, migration.matrix, n.deme, node.indices, shape = mig.prior.shape, rate = mig.prior.rate)
     mig.mat.prior <- dgamma(migration.matrix, shape = mig.prior.shape, rate = mig.prior.rate, log = TRUE)
     diag(mig.mat.prior) <- 0
-    ED.like <- dta.likelihood(ED, migration.matrix, effective.pop, node.indices)
+    ED.like <- dta.likelihood(ED, migration.matrix, effective.pop, node.indices)$log.likelihood
   }
 
   freq[2, which.move] <- freq[2, which.move] + 1
 
   if ((which.move <= 7) && (proposal$prop.ratio > 0)){
-    proposal.like <- dta.likelihood(proposal$ED, migration.matrix, effective.pop, proposal$node.indices)
+    proposal.like <- dta.likelihood(proposal$ED, migration.matrix, effective.pop, proposal$node.indices)$log.likelihood
     log.accept.prob <- min(0, proposal.like - ED.like + proposal$log.prop.ratio)
     if (log(W) <= log.accept.prob){
       freq[1, which.move] <- freq[1, which.move] + 1
@@ -163,10 +166,10 @@ for (i in -N0 : N){
   }
 
   #Progress bar
-  if ((i + N0) %in% floor(0:100 * ((N+N0)/100))){
-    print((i+N0) * 100 / (N+N0))
-  }
+  setTxtProgressBar(pb, i + N0)
 }
+
+close(pb)
 
 img_list <- sapply(paste0(new.directory,"/GifOut/File", sprintf("%04d", 0:(k+1)), ".png"), image_read)
 img_joined <- image_join(img_list)
