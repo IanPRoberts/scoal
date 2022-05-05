@@ -1,4 +1,4 @@
-dta.likelihood <- function(ED, migration_matrix, effective_population = rep(1, dim(migration_matrix)[1]), node_indices){
+dta.likelihood <- function(ED, effective_population, gen_length, migration_matrix, node_indices){
   root_row <- which(is.na(ED[,2]))
 
   f_migration_matrix <- forward.migration.matrix(migration_matrix, effective_population)
@@ -18,5 +18,5 @@ dta.likelihood <- function(ED, migration_matrix, effective_population = rep(1, d
     log_likelihood <- log_likelihood - f_migration_matrix_rowsums[parent_deme] * time_increment + log(f_migration_matrix[parent_deme, node_deme])
     }
   }
-  return(log_likelihood)
+  return(list(log.likelihood = log_likelihood, likelihood = exp(log_likelihood)))
 }
