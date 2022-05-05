@@ -13,21 +13,80 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// NodeCountC
-List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices);
-RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+// DemeDecompC
+List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
+static SEXP _scoal_DemeDecompC_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
+    Rcpp::traits::input_parameter< int >::type n_deme(n_demeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(DemeDecompC(ED, n_deme, node_indices));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_DemeDecompC_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// NodeCountC
+List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices);
+static SEXP _scoal_NodeCountC_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
     Rcpp::traits::input_parameter< int >::type n_deme(n_demeSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
     rcpp_result_gen = Rcpp::wrap(NodeCountC(ED, n_deme, node_indices));
     return rcpp_result_gen;
-END_RCPP
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_NodeCountC_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
 }
 // StructuredLikelihoodC
-NumericMatrix StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices);
+List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices);
 RcppExport SEXP _scoal_StructuredLikelihoodC(SEXP EDSEXP, SEXP eff_popSEXP, SEXP gen_lenSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -46,17 +105,22 @@ END_RCPP
 static int _scoal_RcppExport_validate(const char* sig) { 
     static std::set<std::string> signatures;
     if (signatures.empty()) {
+        signatures.insert("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
+        signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
     }
     return signatures.find(sig) != signatures.end();
 }
 
 // registerCCallable (register entry points for exported C++ functions)
 RcppExport SEXP _scoal_RcppExport_registerCCallable() { 
+    R_RegisterCCallable("scoal", "_scoal_DemeDecompC", (DL_FUNC)_scoal_DemeDecompC_try);
+    R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
     R_RegisterCCallable("scoal", "_scoal_RcppExport_validate", (DL_FUNC)_scoal_RcppExport_validate);
     return R_NilValue;
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
     {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
     {"_scoal_StructuredLikelihoodC", (DL_FUNC) &_scoal_StructuredLikelihoodC, 5},
     {"_scoal_RcppExport_registerCCallable", (DL_FUNC) &_scoal_RcppExport_registerCCallable, 0},

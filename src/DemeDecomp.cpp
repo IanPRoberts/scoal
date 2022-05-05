@@ -3,8 +3,10 @@
 using namespace Rcpp;
 
 // [[Rcpp::interfaces(r, cpp)]]
+// [[Rcpp::export]]
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+  // Remove "//[[Rcpp::export]]" to prevent access from scoal package in R
   int nrow = ED.nrow();
   NumericVector event_times = sort_unique(ED(_, 5));
   NumericVector time_increments = diff(event_times);

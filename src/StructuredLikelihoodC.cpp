@@ -1,27 +1,63 @@
 #include <Rcpp.h>
 #include "DemeDecomp.h"
+#include "NodeCount.h"
 using namespace Rcpp;
 
-//' @title NodeCountC
-//' @description Counts the number of migrations between pairs of demes, and coalescences within each deme
+//' @title StructuredLikelihoodC
+//' @description Computes the likelihood of a structured coalescent genealogy
 //' @param ED NumericMatrix Extended data object representing structured phylogeny
-//' @param n_deme int Number of demes modelled under ED
+//' @param eff_pop NumericVector Effective population of each deme
+//' @param gen_length double Generation length of each individual in the global population
+//' @param mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
 //' @param node_indices NumericVector Vector giving row numbers in ED for node labels
-//' @returns List containing matrix m with element (i,j) giving the number of migrations i -> j backwards in time, and a vector c with element i giving the number of coalescences occurring in deme i
+//' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
 //'
 //' @export
 //'
 // [[Rcpp::export]]
 
-NumericMatrix StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices) {
+List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices) {
   int n_deme = eff_pop.size();
-  NumericVector lambda = eff_pop * gen_len;
-
-  // Case if lambda.size() == 1
   List deme_decomp;
-  deme_decomp = DemeDecompC(ED, n_deme, node_indices); // Import DemeDecompC to use within separate C++ file
+  List node_count;
 
-  NumericMatrix k = deme_decomp["k"];
+  deme_decomp = DemeDecompC(ED, n_deme, node_indices);
+  node_count = NodeCountC(ED, n_deme, node_indices);
 
-  return k;
+  NumericMatrix k =  deme_decomp["k"];
+  NumericVector time_increments = deme_decomp["time.increments"];
+  NumericVector c = node_count["c"];
+  NumericMatrix m = node_count["m"];
+
+  double like = 0;
+  int n_time_incs = time_increments.size();
+
+  double coal_term;
+  double deme_length;
+  double mig_row_sum;
+  double lambda;
+
+  for (int i = 0; i < n_deme; ++i){
+    coal_term = 0;
+    deme_length = 0;
+    mig_row_sum = 0;
+
+    for (int r = 0; r < n_time_incs; ++r){
+      coal_term += k(r, i) * (k(r, i) - 1) * time_increments[r];
+      deme_length += k(r, i) * time_increments[r];
+    }
+
+    for (int j = 0; j < n_deme; ++j){
+      if (i != j){
+        like += m(i, j) * log(mig_mat(i, j));
+        mig_row_sum += mig_mat(i, j);
+      }
+    }
+    lambda = eff_pop[i] * gen_len;
+    like += - log(lambda) * c[i] - coal_term / (2 * lambda) - deme_length * mig_row_sum;
+  }
+
+  List out = List::create(_["log.likelhood"] = like , _["likelihood"] = exp(like));
+
+  return out;
 }
