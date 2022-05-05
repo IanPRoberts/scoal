@@ -38,6 +38,8 @@ eff.pop.beta <- 2
 mig.mat.alpha <- 1
 mig.mat.beta <- 10
 
+lambda <- 50
+
 #Simulation parameters (drawn from priors)
 gen.length <- 1
 effective.pop <- 1 / rgamma(n.deme, shape = eff.pop.alpha, scale = 1 / eff.pop.beta)
@@ -63,8 +65,6 @@ M <- length(migration.nodes)
 
 proposal.rates <- c(1, 4, 4, 1) #Relative rates of selecting each type of proposal mechanism
 proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
-
-lambda <- 50
 
 for (i in -N0 : N){
   U <- runif(1)
