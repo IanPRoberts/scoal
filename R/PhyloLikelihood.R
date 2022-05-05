@@ -128,26 +128,23 @@ structured.likelihood <- function(phylo, effective.pop, gen.length, migration.ma
 #' @export
 
 ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.indices){
-  n.deme <- dim(migration.matrix)[1]
-
+  n.deme <- length(effective.pop)
   lambda <- effective.pop * gen.length
-  if (length(lambda) == 1){
-    lambda <- rep(lambda,n.deme)
-  }
+  deme_decomp <- DemeDecompC(ED, n.deme, node.indices)
+  node_count <- NodeCountC(ED, n.deme, node.indices)
 
-  DemeDecomp <- DemeDecompC(ED, n.deme, node.indices)
+  k <- deme_decomp$k
+  time_increments <- deme_decomp$time.increments
+  c <- node_count$c
+  m <- node_count$m
 
-  k <- DemeDecomp$k #DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
+  deme_lengths <- colSums(k * time_increments)
+  coal_constants <- colSums(k * (k-1) * time_increments) / ( 2 * lambda)
+  mm_row_sum <- rowSums(migration.matrix)
+  log_mig_mat <- log(migration.matrix)
+  diag(log_mig_mat) <- 0
 
-  nc <- NodeCountC(ED, n.deme, node.indices) #ed.node.count(ED, n.deme, node.indices)
-  c <- nc$c
-  m <- nc$m
+  like <- sum(m * log_mig_mat) - sum(c * log(effective.pop)) - sum(coal_constants) - sum(deme_lengths * mm_row_sum)
 
-  #Likelihood computation
-  likelihood <- 0
-  log.migration.matrix <- log(migration.matrix)
-  diag(log.migration.matrix) <- 0
-  likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * DemeDecomp$time.increments) -
-    sum(c * log(lambda)) + sum(log.migration.matrix * m)
-  return(list(log.likelihood = likelihood, likelihood = exp(likelihood)))
+  return(list(log.likelihood = like, likelihood = exp(like)))
 }
