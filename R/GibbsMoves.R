@@ -1,10 +1,8 @@
 mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, shape = 1, rate = 10){
 
   m <- NodeCountC(ED, n.deme, node.indices)$m #ed.node.count(ED, n.deme, node.indices)$m
-
-  observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
-    n.deme <- max(observed.demes)
+    n.deme <- max(ED[,5])
   }
   proposal.matrix <- matrix(0, n.deme, n.deme)
 
@@ -19,10 +17,7 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, sha
 
     if (length(rows.in.deme) > 0){
       parents <- ED[rows.in.deme, 2]
-      parents.rows <- numeric(length(parents))
-      for (i in 1 : length(parents)){
-        parents.rows[i] <- node.indices[parents[i]]
-      }
+      parent.rows <- node.indices[parents]
       deme.length[d] <- sum(ED[rows.in.deme, 6] - ED[parents.rows, 6])
     } else{
       deme.length[d] <- 0
@@ -39,16 +34,15 @@ mig.rate.update <- function(ED, migration.matrix, n.deme = NA, node.indices, sha
 
 
 eff.pop.update <- function(ED, effective.population, n.deme, node.indices, shape = 1, rate = 1){
-  c <- NodeCountC(ED, n.deme, node.indices)$c #ed.node.count(ED, n.deme, node.indices)$c
+  c <- NodeCountC(ED, n.deme, node.indices)$c
 
-  observed.demes <- unique(ED[,5])
   if (is.na(n.deme)){
-    n.deme <- length(observed.demes)
+    n.deme <- max(ED[,5])
   }
   proposal.eff.pop <- rep(0, n.deme)
 
   DemeDecomp <- DemeDecompC(ED, n.deme, node.indices)
-  k <- DemeDecomp$k #DemeDecompC(ED, n.deme, node.indices) #deme.decomp(ED, n.deme, node.indices)
+  k <- DemeDecomp$k
   rate.constants <- t(k * (k-1) / 2) %*% DemeDecomp$time.increments
 
   for (i in 1:n.deme){

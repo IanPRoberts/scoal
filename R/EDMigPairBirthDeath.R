@@ -60,11 +60,7 @@ ed.mig.pair.birth <- function(ED, n.deme, node.indices){
 #' @export
 
 ed.mig.pair.death <- function(ED, n.deme, node.indices){
-  leaf.nodes <- ED[is.na(ED[,3]), 1]
   root.node <- ED[is.na(ED[,2]), 1]
-  coalescence.nodes <- ED[!is.na(ED[,4]), 1]
-  coalescence.nodes <- coalescence.nodes[coalescence.nodes != root.node]
-  migration.nodes <- ED[ is.na(ED[,4]) & (!is.na(ED[,3])) ,1]
 
   #Sample non-root node to obtain edge <sampled.node, node.parent>
   selected.node <- sample(ED[-root.node, 1], 1)
@@ -72,8 +68,8 @@ ed.mig.pair.death <- function(ED, n.deme, node.indices){
   parent.node <- ED[selected.row, 2]
   parent.row <- node.indices[parent.node]
 
-  if ((ED[selected.row, 1] %in% migration.nodes) &&
-      (ED[parent.row, 1] %in% migration.nodes) &&
+  if (((is.na(ED[selected.row, 4]) & (!is.na(ED[selected.row, 3])))) &&
+      ((is.na(ED[parent.row, 4]) & (!is.na(ED[parent.row, 3])))) &&
       (ED[node.indices[ED[selected.row, 3]], 5] == ED[parent.row, 5])){
     #Both ends of the edge are migration nodes, and the demes are consistent to remove the pair of nodes
     parent2.node <- ED[parent.row, 2]

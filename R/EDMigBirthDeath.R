@@ -39,11 +39,9 @@ ed.mig.birth <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   while (any(active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
 
-    for (j in active.nodes){
-      j.row <- node.indices[j]
-      subtree.nodes <- c(subtree.nodes, ED[j.row, 3:4])  #Add children of i to subtree
-      active.nodes <- c(active.nodes[active.nodes != j], ED[j.row, 3:4])  #Remove i from active nodes, add children
-    }
+    active.rows <- node.indices[active.nodes]
+    subtree.nodes <- c(subtree.nodes, ED[active.rows, 3:4]) #Add children of active.nodes to subtree
+    active.nodes <- ED[active.rows, 3:4]
   }
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
@@ -56,22 +54,18 @@ ed.mig.birth <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
 
     proposal.deme <- sample.vector((1:n.deme)[- old.deme], 1)  #Propose deme update without accounting for surrounding demes
 
-    for (j in subtree.leaves){  #Verify proposal.deme does not add any migrations from one deme into itself
-      j.row <- node.indices[j]
-      j.child <- ED[j.row, 3]
-      j.child.row <- node.indices[j.child]
+    subtree.leaf.rows <- node.indices[subtree.leaves]
+    subtree.leaf.children <- ED[subtree.leaf.rows, 3]
+    subtree.leaf.children.rows <- node.indices[subtree.leaf.children]
 
-      if (ED[j.child.row, 5]  == proposal.deme){ #Check for self-migrations
-        #REJECT
-        return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
-      }
+    if (any(ED[subtree.leaf.children.rows, 5] == proposal.deme)){
+      #REJECT
+      return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
     }
 
     #Update deme across subtree
-    for (j in subtree.nodes){
-      row <- node.indices[j]
-      ED[row, 5] <- proposal.deme
-    }
+    subtree.rows <- node.indices[subtree.nodes]
+    ED[subtree.rows, 5] <- proposal.deme
 
     new.node <- max(ED[,1]) + 1
 
@@ -146,12 +140,9 @@ ed.mig.death <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   active.nodes <- child.node
   while (any(active.nodes %in% coalescence.nodes)){
     active.nodes <- active.nodes[active.nodes %in% coalescence.nodes]
-
-    for (i in active.nodes){
-      i.row <- node.indices[i]
-      subtree.nodes <- c(subtree.nodes, ED[i.row, 3:4])  #Add children of i to subtree
-      active.nodes <- c(active.nodes[active.nodes != i], ED[i.row, 3:4])  #Remove i from active nodes, add children
-    }
+    active.rows <- node.indices[active.nodes]
+    subtree.nodes <- c(subtree.nodes, ED[active.rows, 3:4]) #Add children of active.nodes to subtree
+    active.nodes <- ED[active.rows, 3:4]
   }
 
   if ((fix.leaf.deme == TRUE) && (any(subtree.nodes %in% leaf.nodes))){
@@ -160,19 +151,15 @@ ed.mig.death <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
   } else{
     #Continue proposal
     subtree.leaves <- subtree.nodes[subtree.nodes %in% migration.nodes]
-    forbidden.demes <- numeric(0)
-    for (i in subtree.leaves){  #Cannot change to deme adjacent to subtree
-      i.row <- node.indices[i]
-      i.child <- ED[i.row, 3]
-      i.child.row <- node.indices[i.child]
-      forbidden.demes <- c(forbidden.demes, ED[i.child.row, 5])  #Deme below node i
-    }
-    forbidden.demes <- unique(forbidden.demes)
+
+    subtree.leaf.rows <- node.indices[subtree.leaves]
+    subtree.leaf.children <- ED[subtree.leaf.rows, 3]
+    subtree.leaf.children.rows <- node.indices[subtree.leaf.children]
+    forbidden.demes <- unique(ED[subtree.leaf.children.rows, 5])
 
     proposal.deme <- ED[selected.row, 5]  #Propose deme immediately above subtree
     if (proposal.deme %in% forbidden.demes){
-      #Cannot change deme
-      #REJECT
+      #REJECT - cannot change deme
       return(list(ED = ED, prop.ratio = 0, log.prop.ratio = -Inf, node.indices = node.indices))
     }
 
@@ -180,10 +167,8 @@ ed.mig.death <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     parent.row <- node.indices[parent.node]
 
     #Update deme across subtree
-    for (i in subtree.nodes){
-      i.row <- node.indices[i]
-      ED[i.row, 5] <- proposal.deme
-    }
+    subtree.rows <- node.indices[subtree.nodes]
+    ED[subtree.rows, 5] <- proposal.deme
 
     ED[child.row, 2] <- parent.node  #Update child.node parent
 
