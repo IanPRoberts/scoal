@@ -6,4 +6,4 @@ using namespace Rcpp;
 
 List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices);
 
-#endif // RCPP_DemeDecompC_H_GEN_
+#endif // RCPP_NodeCount_H_GEN_

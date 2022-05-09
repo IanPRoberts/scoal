@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include "DemeDecomp.h"
 #include "NodeCount.h"
+#include "StructuredLikelihood.h"
 using namespace Rcpp;
 
 //' @title StructuredLikelihoodC
@@ -14,6 +15,7 @@ using namespace Rcpp;
 //'
 //' @export
 //'
+// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices) {

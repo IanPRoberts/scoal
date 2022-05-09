@@ -5,21 +5,14 @@ DemeDecompC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
+mcmc_cpp <- function(N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder) {
+    .Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder)
+}
+
 NodeCountC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_NodeCountC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
-#' @title StructuredLikelihoodC
-#' @description Computes the likelihood of a structured coalescent genealogy
-#' @param ED NumericMatrix Extended data object representing structured phylogeny
-#' @param eff_pop NumericVector Effective population of each deme
-#' @param gen_length double Generation length of each individual in the global population
-#' @param mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
-#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
-#' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
-#'
-#' @export
-#'
 StructuredLikelihoodC <- function(ED, eff_pop, gen_len, mig_mat, node_indices) {
     .Call('_scoal_StructuredLikelihoodC', PACKAGE = 'scoal', ED, eff_pop, gen_len, mig_mat, node_indices)
 }

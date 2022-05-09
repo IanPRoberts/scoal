@@ -45,6 +45,27 @@ namespace scoal {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline NumericVector mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double eff_pop_prior_mean, double eff_pop_prior_var, double mig_prior_mean, double mig_prior_var, CharacterVector likelihood, bool output_plots, CharacterVector output_folder) {
+        typedef SEXP(*Ptr_mcmc_cpp)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_mcmc_cpp p_mcmc_cpp = NULL;
+        if (p_mcmc_cpp == NULL) {
+            validateSignature("NumericVector(*mcmc_cpp)(int,int,NumericMatrix,NumericVector,double,NumericMatrix,int,NumericVector,double,double,double,double,CharacterVector,bool,CharacterVector)");
+            p_mcmc_cpp = (Ptr_mcmc_cpp)R_GetCCallable("scoal", "_scoal_mcmc_cpp");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_mcmc_cpp(Shield<SEXP>(Rcpp::wrap(N0)), Shield<SEXP>(Rcpp::wrap(N)), Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(eff_pop)), Shield<SEXP>(Rcpp::wrap(gen_len)), Shield<SEXP>(Rcpp::wrap(mig_mat)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(prop_rates)), Shield<SEXP>(Rcpp::wrap(eff_pop_prior_mean)), Shield<SEXP>(Rcpp::wrap(eff_pop_prior_var)), Shield<SEXP>(Rcpp::wrap(mig_prior_mean)), Shield<SEXP>(Rcpp::wrap(mig_prior_var)), Shield<SEXP>(Rcpp::wrap(likelihood)), Shield<SEXP>(Rcpp::wrap(output_plots)), Shield<SEXP>(Rcpp::wrap(output_folder)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
     inline List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
         typedef SEXP(*Ptr_NodeCountC)(SEXP,SEXP,SEXP);
         static Ptr_NodeCountC p_NodeCountC = NULL;
@@ -56,6 +77,27 @@ namespace scoal {
         {
             RNGScope RCPP_rngScope_gen;
             rcpp_result_gen = p_NodeCountC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices) {
+        typedef SEXP(*Ptr_StructuredLikelihoodC)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_StructuredLikelihoodC p_StructuredLikelihoodC = NULL;
+        if (p_StructuredLikelihoodC == NULL) {
+            validateSignature("List(*StructuredLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
+            p_StructuredLikelihoodC = (Ptr_StructuredLikelihoodC)R_GetCCallable("scoal", "_scoal_StructuredLikelihoodC");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_StructuredLikelihoodC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(eff_pop)), Shield<SEXP>(Rcpp::wrap(gen_len)), Shield<SEXP>(Rcpp::wrap(mig_mat)), Shield<SEXP>(Rcpp::wrap(node_indices)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
