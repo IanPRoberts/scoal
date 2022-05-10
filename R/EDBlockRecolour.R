@@ -57,6 +57,14 @@ ed.block.recolour <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     subtree.nodes <- c(subtree.root, active.nodes)
   }
 
+  # active.rows <- node.indices[active.nodes]
+  # while (length(active.rows) > 0){
+  #   subtree.nodes <- c(subtree.nodes, ED[active.rows, 3:4])
+  #   active.nodes <- ED[active.rows, 3:4]
+  #   active.rows <- node.indices[active.nodes]
+  #   active.rows <- active.rows[!is.na(ED[active.rows, 4])]
+  # }
+
   while (! all(active.nodes %in% migration.nodes)){
     active.nodes <- active.nodes[! (active.nodes %in% c(migration.nodes, leaf.nodes))]
     active.rows <- node.indices[active.nodes]

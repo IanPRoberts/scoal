@@ -1,3 +1,15 @@
+#' Runs and MCMC on Migration Histories
+#'
+#' Runs an MCMC to infer migration histories under the structured coalescent model
+#'
+#'
+#' @param N0 Number of iterations to use as a burn-in
+#' @param leaf.deme vector of demes for each leaf in \code{phylo}
+#'
+#' @return An object of class \code{phylo} augmented with the deme of each node in the tree.
+#'
+#' @export
+
 migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
                                    ED, effective.pop, gen.length, migration.matrix, n.deme = NA,
                                    proposal.rates = c(rep(5, 4), 1, 1),
