@@ -16,7 +16,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
                                    eff.pop.prior.mean = 1, eff.pop.prior.var = 1, mig.prior.mean = 1/10, mig.prior.var = 1/20,
                                    likelihood = "Structured",
                                    output.plots = TRUE,
-                                   output.folder = "./MCMC_Results"){
+                                   output.directory = "./MCMC_Results", create.new.directory = TRUE){
 
   if (is.na(n.deme)){
     n.deme <- length(effective.pop)
@@ -76,13 +76,17 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
 
   #Create folders to store images
   start.time <- Sys.time()
-  new.directory <- file.path(output.folder, format(start.time, "%F_%H-%M"))
-  dir.create(new.directory)  #Create directory to store plots; directory name gives date and time
+  if (create.new.folder == TRUE){
+    storage.directory <- file.path(output.directory, format(start.time, "%F_%H-%M"))
+    dir.create(storage.directory)  #Create directory to store plots; directory name gives date and time
+  } else{
+    storage.directory <- output.directory
+  }
 
   if (output.plots == TRUE){
-    dir.create(paste0(new.directory,"/GifOut"))
+    dir.create(paste0(storage.directory,"/GifOut"))
     k <- 100  #Number of trees to store throughout MCMC run
-    png(paste0(new.directory,"/GifOut/Frame_", sprintf("%d", 0),".png"))
+    png(paste0(storage.directory,"/GifOut/Frame_", sprintf("%d", 0),".png"))
       structured.plot(ed.to.phylo(ED), n.deme)
     dev.off()
     video.count <- 1
@@ -171,7 +175,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
     }
 
     if ((output.plots == TRUE) && (i %in% floor((1:(k+1)) * N/(k+1)))){ #Frames for gif output
-      png(paste0(new.directory,"/GifOut/Frame_", sprintf("%d", video.count), ".png"))
+      png(paste0(storage.directory,"/GifOut/Frame_", sprintf("%d", video.count), ".png"))
         structured.plot(ed.to.phylo(ED), n.deme)
       dev.off()
       video.count <- video.count + 1
@@ -184,34 +188,34 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
   end.time <- Sys.time()
   close(pb)
 
-  file.create(paste0(new.directory, "/details.txt"))
+  file.create(paste0(storage.directory, "/details.txt"))
   writeLines(c(paste("N0 =", N0),
                paste("N =", N),
                paste("likelihood =", likelihood),
                paste("Start time", format(start.time, "%H-%M")),
                paste("End time", format(end.time, "%H-%M")),
                paste("Time elapsed =", round(difftime(end.time, start.time, units = "mins"), digits = 2), "mins")),
-             con = paste0(new.directory, "/details.txt"))
+             con = paste0(storage.directory, "/details.txt"))
 
-  file.create(paste0(new.directory, "/freq.txt"))
-  write.table(freq, file=paste0(new.directory, "/freq.txt"), row.names=FALSE, col.names=TRUE, sep = "\t")
-  saveRDS(mig.eff.pop.sample, paste0(new.directory, "/mig.eff.pop.sample.RDS"))
-  saveRDS(ED.sample, paste0(new.directory, "/ED.sample.RDS"))
-  saveRDS(max.posterior.sample, paste0(new.directory, "/max.posterior.sample.RDS"))
+  file.create(paste0(storage.directory, "/freq.txt"))
+  write.table(freq, file=paste0(storage.directory, "/freq.txt"), row.names=FALSE, col.names=TRUE, sep = "\t")
+  saveRDS(mig.eff.pop.sample, paste0(storage.directory, "/mig.eff.pop.sample.RDS"))
+  saveRDS(ED.sample, paste0(storage.directory, "/ED.sample.RDS"))
+  saveRDS(max.posterior.sample, paste0(storage.directory, "/max.posterior.sample.RDS"))
 
-  file.create(paste0(new.directory, "/coal.node.deme.freq.txt"))
-  write.table(coal.node.deme.freq, file=paste0(new.directory, "/coal.node.deme.freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
+  file.create(paste0(storage.directory, "/coal.node.deme.freq.txt"))
+  write.table(coal.node.deme.freq, file=paste0(storage.directory, "/coal.node.deme.freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
 
 
   if (output.plots == TRUE){
     # MCMC gif
-    img_list <- sapply(paste0(new.directory,"/GifOut/Frame_", sprintf("%d", 0:(k+1)), ".png"), image_read)
+    img_list <- sapply(paste0(storage.directory,"/GifOut/Frame_", sprintf("%d", 0:(k+1)), ".png"), image_read)
     img_joined <- image_join(img_list)
     img_animated <- image_animate(img_joined, fps = 2)
-    image_write(image = img_animated, path = paste0(new.directory,"/Vid.gif"))
+    image_write(image = img_animated, path = paste0(storage.directory,"/Vid.gif"))
 
     # Mig rates & eff pop histograms
-    png(paste0(new.directory, "/mig.eff.pop.sample.hist.png"), width = 2000, height = 1500)
+    png(paste0(storage.directory, "/mig.eff.pop.sample.hist.png"), width = 2000, height = 1500)
     layout(matrix(1:n.deme^2, n.deme, n.deme, byrow = TRUE))
     for (i in 1:n.deme){
       for (j in 1:n.deme){
@@ -233,7 +237,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
     dev.off()
 
     # Mig rates & eff pop trace plots
-    png(paste0(new.directory, "/mig.eff.pop.sample.trace.png"), width = 2000, height = 1500)
+    png(paste0(storage.directory, "/mig.eff.pop.sample.trace.png"), width = 2000, height = 1500)
       layout(matrix(1:n.deme^2, n.deme, n.deme, byrow = TRUE))
       for (i in 1:n.deme){
         for (j in 1:n.deme){
@@ -255,7 +259,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
     for (i in 1 : n.stored.samples){
       n.mig.sample[i] <- dim(ED.sample[[i]])[1] - 2*n + 1
     }
-    png(paste0(new.directory, "/N.mig.plots.png"), width = 2000, height = 1500)
+    png(paste0(storage.directory, "/N.mig.plots.png"), width = 2000, height = 1500)
       layout(matrix(1:2, 1, 2))
       plot(n.mig.sample, type = 'l',
            main = "Trace Plot",
@@ -268,7 +272,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
 
 
     #Maximum posterior sampled tree with coalescence node deme pie charts
-    png(paste0(new.directory, "/max.post.sample.png"), width = 2000, height = 1500)
+    png(paste0(storage.directory, "/max.post.sample.png"), width = 2000, height = 1500)
       structured.plot(max.posterior.sample$ED, n.deme)
       color.palette <- rainbow(n.deme)
       coal.node.rows <- numeric(n.coal)
