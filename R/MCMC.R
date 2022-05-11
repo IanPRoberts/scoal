@@ -76,11 +76,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
 
   #Create folders to store images
   start.time <- Sys.time()
-<<<<<<< HEAD
   if (create.new.directory == TRUE){
-=======
-  if (create.new.folder == TRUE){
->>>>>>> 8a89c2daec520249b1b8c4efd5720c603bd31f73
     storage.directory <- file.path(output.directory, format(start.time, "%F_%H-%M"))
     dir.create(storage.directory)  #Create directory to store plots; directory name gives date and time
   } else{
