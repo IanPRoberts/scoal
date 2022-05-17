@@ -52,7 +52,7 @@ migration.history.mcmc <- function(N0 = 1e5, N = 1e6,
   proposal.probs <- cumsum(proposal.rates/sum(proposal.rates)) #Cumulative proposal probabilities for each reversible move (single birth/death : pair birth/death : merge/split : block recolour)
 
   # Output setup
-  n.stored.samples <- min(1e4, N)
+  n.stored.samples <- min(1e6, N)
   mig.eff.pop.sample <- array(0, c(n.deme, n.deme, n.stored.samples))
   ED.sample <- list()
   samples.to.store <- round(seq.int(1, N, length.out = n.stored.samples))
