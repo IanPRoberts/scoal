@@ -19,7 +19,8 @@ migration.history.mcmc(
   mig.prior.var = 1/20,
   likelihood = "Structured",
   output.plots = TRUE,
-  output.folder = "./MCMC_Results"
+  output.directory = "./MCMC_Results",
+  create.new.directory = TRUE
 )
 }
 \arguments{
