@@ -7,4 +7,7 @@ MCMC_Results/
 *.Rprofvis
 src/*.o
 src/*.dll
-TestED.rds
+*.rds
+*.csv
+*.xml
+*.nexus
