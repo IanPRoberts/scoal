@@ -20,7 +20,7 @@ master.xml <- function(effective.pop, migration.matrix, leaf.data, save.path = "
   n.deme <- length(effective.pop)
   out <- paste0("<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'> \n",
   "\t <run spec='InheritanceTrajectory' \n",
-  "\t\t verbosity='2'> \n\n",
+  "\t\t verbosity='0'> \n\n",
   "\t\t <model spec='Model'> \n",
   "\t\t\t <populationType spec='PopulationType' typeName='L' id='L' dim='", n.deme, "'/> \n",
   "\t\t\t <reactionGroup spec='ReactionGroup' reactionGroupName='Coalescence'> \n")
