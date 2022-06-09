@@ -4,7 +4,7 @@
 #'
 #' @param effective.pop effective population size from which the sample is taken
 #' @param migration.matrix matrix of migration rates between demes
-#' @param data  nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point
+#' @param leaf.data  nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point
 #' @param save.path file path to output .xml file to
 #' @param run.xml if TRUE, run generated .xml through BEAST
 #'
@@ -50,10 +50,10 @@ master.xml <- function(effective.pop, migration.matrix, leaf.data, save.path = "
                      "\t\t </model> \n\n",
                      "\t\t <initialState spec='InitState'> \n")
 
-  leaf.times <- unique(data[,2])
+  leaf.times <- unique(leaf.data[,2])
   for (time in leaf.times){
     for (deme in 1 : n.deme){
-      leaf.set <- (1 : dim(data)[1])[(data[,2] == time) & (data[,3] == deme)]
+      leaf.set <- (1 : dim(leaf.data)[1])[(leaf.data[,2] == time) & (leaf.data[,3] == deme)]
       if (length(leaf.set) > 0){
         out <- paste0(out,
                       "\t\t\t <lineageSeedMultiple spec='MultipleIndividuals' copies='", length(leaf.set), "' time='", time, "'> \n",
