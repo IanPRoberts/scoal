@@ -13,6 +13,10 @@ NodeCountC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_NodeCountC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
+ScaledLikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
+    .Call('_scoal_ScaledLikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, mig_mat, node_indices)
+}
+
 StructuredLikelihoodC <- function(ED, eff_pop, gen_len, mig_mat, node_indices) {
     .Call('_scoal_StructuredLikelihoodC', PACKAGE = 'scoal', ED, eff_pop, gen_len, mig_mat, node_indices)
 }
