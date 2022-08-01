@@ -133,6 +133,44 @@ RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indice
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// ScaledLikelihoodC
+List ScaledLikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices);
+static SEXP _scoal_ScaledLikelihoodC_try(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coal_rate(coal_rateSEXP);
+    Rcpp::traits::input_parameter< double >::type time_scale(time_scaleSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mig_mat(mig_matSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(ScaledLikelihoodC(ED, coal_rate, time_scale, mig_mat, node_indices));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_ScaledLikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_ScaledLikelihoodC_try(EDSEXP, coal_rateSEXP, time_scaleSEXP, mig_matSEXP, node_indicesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // StructuredLikelihoodC
 List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices);
 static SEXP _scoal_StructuredLikelihoodC_try(SEXP EDSEXP, SEXP eff_popSEXP, SEXP gen_lenSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
@@ -179,6 +217,7 @@ static int _scoal_RcppExport_validate(const char* sig) {
         signatures.insert("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
         signatures.insert("NumericVector(*mcmc_cpp)(int,int,NumericMatrix,NumericVector,double,NumericMatrix,int,NumericVector,double,double,double,double,CharacterVector,bool,CharacterVector)");
         signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
+        signatures.insert("List(*ScaledLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
         signatures.insert("List(*StructuredLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
     }
     return signatures.find(sig) != signatures.end();
@@ -189,6 +228,7 @@ RcppExport SEXP _scoal_RcppExport_registerCCallable() {
     R_RegisterCCallable("scoal", "_scoal_DemeDecompC", (DL_FUNC)_scoal_DemeDecompC_try);
     R_RegisterCCallable("scoal", "_scoal_mcmc_cpp", (DL_FUNC)_scoal_mcmc_cpp_try);
     R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
+    R_RegisterCCallable("scoal", "_scoal_ScaledLikelihoodC", (DL_FUNC)_scoal_ScaledLikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_StructuredLikelihoodC", (DL_FUNC)_scoal_StructuredLikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_RcppExport_validate", (DL_FUNC)_scoal_RcppExport_validate);
     return R_NilValue;
@@ -198,6 +238,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
     {"_scoal_mcmc_cpp", (DL_FUNC) &_scoal_mcmc_cpp, 15},
     {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
+    {"_scoal_ScaledLikelihoodC", (DL_FUNC) &_scoal_ScaledLikelihoodC, 5},
     {"_scoal_StructuredLikelihoodC", (DL_FUNC) &_scoal_StructuredLikelihoodC, 5},
     {"_scoal_RcppExport_registerCCallable", (DL_FUNC) &_scoal_RcppExport_registerCCallable, 0},
     {NULL, NULL, 0}

@@ -87,6 +87,27 @@ namespace scoal {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline List ScaledLikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices) {
+        typedef SEXP(*Ptr_ScaledLikelihoodC)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_ScaledLikelihoodC p_ScaledLikelihoodC = NULL;
+        if (p_ScaledLikelihoodC == NULL) {
+            validateSignature("List(*ScaledLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
+            p_ScaledLikelihoodC = (Ptr_ScaledLikelihoodC)R_GetCCallable("scoal", "_scoal_ScaledLikelihoodC");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_ScaledLikelihoodC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(coal_rate)), Shield<SEXP>(Rcpp::wrap(time_scale)), Shield<SEXP>(Rcpp::wrap(mig_mat)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
     inline List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, NumericVector node_indices) {
         typedef SEXP(*Ptr_StructuredLikelihoodC)(SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_StructuredLikelihoodC p_StructuredLikelihoodC = NULL;
