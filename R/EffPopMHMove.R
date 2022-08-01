@@ -1,6 +1,6 @@
 eff.pop.mh <- function(effective.pop, ED, n.deme = length(effective.pop), node.indices,
                        prior.shape = 0.001, prior.rate = 0.001, proposal.sd = sqrt(0.2)){
-  proposal <- rnorm(n.deme, effective.pop, proposal.sd)
+  proposal <- abs(rnorm(n.deme, effective.pop, proposal.sd))
 
   node_count <- NodeCountC(ED, n.deme, node.indices)
   c <- node_count$c
