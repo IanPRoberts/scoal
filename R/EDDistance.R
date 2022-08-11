@@ -19,19 +19,11 @@ ED.dist <- function(ED1, ED2, node_indices_1 = NA, node_indices_2 = NA){
 
 
   if (any(is.na(node_indices_1))){
-    max_label <- max(ED1[,1])
-    node_indices_1 <- rep(0, max_label)
-    for (j in 1 : dim(ED1)[1]){
-      node_indices_1[ED1[j,1]] <- j
-    }
+    node_indices_1 <- NodeIndicesC(ED1)
   }
 
   if (any(is.na(node_indices_2))){
-    max_label <- max(ED2[,1])
-    node_indices_2 <- rep(0, max_label)
-    for (j in 1 : dim(ED2)[1]){
-      node_indices_2[ED2[j,1]] <- j
-    }
+    node_indices_2 <- NodeIndicesC(ED2)
   }
 
   deme_decomp_1 <- DemeDecompC(ED1, n_deme, node_indices_1)
@@ -50,10 +42,12 @@ ED.dist <- function(ED1, ED2, node_indices_1 = NA, node_indices_2 = NA){
     if (pooled_event_times[i+1] == deme_decomp_2$event.times[count_2 + 1]){
       count_2 <- count_2 + 1
     }
-
   }
 
-  score <- sum(k_diff * pooled_time_incs) / 2  #k_diff double counts - remove from one deme and add to another
+  tree_length <- sum(deme_decomp_1$k * deme_decomp_1$time.increments)
+
+
+  score <- sum(k_diff * pooled_time_incs) / (2 * tree_length)  #k_diff double counts - remove from one deme and add to another
 
   return(distance = score)
 }
@@ -95,4 +89,34 @@ medoid.ED <- function(ED_sample, plot_medoid = FALSE){
   }
 
   return(medoid = medoid_ED)
+}
+
+
+#' ED Distance (coalescent node)
+#'
+#' Computes the dissimilarity between a pair of migration histories on the same
+#' tree via number of coalescent nodes in different demes between the two histories
+#'
+#' @param ED1 Extended data representation of first migration history
+#' @param ED2 Extended data representation of second migration history
+#'
+#' @return Computed distance
+#'
+#' @export
+
+ED.dist.coal.node <- function(ED1, ED2, node_indices_1 = NA, node_indices_2 = NA){
+  if (any(is.na(node_indices_1))){
+    node_indices_1 <- NodeIndicesC(ED1)
+  }
+
+  if (any(is.na(node_indices_2))){
+    node_indices_2 <- NodeIndicesC(ED2)
+  }
+
+  n_deme <- max(c(ED1[,5], ED2[,5]))
+
+  coal_labels <- ED1[((!is.na(ED1[,3])) & (!is.na(ED1[,4]))),1]
+  score <- sum(ED1[node_indices_1[coal_labels], 5] != ED2[node_indices_2[coal_labels], 5])
+
+  return(score)
 }
