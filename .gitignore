@@ -11,3 +11,4 @@ src/*.dll
 *.csv
 *.xml
 *.nexus
+src/*.so
