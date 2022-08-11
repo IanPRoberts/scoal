@@ -49,6 +49,44 @@ RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indic
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// ED_dist_C
+double ED_dist_C(NumericMatrix ED1, NumericMatrix ED2, int n_deme, Nullable<NumericVector> node_indices_1, Nullable<NumericVector> node_indices_2);
+static SEXP _scoal_ED_dist_C_try(SEXP ED1SEXP, SEXP ED2SEXP, SEXP n_demeSEXP, SEXP node_indices_1SEXP, SEXP node_indices_2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED1(ED1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED2(ED2SEXP);
+    Rcpp::traits::input_parameter< int >::type n_deme(n_demeSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type node_indices_1(node_indices_1SEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type node_indices_2(node_indices_2SEXP);
+    rcpp_result_gen = Rcpp::wrap(ED_dist_C(ED1, ED2, n_deme, node_indices_1, node_indices_2));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_ED_dist_C(SEXP ED1SEXP, SEXP ED2SEXP, SEXP n_demeSEXP, SEXP node_indices_1SEXP, SEXP node_indices_2SEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_ED_dist_C_try(ED1SEXP, ED2SEXP, n_demeSEXP, node_indices_1SEXP, node_indices_2SEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // mcmc_cpp
 NumericVector mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double eff_pop_prior_mean, double eff_pop_prior_var, double mig_prior_mean, double mig_prior_var, CharacterVector likelihood, bool output_plots, CharacterVector output_folder);
 static SEXP _scoal_mcmc_cpp_try(SEXP N0SEXP, SEXP NSEXP, SEXP EDSEXP, SEXP eff_popSEXP, SEXP gen_lenSEXP, SEXP mig_matSEXP, SEXP n_demeSEXP, SEXP prop_ratesSEXP, SEXP eff_pop_prior_meanSEXP, SEXP eff_pop_prior_varSEXP, SEXP mig_prior_meanSEXP, SEXP mig_prior_varSEXP, SEXP likelihoodSEXP, SEXP output_plotsSEXP, SEXP output_folderSEXP) {
@@ -114,6 +152,40 @@ RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indice
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
         rcpp_result_gen = PROTECT(_scoal_NodeCountC_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// NodeIndicesC
+NumericVector NodeIndicesC(NumericMatrix ED);
+static SEXP _scoal_NodeIndicesC_try(SEXP EDSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
+    rcpp_result_gen = Rcpp::wrap(NodeIndicesC(ED));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_NodeIndicesC_try(EDSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -215,8 +287,10 @@ static int _scoal_RcppExport_validate(const char* sig) {
     static std::set<std::string> signatures;
     if (signatures.empty()) {
         signatures.insert("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
+        signatures.insert("double(*ED_dist_C)(NumericMatrix,NumericMatrix,int,Nullable<NumericVector>,Nullable<NumericVector>)");
         signatures.insert("NumericVector(*mcmc_cpp)(int,int,NumericMatrix,NumericVector,double,NumericMatrix,int,NumericVector,double,double,double,double,CharacterVector,bool,CharacterVector)");
         signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
+        signatures.insert("NumericVector(*NodeIndicesC)(NumericMatrix)");
         signatures.insert("List(*ScaledLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
         signatures.insert("List(*StructuredLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
     }
@@ -226,8 +300,10 @@ static int _scoal_RcppExport_validate(const char* sig) {
 // registerCCallable (register entry points for exported C++ functions)
 RcppExport SEXP _scoal_RcppExport_registerCCallable() { 
     R_RegisterCCallable("scoal", "_scoal_DemeDecompC", (DL_FUNC)_scoal_DemeDecompC_try);
+    R_RegisterCCallable("scoal", "_scoal_ED_dist_C", (DL_FUNC)_scoal_ED_dist_C_try);
     R_RegisterCCallable("scoal", "_scoal_mcmc_cpp", (DL_FUNC)_scoal_mcmc_cpp_try);
     R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
+    R_RegisterCCallable("scoal", "_scoal_NodeIndicesC", (DL_FUNC)_scoal_NodeIndicesC_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledLikelihoodC", (DL_FUNC)_scoal_ScaledLikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_StructuredLikelihoodC", (DL_FUNC)_scoal_StructuredLikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_RcppExport_validate", (DL_FUNC)_scoal_RcppExport_validate);
@@ -236,8 +312,10 @@ RcppExport SEXP _scoal_RcppExport_registerCCallable() {
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
+    {"_scoal_ED_dist_C", (DL_FUNC) &_scoal_ED_dist_C, 5},
     {"_scoal_mcmc_cpp", (DL_FUNC) &_scoal_mcmc_cpp, 15},
     {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
+    {"_scoal_NodeIndicesC", (DL_FUNC) &_scoal_NodeIndicesC, 1},
     {"_scoal_ScaledLikelihoodC", (DL_FUNC) &_scoal_ScaledLikelihoodC, 5},
     {"_scoal_StructuredLikelihoodC", (DL_FUNC) &_scoal_StructuredLikelihoodC, 5},
     {"_scoal_RcppExport_registerCCallable", (DL_FUNC) &_scoal_RcppExport_registerCCallable, 0},

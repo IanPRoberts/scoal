@@ -45,6 +45,27 @@ namespace scoal {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline double ED_dist_C(NumericMatrix ED1, NumericMatrix ED2, int n_deme, Nullable<NumericVector> node_indices_1 = R_NilValue, Nullable<NumericVector> node_indices_2 = R_NilValue) {
+        typedef SEXP(*Ptr_ED_dist_C)(SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_ED_dist_C p_ED_dist_C = NULL;
+        if (p_ED_dist_C == NULL) {
+            validateSignature("double(*ED_dist_C)(NumericMatrix,NumericMatrix,int,Nullable<NumericVector>,Nullable<NumericVector>)");
+            p_ED_dist_C = (Ptr_ED_dist_C)R_GetCCallable("scoal", "_scoal_ED_dist_C");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_ED_dist_C(Shield<SEXP>(Rcpp::wrap(ED1)), Shield<SEXP>(Rcpp::wrap(ED2)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices_1)), Shield<SEXP>(Rcpp::wrap(node_indices_2)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
+    }
+
     inline NumericVector mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double eff_pop_prior_mean, double eff_pop_prior_var, double mig_prior_mean, double mig_prior_var, CharacterVector likelihood, bool output_plots, CharacterVector output_folder) {
         typedef SEXP(*Ptr_mcmc_cpp)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_mcmc_cpp p_mcmc_cpp = NULL;
@@ -85,6 +106,27 @@ namespace scoal {
         if (rcpp_result_gen.inherits("try-error"))
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline NumericVector NodeIndicesC(NumericMatrix ED) {
+        typedef SEXP(*Ptr_NodeIndicesC)(SEXP);
+        static Ptr_NodeIndicesC p_NodeIndicesC = NULL;
+        if (p_NodeIndicesC == NULL) {
+            validateSignature("NumericVector(*NodeIndicesC)(NumericMatrix)");
+            p_NodeIndicesC = (Ptr_NodeIndicesC)R_GetCCallable("scoal", "_scoal_NodeIndicesC");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_NodeIndicesC(Shield<SEXP>(Rcpp::wrap(ED)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
     inline List ScaledLikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices) {

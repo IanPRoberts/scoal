@@ -5,12 +5,20 @@ DemeDecompC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
+ED_dist_C <- function(ED1, ED2, n_deme, node_indices_1 = NULL, node_indices_2 = NULL) {
+    .Call('_scoal_ED_dist_C', PACKAGE = 'scoal', ED1, ED2, n_deme, node_indices_1, node_indices_2)
+}
+
 mcmc_cpp <- function(N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder) {
     .Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder)
 }
 
 NodeCountC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_NodeCountC', PACKAGE = 'scoal', ED, n_deme, node_indices)
+}
+
+NodeIndicesC <- function(ED) {
+    .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
 }
 
 ScaledLikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
