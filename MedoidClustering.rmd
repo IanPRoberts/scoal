@@ -1,0 +1,152 @@
+---
+title: "MDS_Shepard"
+output: html_document
+date: "2022-08-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(ape)
+devtools::load_all()
+```
+
+## Data import
+
+```{r}
+k <- 250
+ED_sample <- readRDS("./MCMC_Results/2022-08-15_16-02/ED_sample.rds")
+
+subsample <- list()
+subsample_indices <- seq.int(1, length(ED_sample), length.out = k+1)
+
+for (index in 1:(k+1)){
+  subsample[[index]] <- ED_sample[[subsample_indices[index]]]
+}
+
+n_samples <- length(subsample)
+n_deme <- 3
+```
+
+## Distance matrix & cluster computation
+
+dists - array of distances, dists[,,1] dissimilarity by branch lengths in different demes; dists[,,2] dissimilarity by coalescent nodes in different demes
+
+Clusters based on:
+
+- Root deme
+- Majority deme (maximum length in particular deme), assume no pair of demes will have same maximal length a.s.
+- Majority coalescent node - ties possible. Option 1: break ties randomly; Option 2: break ties by minimum deme
+
+```{r}
+dists <- array(0, dim = c(n_samples, n_samples, 2))
+
+root_deme <- numeric(n_samples)
+majority_deme <- numeric(n_samples)
+majority_coal <- numeric(n_samples)
+majority_coal2 <- numeric(n_samples)
+
+
+for (i in 1 : (n_samples - 1)){
+  ED1 <- subsample[[i]]
+  node_indices_1 <- NodeIndicesC(ED1)
+  for (j in ((i+1) : n_samples)){
+    ED2 <- subsample[[j]]
+    node_indices_2 <- NodeIndicesC(ED2)
+    dists[i,j,1] <- dists[j,i,1] <- ED_dist_C(ED1, ED2, n_deme, node_indices_1, node_indices_2)
+    dists[i,j,2] <- dists[j,i,2] <- ED.dist.coal.node(ED1, ED2, node_indices_1, node_indices_2)
+  }
+  
+  root_node <- which(is.na(ED1[,2]))
+  root_deme[i] <- ED1[root_node, 5]
+  
+  deme_decomp <- DemeDecompC(ED1, n_deme, node_indices_1)
+  deme_lengths <- colSums(deme_decomp$k * deme_decomp$time.increments)
+  majority_deme[i] <- which(deme_lengths == max(deme_lengths))
+  
+  node_count <- NodeCountC(ED1, n_deme, node_indices_1)
+  majority_coal[i] <- sample.vector(which(node_count$c == max(node_count$c)), 1) #Choose randomly in case of ties
+  majority_coal2[i] <- min(which(node_count$c == max(node_count$c))) #Chosen min in case of multiples...
+}
+```
+
+### Clustering 
+
+MDS clustering on distance matrices (dists[,,1:2])
+
+```{r}
+MDS <- lapply(1:2, function(x){vegan::metaMDS(dists[,,x])})
+
+MDS_dists <- array(0, dim = c(n_samples, n_samples,2))
+for (k in 1 : 2){
+  for (i in 1 : (n_samples - 1)){
+    for (j in ((i+1) : n_samples)){
+      MDS_dists[i,j, k] <- MDS_dists[j,i,k] <-  sqrt(sum((MDS[[k]]$points[i,] - MDS[[k]]$points[j,])^2))
+    }
+  }
+}
+```
+
+### Shepard plot
+
+Distance in MDS projection vs distance in dists matrices
+
+```{r, fig.show="hold", out.width="50%"}
+for ( x in 1 :2)
+  plot(as.vector(dists[,,x]), as.vector(MDS_dists[,,x])) #Shepard plot
+
+```
+
+### Medoids
+
+Medoid point - minimum mean distance from every other point in cluster
+
+Compute "global medoid" (black) - ED with minimum mean distance from every other point as well as "cluster medoids" (red/green/blue) with minimum mean distance from every other point within same cluster
+
+```{r, fig.show="hold", out.width="33%"}
+global_medoid <- sapply(1:2, function(x) sample.vector(which(min(rowMeans(dists[,,x])) == rowMeans(dists[,,x])), 1))
+
+cluster_medoids <- array(0, dim = c(2, n_deme,3))
+
+for (deme in 1 : n_deme){
+  for (j in 1 : 2){
+    # Root_deme clustering
+    cluster <- which(root_deme == deme)
+    cluster_dists <- dists[cluster, cluster, j]
+    cluster_medoids[j, deme, 1] <- cluster[sample.vector(which(min(rowMeans(cluster_dists)) == rowMeans(cluster_dists)),1)]
+    
+    # Majority_coal clustering
+    cluster <- which(majority_deme == deme)
+    cluster_dists <- dists[cluster, cluster, j]
+    cluster_medoids[j, deme, 2] <- cluster[sample.vector(which(min(rowMeans(cluster_dists)) == rowMeans(cluster_dists)),1)]
+    
+    # Majority_coal clustering
+    cluster <- which(majority_coal2 == deme)
+    cluster_dists <- dists[cluster, cluster, j]
+    cluster_medoids[j, deme, 3] <- cluster[sample.vector(which(min(rowMeans(cluster_dists)) == rowMeans(cluster_dists)),1)]
+  }
+}
+
+for (k in 1 : 2){
+  dist_measure <- c("deme length distance", "coalescent node distance")[k]
+  plot(MDS[[k]]$points, col = rainbow(n_deme)[root_deme], pch = 16, main = paste0("MDS plot, ", dist_measure, " (root_deme)"))
+  abline(v = MDS[[k]]$points[global_medoid[1],1], h =MDS[[k]]$points[global_medoid[1],2])
+  for (deme in 1 : n_deme){
+    abline(v = MDS[[k]]$points[cluster_medoids[k, deme, 1],1], h =MDS[[k]]$points[cluster_medoids[k, deme, 1],2], col = rainbow(n_deme)[deme])
+  }
+  
+  plot(MDS[[k]]$points, col = rainbow(n_deme)[majority_deme], pch = 16, main = paste0("MDS plot, ", dist_measure, " (majority_deme)"))
+  abline(v = MDS[[k]]$points[global_medoid[1],1], h =MDS[[k]]$points[global_medoid[1],2])
+  for (deme in 1 : n_deme){
+    abline(v = MDS[[k]]$points[cluster_medoids[k, deme, 2],1], h =MDS[[k]]$points[cluster_medoids[k, deme, 2],2], col = rainbow(n_deme)[deme])
+  }
+  
+  plot(MDS[[k]]$points, col = rainbow(n_deme)[majority_coal2], pch = 16, main = paste0("MDS plot, ", dist_measure, " (majority_coal_deme)"))
+  abline(v = MDS[[k]]$points[global_medoid[1],1], h =MDS[[k]]$points[global_medoid[1],2])
+  for (deme in 1 : n_deme){
+    abline(v = MDS[[k]]$points[cluster_medoids[k, deme, 3],1], h =MDS[[k]]$points[cluster_medoids[k, deme, 3],2], col = rainbow(n_deme)[deme])
+  }
+}
+
+
+```
