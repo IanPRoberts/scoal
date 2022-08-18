@@ -1,5 +1,3 @@
-#
-
 h <- function(){
 
 phylo <- harris2010phylo
