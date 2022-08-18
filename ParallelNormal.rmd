@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 devtools::load_all()
 require(ape)
 require(parallel)
+k_core_par_time <- list()
 ```
 
 ## Normal random variables, unknown mean
@@ -114,9 +115,10 @@ iteration <- 1
 
 non_parallel_sapply_time <- system.time({
   while (iteration < N){
-    U <- runif(8)
-    props <- lapply(1:8, proposal_func)
-    accepted <- sapply(1:8, function(x){props[[x]]$accept})
+    k9 <- 100
+    U <- runif(k9)
+    props <- lapply(1:k9, proposal_func)
+    accepted <- sapply(1:k9, function(x){props[[x]]$accept})
     first_accepted <- min(which(accepted == TRUE), 8)
     
     if (iteration + first_accepted <= N){
@@ -157,7 +159,10 @@ print(accept_rate)
 
 ### Parallelised
 
-```{r, eval = FALSE}
+```{r}
+N <- 1e3
+no_cores <- 4
+# for (no_cores in 1 : 8){
 prop_sd <- 10 #Proposal standard deviation
 last_est <- mean(data)  #Initialise estimate for theta at mean of data
 
@@ -182,9 +187,10 @@ iteration <- 1
 
 parallel_time <- system.time({
   while (iteration < N){
-    U <- runif(8)
-    props <- mclapply(1:8, proposal_func, mc.cores = 8)
-    accepted <- sapply(1:8, function(x){props[[x]]$accept})
+    k2 <- 100
+    U <- runif(k2)
+    props <- mclapply(1:k2, proposal_func, mc.cores = no_cores)
+    accepted <- sapply(1:k2, function(x){props[[x]]$accept})
     first_accepted <- min(which(accepted == TRUE), 8)
     
     if (iteration + first_accepted <= N){
@@ -219,4 +225,6 @@ points(proposals[accepted,1] ~ accepted, col = "azure3")
 accept_rate <- 1 - sum(proposals[,2] == 0)/N
 print(accept_rate)
 print(parallel_time)
+# k_core_par_time[[no_cores]] <- parallel_time
+# }
 ```
