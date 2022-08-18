@@ -120,3 +120,41 @@ ED.dist.coal.node <- function(ED1, ED2, node_indices_1 = NA, node_indices_2 = NA
 
   return(score)
 }
+
+
+#' ED Distance (coalescent node, weighted)
+#'
+#' Computes the dissimilarity between a pair of migration histories on the same
+#' tree via number of coalescent nodes in different demes between the two histories
+#'
+#' @param ED1 Extended data representation of first migration history
+#' @param ED2 Extended data representation of second migration history
+#' @param mm_1 Migration matrix for ED1
+#' @param mm_2 Migration matrix for ED2
+#'
+#' @return Computed distance
+#'
+#' @export
+
+ED.dist.coal.node <- function(ED1, ED2, mm_1, mm_2, node_indices_1 = NA, node_indices_2 = NA){
+  if (any(is.na(node_indices_1))){
+    node_indices_1 <- NodeIndicesC(ED1)
+  }
+
+  if (any(is.na(node_indices_2))){
+    node_indices_2 <- NodeIndicesC(ED2)
+  }
+
+  n_deme <- max(c(ED1[,5], ED2[,5]))
+
+  coal_labels <- ED1[((!is.na(ED1[,3])) & (!is.na(ED1[,4]))),1]
+  diff_labels <- ED1[node_indices_1[coal_labels], 5] != ED2[node_indices_2[coal_labels], 5]
+  demes_1 <- ED1[node_indices_1[coal_labels[diff_labels]], 5]
+  demes_2 <- ED2[node_indices_2[coal_labels[diff_labels]], 5]
+
+
+
+  score <- sum(diff_labels)
+
+  return(score)
+}
