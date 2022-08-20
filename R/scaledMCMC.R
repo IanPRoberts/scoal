@@ -48,8 +48,12 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
 
   max.posterior.sample <- list(ED = ED, coalescence_rate = coal_rate, migration_matrix = mig_mat, iteration = -N0, log.likelihood = ED_like, log.posterior = ED_like + log.prior)
 
-  new.directory <- file.path(output.directory, format(Sys.time(), "%F_%H_%M"))
-  dir.create(new.directory)  #Create directory to store plots; directory name gives date and time
+  if (create.new.directory){
+    output.directory <- file.path(output.directory, format(Sys.time(), "%F_%H_%M"))
+    dir.create(output.directory)  #Create directory to store plots; directory name gives date and time
+  }
+
+
 
   #Progress bar
   pb <- txtProgressBar(min = 0, max = N0 + N, initial = 0, style = 3)
@@ -148,19 +152,19 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
 
   close(pb)
 
-  file.create(paste0(new.directory, "/freq.txt"))
-  write.table(freq, file=paste0(new.directory, "/freq.txt"), row.names=FALSE, col.names=TRUE, sep = "\t")
-  saveRDS(mig.eff.pop.sample, paste0(new.directory, "/mm_cr_sample.RDS"))
-  saveRDS(time_scale_sample, paste0(new.directory, "/ts_sample.RDS"))
-  saveRDS(ED_sample, paste0(new.directory, "/ED_sample.RDS"))
-  saveRDS(max.posterior.sample, paste0(new.directory, "/max_post_sample.RDS"))
+  file.create(paste0(output.directory, "/freq.txt"))
+  write.table(freq, file=paste0(output.directory, "/freq.txt"), row.names=FALSE, col.names=TRUE, sep = "\t")
+  saveRDS(mig.eff.pop.sample, paste0(output.directory, "/mm_cr_sample.RDS"))
+  saveRDS(time_scale_sample, paste0(output.directory, "/ts_sample.RDS"))
+  saveRDS(ED_sample, paste0(output.directory, "/ED_sample.RDS"))
+  saveRDS(max.posterior.sample, paste0(output.directory, "/max_post_sample.RDS"))
 
-  file.create(paste0(new.directory, "/coal_deme_freq.txt"))
-  write.table(coal.node.deme.freq, file=paste0(new.directory, "/coal_deme_freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
+  file.create(paste0(output.directory, "/coal_deme_freq.txt"))
+  write.table(coal.node.deme.freq, file=paste0(output.directory, "/coal_deme_freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
 
 
   # Relative migration & coalescent rate hists
-  png(paste0(new.directory, "/rel.params.hist.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/rel.params.hist.png"), width = 2000, height = 1500)
   layout(matrix(1:n_deme^2, n_deme, n_deme, byrow = TRUE))
   x <- seq(0,2, 0.01)
   y1 <- dgamma(x, cr_prior_shape, cr_prior_rate)
@@ -181,7 +185,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
   dev.off()
 
   # Relative migration and coalescent rate traces
-  png(paste0(new.directory, "/rel.params.traces.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/rel.params.traces.png"), width = 2000, height = 1500)
   layout(matrix(1:n_deme^2, n_deme, n_deme, byrow = TRUE))
   for (i in 1:n_deme){
     for (j in 1:n_deme){
@@ -212,7 +216,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
     diag(m[,,i]) <- NC$c
   }
 
-  png(paste0(new.directory, "/migrations.per.deme.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/migrations.per.deme.png"), width = 2000, height = 1500)
   layout(matrix(1:n_deme^2, n_deme, n_deme, byrow = TRUE))
   for (i in 1:n_deme){
     for (j in 1:n_deme){
@@ -226,7 +230,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
   dev.off()
 
   # Max posterior sampled tree
-  png(paste0(new.directory, "/max.post.sample.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/max.post.sample.png"), width = 2000, height = 1500)
   structured.plot(max.posterior.sample$ED, n_deme)
   color.palette <- rainbow(n_deme)
   coal.node.rows <- numeric(n.coal)
@@ -239,14 +243,14 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
 
 
   # Timescale trace & Hist
-  png(paste0(new.directory, "/time_scale.plots.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/time_scale.plots.png"), width = 2000, height = 1500)
   layout(matrix(1:2, 1))
   plot(time_scale_sample, type = 'l')
   hist(time_scale_sample)
   dev.off()
 
   # True migration & coalescent rate hists
-  png(paste0(new.directory, "/real.params.hists.png"), width = 2000, height = 1500)
+  png(paste0(output.directory, "/real.params.hists.png"), width = 2000, height = 1500)
   layout(matrix(1:n_deme^2, n_deme, n_deme, byrow = TRUE))
 
   for (i in 1:n_deme){
