@@ -257,7 +257,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
     for (j in 1:n_deme){
       if (i == j){
         hist(mig.eff.pop.sample[i, j, ]*time_scale_sample, freq = FALSE, main = bquote(theta[.(i)]), xlab = bquote(theta[.(i)]))
-        abline(v=true_cr[i], col = "red", lty = 2, lwd = 2)
+        #abline(v=true_cr[i], col = "red", lty = 2, lwd = 2)
 
         #Prior convolved with time_scale_sample
         bin.width <- 0.005
@@ -273,7 +273,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
 
       } else{
         hist(mig.eff.pop.sample[i, j, ]*time_scale_sample, freq = FALSE, main = bquote(lambda[paste("(", .(i), ",", .(j), ")")]), xlab = bquote(lambda[paste("(", .(i), ",", .(j), ")")]))
-        abline(v=true_mm[i,j], col = "red", lty = 2, lwd = 2)
+        #abline(v=true_mm[i,j], col = "red", lty = 2, lwd = 2)
 
         #Prior convolved with time_scale_sample
         bin.width <- 0.005
