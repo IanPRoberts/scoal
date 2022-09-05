@@ -1,4 +1,15 @@
-### Coalescent node Merge Proposal
+#' Coalescent Node Merge Proposal
+#'
+#' Performs a coalescent node merge move (Ewing et al. 2004). Merges two migration
+#' nodes immediately below a coalescent node and place above coalescent node
+#'
+#' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
+#' @param n.deme Number of distinct demes in the population
+#' @param node.indices Vector giving row indices for node labels
+#'
+#' @return Updated extended data object with the proposal from the migration pair birth move
+#'
+#' @export
 
 ed.coal.merge <- function(ED, n.deme, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]
@@ -78,7 +89,19 @@ ed.coal.merge <- function(ED, n.deme, node.indices){
 }
 
 
-### Coalescent node split proposal
+#' Coalescent Node Split Proposal
+#'
+#' Performs a coalescent node split move (Ewing et al. 2004). Splits a migration
+#' node immediately above a coalescent node into two migration nodes placed immediately
+#' below the coalescent node
+#'
+#' @param ED Extended data object; matrix with columns Node ID, parent, child 1, child 2, deme, node age
+#' @param n.deme Number of distinct demes in the population
+#' @param node.indices Vector giving row indices for node labels
+#'
+#' @return Updated extended data object with the proposal from the migration pair birth move
+#'
+#' @export
 
 ed.coal.split <- function(ED, n.deme, node.indices){
   root.node <- ED[is.na(ED[,2]), 1]

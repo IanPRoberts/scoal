@@ -24,7 +24,7 @@ master.xml(
 \item{run.xml}{if TRUE, run generated .xml through BEAST}
 }
 \value{
-
+xml file
 }
 \description{
 Generates a .xml file to be input to BEAST 2 for structured coalescent simulations using MASTER
