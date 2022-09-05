@@ -9,7 +9,6 @@ knitr::opts_chunk$set(echo = TRUE)
 devtools::load_all()
 require(ape)
 require(parallel)
-k_core_par_time <- list()
 ```
 
 ## Normal random variables, unknown mean
@@ -227,4 +226,144 @@ print(accept_rate)
 print(parallel_time)
 # k_core_par_time[[no_cores]] <- parallel_time
 # }
+```
+
+### Sapply with delay
+
+Check the MCMC with "slow proposals" - compare to parallel with slow proposals to check when parallel better than serial (due to parallelisation overhead)
+
+```{r}
+N <- 1e3
+last_est <- mean(data)  #Initialise estimate for theta at mean of data
+
+post_var <- 1/(n/(data_sd^2) + 1/(prior_sd^2))
+post_mean <- post_var * (sum(data) / (data_sd^2) + prior_mean/(prior_sd^2))
+
+delays <- 0:10/1000
+non_par_delay_time <- list()
+
+
+for (i in 1 : length(delays)){
+  set.seed(1234)
+  delay <- delays[i]
+  
+  slow_prop <- function(iter){
+    prop <- rnorm(1, mean = last_est, sd = prop_sd)
+    accept_prob <- min(0, - (prop^2 - 2 * post_mean * (prop - last_est) - last_est^2)/(2 * post_var))
+    Sys.sleep(delay)
+    
+    if (log(U[iter]) < accept_prob){
+      return(list(proposal = prop, accept = TRUE))
+    } else{
+      return(list(proposal = prop, accept = FALSE))
+    }
+  }
+  
+  #### Main MCMC Run
+  sample <- numeric(N)
+  proposals <- matrix(0, nrow = N, ncol = 2)  #Store all proposals in col 1, indicator in col 2 for acceptance
+  iteration <- 1
+  
+  non_par_delay_time[[i]] <- system.time({
+    while (iteration < N){
+      U <- runif(8)
+      props <- lapply(1:8, slow_prop)
+      accepted <- sapply(1:8, function(x){props[[x]]$accept})
+      first_accepted <- min(which(accepted == TRUE), 8)
+      
+      if (iteration + first_accepted <= N){
+        proposals[iteration + 1:first_accepted - 1, 1] <- sapply(1:first_accepted, function(x){props[[x]]$proposal})
+        sample[iteration + 1:first_accepted - 1] <- last_est
+        
+        if (props[[first_accepted]]$accept){
+          sample[iteration + first_accepted - 1] <- last_est <- props[[first_accepted]]$proposal
+          proposals[iteration + first_accepted - 1, 2] <- 1
+        }
+        
+        iteration <- iteration + first_accepted
+      } else {
+        proposals[iteration:N, 1] <- sapply(1:(N - iteration + 1), function(x){props[[x]]$proposal})
+        sample[iteration:N] <- last_est
+      }
+    }
+  })
+}
+non_par_delay_time
+plot(delays, sapply(1:length(delays), function(x) non_par_delay_time[[x]][3]))
+```
+
+### Mclapply with delay
+
+```{r}
+N <- 1e3
+options(mc.cores=8)
+last_est <- mean(data)  #Initialise estimate for theta at mean of data
+
+post_var <- 1/(n/(data_sd^2) + 1/(prior_sd^2))
+post_mean <- post_var * (sum(data) / (data_sd^2) + prior_mean/(prior_sd^2))
+
+reps <- 5
+delays <- sort(rep(0:20/1000, reps))
+par_delay_time <- list()
+
+
+pb <- txtProgressBar(min = 0, max = length(delays), initial = 0, style = 3) #Load progress bar (max = N for "finished" condition)
+
+for (i in 1 : length(delays)){
+  set.seed(1234)
+  delay <- delays[i]
+  
+  slow_prop <- function(iter){
+    prop <- rnorm(1, mean = last_est, sd = prop_sd)
+    accept_prob <- min(0, - (prop^2 - 2 * post_mean * (prop - last_est) - last_est^2)/(2 * post_var))
+    Sys.sleep(delay)
+    
+    if (log(U[iter]) < accept_prob){
+      return(list(proposal = prop, accept = TRUE))
+    } else{
+      return(list(proposal = prop, accept = FALSE))
+    }
+  }
+  
+  #### Main MCMC Run
+  sample <- numeric(N)
+  proposals <- matrix(0, nrow = N, ncol = 2)  #Store all proposals in col 1, indicator in col 2 for acceptance
+  iteration <- 1
+  
+  par_delay_time[[i]] <- system.time({
+    while (iteration < N){
+      U <- runif(8)
+      props <- mclapply(1:8, slow_prop)
+      accepted <- sapply(1:8, function(x){props[[x]]$accept})
+      first_accepted <- min(which(accepted == TRUE), 8)
+      
+      if (iteration + first_accepted <= N){
+        proposals[iteration + 1:first_accepted - 1, 1] <- sapply(1:first_accepted, function(x){props[[x]]$proposal})
+        sample[iteration + 1:first_accepted - 1] <- last_est
+        
+        if (props[[first_accepted]]$accept){
+          sample[iteration + first_accepted - 1] <- last_est <- props[[first_accepted]]$proposal
+          proposals[iteration + first_accepted - 1, 2] <- 1
+        }
+        
+        iteration <- iteration + first_accepted
+      } else {
+        proposals[iteration:N, 1] <- sapply(1:(N - iteration + 1), function(x){props[[x]]$proposal})
+        sample[iteration:N] <- last_est
+      }
+    }
+  })
+  
+  setTxtProgressBar(pb, i)
+}
+
+close(pb) #Close progress bar outside of loop at end
+
+par_delay_time
+plot(delays, sapply(1:length(delays), function(x) par_delay_time[[x]][3]), ylim = c(0, 1.1 * max(sapply(1:length(delays), function(x) par_delay_time[[x]][3]))), xlab = "delay", ylab = "Elapsed time")
+#points(delays, sapply(1:length(delays), function(x) non_par_delay_time[[x]][3]), col = "azure3")
+abline(lm(sapply(1:length(delays), function(x) par_delay_time[[x]][3]) ~ delays))
+x <- 0:10/1000
+abline(lm(sapply(1:length(x), function(x) non_par_delay_time[[x]][3]) ~ x), col = "azure3")
+#points(delays, sapply(1:length(delays), function(x) non_par_delay_time[[x]][3]), col = "azure3")
 ```
