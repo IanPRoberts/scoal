@@ -9,8 +9,8 @@ ED_dist_C <- function(ED1, ED2, n_deme, node_indices_1 = NULL, node_indices_2 = 
     .Call('_scoal_ED_dist_C', PACKAGE = 'scoal', ED1, ED2, n_deme, node_indices_1, node_indices_2)
 }
 
-mcmc_cpp <- function(N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder) {
-    .Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, eff_pop, gen_len, mig_mat, n_deme, prop_rates, eff_pop_prior_mean, eff_pop_prior_var, mig_prior_mean, mig_prior_var, likelihood, output_plots, output_folder)
+mcmc_cpp <- function(N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rates, cr_prior_shape, cr_prior_rate, mm_prior_shape, mm_prior_rate) {
+    invisible(.Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rates, cr_prior_shape, cr_prior_rate, mm_prior_shape, mm_prior_rate))
 }
 
 NodeCountC <- function(ED, n_deme, node_indices) {
@@ -19,6 +19,10 @@ NodeCountC <- function(ED, n_deme, node_indices) {
 
 NodeIndicesC <- function(ED) {
     .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
+}
+
+ScaledDTALikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
+    .Call('_scoal_ScaledDTALikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, mig_mat, node_indices)
 }
 
 ScaledLikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
