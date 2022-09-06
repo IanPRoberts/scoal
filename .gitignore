@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 LaTeX/
+RMarkdown/
 MCMC_Results/
 *.Rprofvis
 src/*.o
