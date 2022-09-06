@@ -105,7 +105,7 @@ get.edge.id <- function(start, end, edge){
 #'
 #' @export
 
-structured.plot <- function(x, n.demes = NA){
+structured.plot <- function(x, n_deme = NA){
   if (! ('phylo' %in% class(x))){
     phylo <- ed.to.phylo(x)
   } else{
@@ -114,14 +114,18 @@ structured.plot <- function(x, n.demes = NA){
 
   edge <- phylo$edge
 
-  if (is.na(n.demes)){
-    n.demes <- max(unique(phylo$node.deme))
+  if (is.na(n_deme)){
+    n_deme <- max(unique(phylo$node.deme))
   }
-  color.palette <- rainbow(n.demes)
-  edge.color <- rep(NA,dim(edge)[1])
-  for (i in 1 : dim(edge)[1]){
-    edge.color[i] <- color.palette[phylo$node.deme[edge[i,2]]]
+
+  if (any(phylo$node.deme == 0)){
+    color.palette <- c(rainbow(n_deme), "black")
+    phylo$node.deme[phylo$node.deme == 0] <- n_deme + 1
+  } else{
+    color.palette <- rainbow(n_deme)
   }
+
+  edge.color <- color.palette[phylo$node.deme[edge[,2]]]
 
   plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
   par(mar = 0.1 + c(5,4,4,2))

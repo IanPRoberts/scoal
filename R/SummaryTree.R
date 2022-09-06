@@ -64,14 +64,14 @@ summary_tree <- function(ED_sample, locations, n_deme = NA){
 #'
 #' @export
 
-consensus_tree <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA){
+consensus_tree <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA, plot = TRUE){
   if (is.na(n_deme)){
     n_deme <- max(ED_sample[[1]][,5])
   }
 
   top_ED <- strip.history(ED_sample[[1]])
   root_node <- top_ED[is.na(top_ED[,2]),1]
-  nodes <-top_ED[,1:2] #rbind(top_ED[is.na(top_ED[,3]), 1:2], top_ED[!is.na(top_ED[,4]), 1:2]) #Coalescent and leaf nodes with parents in second col
+  nodes <-top_ED[,1:2]
   nodes <- nodes[nodes[,1] != root_node,]
 
   deme_freq <- matrix(0, n_splits * dim(nodes)[1], n_deme)
@@ -118,13 +118,13 @@ consensus_tree <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme
                        })
 
   node_deme <- sapply(1 : dim(node_freq)[1],
-                       function(x){
-                         if (any(node_freq[x,] > consensus_freq)){
-                           return(which(node_freq[x,] == max(node_freq[x,])))
-                         } else{
-                           return(0)
-                         }
-                       })
+                      function(x){
+                        if (any(node_freq[x,] > consensus_freq)){
+                          return(which(node_freq[x,] == max(node_freq[x,])))
+                        } else{
+                          return(0)
+                        }
+                      })
 
   max_filled_row <- dim(top_ED)[1]
   consensus_ED <- matrix(0, max_filled_row + length(split_deme), 6)
@@ -151,16 +151,9 @@ consensus_tree <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme
     }
   }
 
-  phylo <- ed.to.phylo(consensus_ED)
-  edge <- phylo$edge
-  color.palette <- c("black", rainbow(n_deme))
-  edge.color <- rep(NA,dim(edge)[1])
-  for (i in 1 : dim(edge)[1]){
-    edge.color[i] <- color.palette[phylo$node.deme[edge[i,2]] + 1]
+  if (plot){
+    structured.plot(consensus_ED)
   }
 
-  plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
-  par(mar = 0.1 + c(5,4,4,2))
-
-  return(consensus_ED)
+  return(list(ED = consensus_ED, deme_freq = deme_freq))
 }
