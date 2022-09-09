@@ -19,8 +19,7 @@ g <- function(){
   leaf.data <- read.csv("data/harris2010.csv")
 
   demes <- unique(leaf.data$Location)
-  n.deme <- 5
-  leaf.deme <- sapply(1:58, function(x) which(demes == leaf.data))
+  leaf.deme <- sapply(1:58, function(x) which(demes == leaf.data$Location[x]))
 
   tip.order <- as.numeric(phylo$tip.label)
 
