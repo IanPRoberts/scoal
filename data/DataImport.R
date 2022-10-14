@@ -38,3 +38,37 @@ g <- function(){
   # td=full_join(tree,ti,by='label')
   # write.beast(td,'data/harris2010.nex')
 }
+
+h <- function(){
+  phylo <- ape::read.tree("data/dudas2017.nwk")
+  leaf.data <- read.csv("data/dudas2017.csv")
+
+  demes <- unique(leaf.data$country)
+  leaf.deme <- sapply(1:1610, function(x) which(demes == leaf.data$country[x]))
+  tip.order <- sapply(1:1610, function(x) which(phylo$tip.label[x] == leaf.data$id))
+
+  phylo$node.deme <- c(leaf.deme[tip.order], rep(0, 1609))
+  ED <- phylo.to.ed(phylo)
+  saveRDS(phylo, file = "data/dudas2017phylo.RDS")
+  saveRDS(ED, "data/dudas2017ED.RDS")
+}
+
+k <- function(){
+  phylo <- ape::read.nexus("data/MERS.nex")
+  tip.data <- read.table("data/MERS.nex", skip = 5, nrows = 274, comment.char = "")
+  leaf.data <- stringr::str_split(tip.data[,1], "\\|")
+
+  host_data <- sapply(1:274, function(x) leaf.data[[x]][3])
+  tip_label <- sapply(1:274, function(x) leaf.data[[x]][2])
+
+  # leaf.deme <- numeric(274)
+  # leaf.deme[grep("human", tip.data[,1])] <- 1
+  # leaf.deme[grep("camel", tip.data[,1])] <- 2
+  leaf.deme <- as.numeric(as.factor(host_data))
+
+  phylo$node.deme <- c(leaf.deme, rep(0, 273))
+  ED <- phylo.to.ed(phylo)
+  structured.plot(ED)
+  saveRDS(phylo, file = "data/MERSphylo.RDS")
+  saveRDS(ED, "data/MERS_ED.RDS")
+}
