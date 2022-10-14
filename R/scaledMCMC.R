@@ -18,10 +18,7 @@ scaled_MCMC <- function(N0 = 1e5, N = 1e6,
                         output.directory = "./MCMC_Results", create.new.directory = TRUE){
 
   max_label <- max(ED[,1])
-  node_indices <- rep(0, max_label)
-  for (j in 1 : dim(ED)[1]){
-    node_indices[ED[j,1]] <- j
-  }
+  node_indices <- NodeIndicesC(ED)
 
   ED_like <- ScaledLikelihoodC(ED, coal_rate, time_scale, mig_mat, node_indices)$log.likelihood
 
