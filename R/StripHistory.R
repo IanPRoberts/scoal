@@ -9,22 +9,29 @@
 #'
 #' @export
 
-strip.history <- function(ED){
-  coalescence.nodes <- ED[(!is.na(ED[,3])) & (!is.na(ED[,4])), 1]
-  leaf.nodes <- ED[(is.na(ED[,3])) & (is.na(ED[,4])), 1]
-  root.node <- ED[is.na(ED[,2]), 1]
+strip.history <- function(ED, node_indices = NA){
+  if (length(node_indices) == 1){
+    node_indices <- NodeIndicesC(ED)
+  }
 
-  for (node in c(leaf.nodes, coalescence.nodes)[-root.node]){
-    node.parent <- ED[node, 2]
-    while (! node.parent %in% coalescence.nodes){
-      node.parent <- ED[node.parent, 2]
-      ED[node, 2] <- node.parent
+  coal_rows <- which(!is.na(ED[,4]))
+  coal_nodes <- ED[coal_rows, 1]
+
+  leaf_nodes <- ED[is.na(ED[,3]), 1]
+
+  for (i in 1 : length(coal_rows)){
+    row <- coal_rows[i]
+    for (which_child in 3:4){
+      child <- ED[row, which_child]
+      while (!(child %in% c(coal_nodes, leaf_nodes))){
+        child <- ED[node_indices[child], 3]
+      }
+      ED[row, which_child] <- child
+      ED[node_indices[child], 2] <- ED[row, 1]
     }
   }
 
-  migration.nodes <- ED[! ED[,1] %in% c(leaf.nodes, coalescence.nodes), 1]
-  ED <- ED[! ED[,1] %in% migration.nodes,]
-  ED[! ED[,1] %in% leaf.nodes, 5] <- 1
-
+  ED[coal_rows, 5] <- 0
+  ED <- ED[c(node_indices[leaf_nodes], coal_rows),]
   return(ED)
 }
