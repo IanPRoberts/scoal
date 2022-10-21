@@ -20,12 +20,19 @@ time_scale <- 1
 log_like <- ScaledDTALikelihoodC(ED, coal_rate, time_scale, mig_mat, NodeIndicesC(ED))$log.likelihood
 
 proposal_rates <- c(rep(5, 4), 1, 1, 1) # Mig b/d : Mig pair b/d : Coal node s/m : Block recolour : Mig_mat : Coal_rate : Time_scale
-cr_prior_shape <- 1
-cr_prior_rate <- 1
-mm_prior_shape <- 1
-mm_prior_rate <- 1
+cr_prior_shape <- 1; cr_prior_rate <- 1
+mm_prior_shape <- 1; mm_prior_rate <- 1
+ts_prior_shape <- 1e-3; ts_prior_rate <- 1e-3
+
+mm_prior <- dgamma(mig_mat, mm_prior_shape, mm_prior_rate, log = TRUE)
+cr_prior <- dgamma(coal_rate, cr_prior_shape, cr_prior_rate, log = TRUE)
+ts_prior <- dgamma(time_scale, ts_prior_shape, ts_prior_rate, log = TRUE)
 
 freq <- matrix(0, 2, 10, dimnames = list(c("Accepted", "Proposed"), c("Mig birth", "Mig death", "Pair birth", "Pair death", "Coal split", "Coal merge", "Block recolour", "Mig mat", "Coal rate", "Time scale")))
+
+coal_rows <- which(!is.na(ED[,4]))
+n_coal <- length(coal_rows)
+coal_deme_freq <- matrix(0, n_coal, n_deme, dimnames = list(coal_rows, NULL)) #Matrix to store freq of deme at each coalescence node during iteration
 
 n_samples <- min(1e5, N)
 sample_indices <- round(seq.int(0,N, length.out = n_samples))
@@ -62,11 +69,13 @@ for (iter in (-N0):N){
         prop <- mig_mat
         prop[i,j] <- abs(rnorm(1, mig_mat[i,j], 10)) #rnorm.reflect(1, mig_mat[i,j], 100, 0, Inf)
         prop_log_like <- ScaledDTALikelihoodC(ED, coal_rate, time_scale, prop, node_indices)$log.likelihood
-        log_ar <- min(0, prop_log_like - log_like)
+        prop_prior <- dgamma(prop, mm_prior_shape, mm_prior_rate, log = TRUE)
+        log_ar <- min(0, prop_log_like - log_like + sum(prop_prior) - sum(mm_prior))
 
         if (log(runif(1)) < log_ar){
           mig_mat <- prop
           log_like <- prop_log_like
+          mm_prior <- prop_prior
           freq[1, prop_choice] <- freq[1, prop_choice] + 1
         }
       }
@@ -76,21 +85,26 @@ for (iter in (-N0):N){
       prop <- coal_rate
       prop[i] <- abs(rnorm(1, coal_rate[i], 100)) #rnorm.reflect(1, coal_rate[i], 1000, 0, Inf)
       prop_log_like <- ScaledDTALikelihoodC(ED, prop, time_scale, mig_mat, node_indices)$log.likelihood
-      log_ar <- min(0, prop_log_like - log_like)
+      prop_prior <- dgamma(prop, cr_prior_shape, cr_prior_rate, log = TRUE)
+      log_ar <- min(0, prop_log_like - log_like + sum(prop_prior) - sum(cr_prior))
 
       if (log(runif(1)) < log_ar){
         coal_rate <- prop
         log_like <- prop_log_like
+        cr_prior <- prop_prior
         freq[1, prop_choice] <- freq[1, prop_choice] + 1
       }
     }
   } else if(prop_choice == 10){ #Time_scale update
     prop <- abs(rnorm(1, time_scale, 1)) #rnorm.reflect(1, time_scale, 0.1, 0, Inf)
     prop_log_like <- ScaledDTALikelihoodC(ED, coal_rate, prop, mig_mat, node_indices)$log.likelihood
-    log_ar <- min(0, prop_log_like - log_like)
+    prop_prior <- dgamma(prop, ts_prior_shape, ts_prior_rate, log = TRUE)
+    log_ar <- min(0, prop_log_like - log_like + prop_prior - ts_prior)
+
     if (log(runif(1)) < log_ar){
       time_scale <- prop
       log_like <- prop_log_like
+      ts_prior <- prop_prior
       freq[1, prop_choice] <- freq[1, prop_choice] + 1
     }
   }
@@ -103,6 +117,13 @@ for (iter in (-N0):N){
       ED <- proposal$ED
       log_like <- prop_log_like
       node_indices <- proposal$node.indices
+    }
+  }
+
+  if (iter > 0){
+    #Record deme at coalescent nodes for sampled tree
+    for (j in 1:n.coal){
+      coal_deme_freq[j, ED[coal_rows[j], 5]] <- coal_deme_freq[j, ED[coal_rows[j], 5]] + 1
     }
   }
 
@@ -125,8 +146,8 @@ saveRDS(ts_sample, paste0(output_dir, "/ts_sample.RDS"))
 saveRDS(ED_sample, paste0(output_dir, "/ED_sample.RDS"))
 #saveRDS(max.posterior.sample, paste0(output_dir, "/max_post_sample.RDS"))
 
-# file.create(paste0(output_dir, "/coal_deme_freq.txt"))
-# write.table(coal.node.deme.freq, file=paste0(output_dir, "/coal_deme_freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
+file.create(paste0(output_dir, "/coal_deme_freq.txt"))
+write.table(coal_deme_freq, file=paste0(output_dir, "/coal_deme_freq.txt"), row.names=TRUE, col.names=FALSE, sep = "\t")
 
 
 # Parameter traces (relative)
