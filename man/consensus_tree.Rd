@@ -4,7 +4,13 @@
 \alias{consensus_tree}
 \title{Consensus tree}
 \usage{
-consensus_tree(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA)
+consensus_tree(
+  ED_sample,
+  n_splits = 5,
+  consensus_prob = 0.8,
+  n_deme = NA,
+  plot = TRUE
+)
 }
 \arguments{
 \item{ED_sample}{Sample of migration histories on same topology}
