@@ -1,6 +1,6 @@
 #' DTA Sampling
 #'
-#' Functions to obtain migration histories sampled under the DTA model with the leaf demes fixed.
+#' Samples N migration histories under the DTA model deme fixed at all leaves
 #'
 #'
 #' @param ED Extended data representation of a phylogeny including migration history
@@ -112,4 +112,132 @@ DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = TRUE, mc
     proposals <- lapply(1:N, proposal_func)
   }
   return(proposals)
+}
+
+#' Local DTA Update
+#'
+#' Updates a migration history under the DTA model locally around a single coalescent node
+#'
+#'
+#' @param ED Extended data representation of a phylogeny including migration history
+#' @param mig_mat Forward-in-time migration matrix for the phylogeny
+#' @param time_scale Time scale for the migration matrix
+#'
+#' @return Proposal ED
+#'
+#' @export
+
+local_DTA <- function(ED, mig_mat, time_scale){
+  #############################################
+  #   Select subtree & sample internal deme   #
+  #############################################
+
+  n_deme <- dim(mig_mat)[1]
+  fit_rates <- mig_mat * time_scale
+  diag(fit_rates) <- - rowSums(fit_rates)
+  top_ED <- strip.history(ED)
+  node_indices <- NodeIndicesC(top_ED)
+  ED_node_indices <- NodeIndicesC(ED)
+
+  leaf_nodes <- top_ED[is.na(top_ED[,3]),1]
+  coal_nodes <- top_ED[-node_indices[leaf_nodes],1]
+
+  coal_rows <- node_indices[coal_nodes]
+
+  selected_row <- sample(coal_rows, 1)
+  selected_node <- top_ED[selected_row, 1]
+  child_rows <- ED_node_indices[top_ED[selected_row, 3:4]]
+  child_edge_lengths <- ED[child_rows, 6] - ED[selected_row, 6]
+
+  trans_mats <- lapply(1:2, function(x) expm::expm(child_edge_lengths[x] * fit_rates))
+  node_dist <- trans_mats[[1]][, ED[child_rows[[1]], 5]] * trans_mats[[2]][, ED[child_rows[[2]], 5]]
+  node_dist <- node_dist / sum(node_dist)
+
+
+  if (!is.na(top_ED[selected_row, 2])){ #Non-root node
+    parent_row <- ED_node_indices[top_ED[selected_row, 2]]
+    par_trans_mat <- expm::expm((ED[selected_row, 6] - ED[parent_row, 6]) * fit_rates)
+    node_dist <- node_dist * par_trans_mat[ED[parent_row, 5],]
+  }
+
+  node_deme <- sample(1:n_deme, 1, prob = node_dist) #New deme at selected_row
+
+  #######################################
+  #   Construct new migration history   #
+  #######################################
+
+  prop_ED <- ED
+  prop_node_indices <- NodeIndicesC(prop_ED)
+  prop_selected_row <- prop_node_indices[selected_node]
+  prop_child_rows <- prop_node_indices[top_ED[selected_row, 3:4]]
+  max_label <- max(prop_ED[,1])
+
+  prop_ED[prop_selected_row, 5] <- node_deme
+  selected_time <- prop_ED[prop_selected_row, 6]
+
+  rm_rows <- numeric(0)
+  for (i in 1 : 2){
+    active_row <- prop_child_rows[i]
+
+    edge_length <- prop_ED[active_row, 6] - selected_time
+    mig_path <- ECctmc::sample_path(node_deme, prop_ED[active_row, 5], 0, edge_length, Q = fit_rates)
+    n_mig <- dim(mig_path)[1] - 2
+
+    while (prop_ED[active_row, 2] != prop_ED[prop_selected_row, 1]){ # Identify migrations between selected and child[i]
+      rm_rows <- c(rm_rows, prop_node_indices[prop_ED[active_row, 2]])
+      active_row <- prop_ED[active_row, 2]
+    }
+
+    if (n_mig > 0){ #Add new migrations
+      parent_node <- selected_node
+      prop_ED[prop_selected_row, 2 + i] <- max_label + 1
+
+      for (k in 1 : n_mig){
+        prop_ED <- rbind(prop_ED,
+                         c(max_label + 1, parent_node, max_label + 2, NA, mig_path[k, 2], prop_ED[prop_selected_row, 6] + mig_path[k+1, 1]))
+        max_label <- max_label + 1
+        parent_node <- max_label
+      }
+      prop_ED[dim(prop_ED)[1], 3] <- top_ED[child_rows[i], 1]
+      prop_ED[prop_child_rows[i], 2] <- max_label
+    } else {
+      prop_ED[prop_child_rows[i], 2] <- selected_node
+      prop_ED[prop_selected_row, 2 + i] <- prop_child_rows[i]
+    }
+  }
+
+  if (!is.na(top_ED[selected_row, 2])){ #Repeat for parent edge if not root node
+    active_row <- prop_selected_row
+    prop_parent_row <- prop_node_indices[top_ED[parent_row, 1]]
+
+    edge_length <- selected_time - prop_ED[prop_parent_row, 6]
+    mig_path <- ECctmc::sample_path(prop_ED[prop_parent_row, 5], node_deme, 0, edge_length, Q = fit_rates)
+    n_mig <- dim(mig_path)[1] - 2
+
+    while (prop_ED[active_row, 2] != prop_ED[prop_parent_row, 1]){ #Identify migrations between parent and node
+      rm_rows <- c(rm_rows, prop_node_indices[prop_ED[active_row, 2]])
+      active_row <- prop_ED[active_row, 2]
+    }
+
+    if (n_mig > 0){ #Add new migrations
+      parent_node <- prop_ED[prop_parent_row, 1]
+      which.child <- which(prop_ED[prop_parent_row, 3:4] %in% c(selected_node, prop_node_indices[rm_rows]))
+      prop_ED[prop_parent_row, 2 + which.child] <- max_label + 1
+
+      for (k in 1 : n_mig){
+        prop_ED <- rbind(prop_ED,
+                         c(max_label + 1, parent_node, max_label + 2, NA, mig_path[k, 2], prop_ED[prop_parent_row, 6] + mig_path[k+1, 1]))
+        max_label <- max_label + 1
+        parent_node <- max_label
+      }
+      prop_ED[dim(prop_ED)[1], 3] <- selected_node
+      prop_ED[prop_selected_row, 2] <- max_label
+    } else {
+      prop_ED[prop_selected_row, 2] <- prop_ED[prop_parent_row, 1]
+      which.child <- which(prop_ED[prop_parent_row, 3:4] %in% prop_node_indices[rm_rows])
+      prop_ED[prop_parent_row, 2 + which.child] <- selected_node
+    }
+  }
+  if (length(rm_rows) > 0) prop_ED <- prop_ED[-rm_rows,]
+  return(prop_ED)
 }
