@@ -66,27 +66,6 @@ namespace scoal {
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
-    inline NumericMatrix EED_LocalDTA_C(NumericMatrix EED, NumericMatrix fit_mm, double time_scale, int selected_node) {
-        typedef SEXP(*Ptr_EED_LocalDTA_C)(SEXP,SEXP,SEXP,SEXP);
-        static Ptr_EED_LocalDTA_C p_EED_LocalDTA_C = NULL;
-        if (p_EED_LocalDTA_C == NULL) {
-            validateSignature("NumericMatrix(*EED_LocalDTA_C)(NumericMatrix,NumericMatrix,double,int)");
-            p_EED_LocalDTA_C = (Ptr_EED_LocalDTA_C)R_GetCCallable("scoal", "_scoal_EED_LocalDTA_C");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_EED_LocalDTA_C(Shield<SEXP>(Rcpp::wrap(EED)), Shield<SEXP>(Rcpp::wrap(fit_mm)), Shield<SEXP>(Rcpp::wrap(time_scale)), Shield<SEXP>(Rcpp::wrap(selected_node)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<NumericMatrix >(rcpp_result_gen);
-    }
-
     inline void mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double cr_prior_shape, double cr_prior_rate, double mm_prior_shape, double mm_prior_rate) {
         typedef SEXP(*Ptr_mcmc_cpp)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_mcmc_cpp p_mcmc_cpp = NULL;

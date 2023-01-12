@@ -1,3 +1,18 @@
+#' Coalescent Rate Gibbs Update
+#'
+#' Performs Gibbs updates for all parameters in a structured coalescent phylogeny
+#'
+#'
+#' @param ED Extended data representation of a phylogeny including migration history
+#' @param time_scale Time scale for the migration matrix
+#' @param node_indices Vector identifying row of each node label
+#' @param prior_shape Gamma shape parameter for prior
+#' @param prior_rate Gamma rate parameter for prior
+#'
+#' @return Updated parameters
+#'
+#' @export
+
 scaled_coal_rate_gibbs_update <- function(ED, time_scale, n_deme, node_indices, prior_shape = 1, prior_rate = 1){
   c <- NodeCountC(ED, n_deme, node_indices)$c
   DemeDecomp <- DemeDecompC(ED, n_deme, node_indices)
@@ -7,6 +22,23 @@ scaled_coal_rate_gibbs_update <- function(ED, time_scale, n_deme, node_indices, 
   proposal <- rgamma(n_deme, prior_shape + c, prior_rate + time_scale * rate_consts)
   return(proposal)
 }
+
+#' Migration Rates Matrix Gibbs Update
+#'
+#' Performs Gibbs updates for all parameters in a structured coalescent phylogeny
+#'
+#'
+#' @param ED Extended data representation of a phylogeny including migration history
+#' @param time_scale Time scale for the migration matrix
+#' @param n_deme Number of demes
+#' @param node_indices Vector identifying row of each node label
+#' @param prior_shape Gamma shape parameter for prior
+#' @param prior_rate Gamma rate parameter for prior
+#'
+#' @return Updated parameters
+#'
+#' @export
+
 
 scaled_mig_mat_gibbs_update <- function(ED, time_scale, n_deme, node_indices, prior_shape = 1, prior_rate = 1){
   m <- NodeCountC(ED, n_deme, node_indices)$m
@@ -18,6 +50,23 @@ scaled_mig_mat_gibbs_update <- function(ED, time_scale, n_deme, node_indices, pr
   diag(proposal) <- 0
   return(proposal)
 }
+
+#' Time Scale Gibbs Update
+#'
+#' Performs Gibbs updates for all parameters in a structured coalescent phylogeny
+#'
+#'
+#' @param ED Extended data representation of a phylogeny including migration history
+#' @param coal_rate Vector of coalescent rates
+#' @param mig_mat Matrix of migration rates
+#' @param n_deme Number of demes
+#' @param node_indices Vector identifying row of each node label
+#' @param prior_shape Gamma shape parameter for prior
+#' @param prior_rate Gamma rate parameter for prior
+#'
+#' @return Updated parameters
+#'
+#' @export
 
 scaled_time_scale_gibbs_update <- function(coal_rate, mig_mat, ED, n_deme, node_indices, prior_shape = 0.001, prior_rate = 0.001){
   node_count <- NodeCountC(ED, n_deme, node_indices)
