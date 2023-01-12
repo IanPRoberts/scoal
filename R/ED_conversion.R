@@ -114,3 +114,46 @@ ed.to.phylo <- function(ED){
 
   return(phylo)
 }
+
+#' ED to EED Conversion
+#'
+#' Converts an EED object for a structured coalescent tree into an EED, adding
+#' the parent and children coalescent nodes for each node
+#'
+#' @param ED phylo object augmented with the deme of each node
+#' @param node_indices (optional) vector relating row labels with row number
+#'
+#' @return A matrix with each row containing the parent node, child nodes, deme,
+#' age, parent coalescent node and child coalescent nodes of
+#' each node in the tree.
+#'
+#' @export
+
+ed.to.eed <- function(ED, node_indices = NA){
+  if (is.na(node_indices)){
+    node_indices <- NodeIndicesC(ED)
+  }
+
+  EED <- matrix(NA, dim(ED)[1], 9, dimnames = list(NULL, c("Node ID", "Parent", "Child 1", "Child 2", "Deme", "Node Age", "Parent coal", "Child coal 1", "Child coal 2")))
+  EED[,1:6] <- ED
+
+  for (x in 1 : dim(ED)[1]){
+    if (!is.na(ED[x,2])){ #Exclude root
+      EED[x, 7] <- ED[x,2] #Identify parent coalescent node
+      while (is.na(ED[node_indices[EED[x, 7]], 4])) EED[x, 7] <- ED[node_indices[EED[x, 7]], 2]
+    }
+
+    if (!is.na(ED[x, 3])){ #Exclude leaves
+      if (is.na(ED[x, 4])){ #Migration only
+        EED[x, 8] <- ED[x, 3]
+        while ((is.na(ED[node_indices[EED[x,8]], 4])) && (!is.na(ED[node_indices[EED[x,8]], 3]))) EED[x, 8] <- ED[node_indices[EED[x, 8]], 3]
+      } else { #Coalescence only
+        for (y in 1 : 2){
+          EED[x, 7 + y] <- ED[x, 2 + y]
+          while ((is.na(ED[node_indices[EED[x, 7 + y]], 4])) && (!is.na(ED[node_indices[EED[x, 7 + y]], 3]))) EED[x, 7 + y] <- ED[node_indices[EED[x, 7 + y]], 3]
+        }
+      }
+    }
+  }
+  return(EED)
+}

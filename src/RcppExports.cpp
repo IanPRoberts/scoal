@@ -87,6 +87,43 @@ RcppExport SEXP _scoal_ED_dist_C(SEXP ED1SEXP, SEXP ED2SEXP, SEXP n_demeSEXP, SE
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// EED_LocalDTA_C
+NumericMatrix EED_LocalDTA_C(NumericMatrix EED, NumericMatrix fit_mm, double time_scale, int selected_node);
+static SEXP _scoal_EED_LocalDTA_C_try(SEXP EEDSEXP, SEXP fit_mmSEXP, SEXP time_scaleSEXP, SEXP selected_nodeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type EED(EEDSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type fit_mm(fit_mmSEXP);
+    Rcpp::traits::input_parameter< double >::type time_scale(time_scaleSEXP);
+    Rcpp::traits::input_parameter< int >::type selected_node(selected_nodeSEXP);
+    rcpp_result_gen = Rcpp::wrap(EED_LocalDTA_C(EED, fit_mm, time_scale, selected_node));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_EED_LocalDTA_C(SEXP EEDSEXP, SEXP fit_mmSEXP, SEXP time_scaleSEXP, SEXP selected_nodeSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_EED_LocalDTA_C_try(EEDSEXP, fit_mmSEXP, time_scaleSEXP, selected_nodeSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // mcmc_cpp
 void mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double cr_prior_shape, double cr_prior_rate, double mm_prior_shape, double mm_prior_rate);
 static SEXP _scoal_mcmc_cpp_try(SEXP N0SEXP, SEXP NSEXP, SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP mig_matSEXP, SEXP n_demeSEXP, SEXP prop_ratesSEXP, SEXP cr_prior_shapeSEXP, SEXP cr_prior_rateSEXP, SEXP mm_prior_shapeSEXP, SEXP mm_prior_rateSEXP) {
@@ -112,6 +149,76 @@ RcppExport SEXP _scoal_mcmc_cpp(SEXP N0SEXP, SEXP NSEXP, SEXP EDSEXP, SEXP coal_
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
         rcpp_result_gen = PROTECT(_scoal_mcmc_cpp_try(N0SEXP, NSEXP, EDSEXP, coal_rateSEXP, time_scaleSEXP, mig_matSEXP, n_demeSEXP, prop_ratesSEXP, cr_prior_shapeSEXP, cr_prior_rateSEXP, mm_prior_shapeSEXP, mm_prior_rateSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// FitMigMatC
+NumericMatrix FitMigMatC(NumericMatrix bit_mm, NumericVector coal_rate);
+static SEXP _scoal_FitMigMatC_try(SEXP bit_mmSEXP, SEXP coal_rateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type bit_mm(bit_mmSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coal_rate(coal_rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(FitMigMatC(bit_mm, coal_rate));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_FitMigMatC(SEXP bit_mmSEXP, SEXP coal_rateSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_FitMigMatC_try(bit_mmSEXP, coal_rateSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
+// BitMigMatC
+NumericMatrix BitMigMatC(NumericMatrix fit_mm, NumericVector coal_rate);
+static SEXP _scoal_BitMigMatC_try(SEXP fit_mmSEXP, SEXP coal_rateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type fit_mm(fit_mmSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coal_rate(coal_rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(BitMigMatC(fit_mm, coal_rate));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_BitMigMatC(SEXP fit_mmSEXP, SEXP coal_rateSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_BitMigMatC_try(fit_mmSEXP, coal_rateSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -322,7 +429,10 @@ static int _scoal_RcppExport_validate(const char* sig) {
     if (signatures.empty()) {
         signatures.insert("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
         signatures.insert("double(*ED_dist_C)(NumericMatrix,NumericMatrix,int,Nullable<NumericVector>,Nullable<NumericVector>)");
+        signatures.insert("NumericMatrix(*EED_LocalDTA_C)(NumericMatrix,NumericMatrix,double,int)");
         signatures.insert("void(*mcmc_cpp)(int,int,NumericMatrix,NumericVector,double,NumericMatrix,int,NumericVector,double,double,double,double)");
+        signatures.insert("NumericMatrix(*FitMigMatC)(NumericMatrix,NumericVector)");
+        signatures.insert("NumericMatrix(*BitMigMatC)(NumericMatrix,NumericVector)");
         signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
         signatures.insert("NumericVector(*NodeIndicesC)(NumericMatrix)");
         signatures.insert("List(*ScaledDTALikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
@@ -336,7 +446,10 @@ static int _scoal_RcppExport_validate(const char* sig) {
 RcppExport SEXP _scoal_RcppExport_registerCCallable() { 
     R_RegisterCCallable("scoal", "_scoal_DemeDecompC", (DL_FUNC)_scoal_DemeDecompC_try);
     R_RegisterCCallable("scoal", "_scoal_ED_dist_C", (DL_FUNC)_scoal_ED_dist_C_try);
+    R_RegisterCCallable("scoal", "_scoal_EED_LocalDTA_C", (DL_FUNC)_scoal_EED_LocalDTA_C_try);
     R_RegisterCCallable("scoal", "_scoal_mcmc_cpp", (DL_FUNC)_scoal_mcmc_cpp_try);
+    R_RegisterCCallable("scoal", "_scoal_FitMigMatC", (DL_FUNC)_scoal_FitMigMatC_try);
+    R_RegisterCCallable("scoal", "_scoal_BitMigMatC", (DL_FUNC)_scoal_BitMigMatC_try);
     R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
     R_RegisterCCallable("scoal", "_scoal_NodeIndicesC", (DL_FUNC)_scoal_NodeIndicesC_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledDTALikelihoodC", (DL_FUNC)_scoal_ScaledDTALikelihoodC_try);
@@ -349,7 +462,10 @@ RcppExport SEXP _scoal_RcppExport_registerCCallable() {
 static const R_CallMethodDef CallEntries[] = {
     {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
     {"_scoal_ED_dist_C", (DL_FUNC) &_scoal_ED_dist_C, 5},
+    {"_scoal_EED_LocalDTA_C", (DL_FUNC) &_scoal_EED_LocalDTA_C, 4},
     {"_scoal_mcmc_cpp", (DL_FUNC) &_scoal_mcmc_cpp, 12},
+    {"_scoal_FitMigMatC", (DL_FUNC) &_scoal_FitMigMatC, 2},
+    {"_scoal_BitMigMatC", (DL_FUNC) &_scoal_BitMigMatC, 2},
     {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
     {"_scoal_NodeIndicesC", (DL_FUNC) &_scoal_NodeIndicesC, 1},
     {"_scoal_ScaledDTALikelihoodC", (DL_FUNC) &_scoal_ScaledDTALikelihoodC, 5},

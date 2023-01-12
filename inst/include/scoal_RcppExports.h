@@ -66,6 +66,27 @@ namespace scoal {
         return Rcpp::as<double >(rcpp_result_gen);
     }
 
+    inline NumericMatrix EED_LocalDTA_C(NumericMatrix EED, NumericMatrix fit_mm, double time_scale, int selected_node) {
+        typedef SEXP(*Ptr_EED_LocalDTA_C)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_EED_LocalDTA_C p_EED_LocalDTA_C = NULL;
+        if (p_EED_LocalDTA_C == NULL) {
+            validateSignature("NumericMatrix(*EED_LocalDTA_C)(NumericMatrix,NumericMatrix,double,int)");
+            p_EED_LocalDTA_C = (Ptr_EED_LocalDTA_C)R_GetCCallable("scoal", "_scoal_EED_LocalDTA_C");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_EED_LocalDTA_C(Shield<SEXP>(Rcpp::wrap(EED)), Shield<SEXP>(Rcpp::wrap(fit_mm)), Shield<SEXP>(Rcpp::wrap(time_scale)), Shield<SEXP>(Rcpp::wrap(selected_node)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericMatrix >(rcpp_result_gen);
+    }
+
     inline void mcmc_cpp(int N0, int N, NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, int n_deme, NumericVector prop_rates, double cr_prior_shape, double cr_prior_rate, double mm_prior_shape, double mm_prior_rate) {
         typedef SEXP(*Ptr_mcmc_cpp)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_mcmc_cpp p_mcmc_cpp = NULL;
@@ -84,6 +105,48 @@ namespace scoal {
             throw Rcpp::LongjumpException(rcpp_result_gen);
         if (rcpp_result_gen.inherits("try-error"))
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+    }
+
+    inline NumericMatrix FitMigMatC(NumericMatrix bit_mm, NumericVector coal_rate) {
+        typedef SEXP(*Ptr_FitMigMatC)(SEXP,SEXP);
+        static Ptr_FitMigMatC p_FitMigMatC = NULL;
+        if (p_FitMigMatC == NULL) {
+            validateSignature("NumericMatrix(*FitMigMatC)(NumericMatrix,NumericVector)");
+            p_FitMigMatC = (Ptr_FitMigMatC)R_GetCCallable("scoal", "_scoal_FitMigMatC");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_FitMigMatC(Shield<SEXP>(Rcpp::wrap(bit_mm)), Shield<SEXP>(Rcpp::wrap(coal_rate)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericMatrix >(rcpp_result_gen);
+    }
+
+    inline NumericMatrix BitMigMatC(NumericMatrix fit_mm, NumericVector coal_rate) {
+        typedef SEXP(*Ptr_BitMigMatC)(SEXP,SEXP);
+        static Ptr_BitMigMatC p_BitMigMatC = NULL;
+        if (p_BitMigMatC == NULL) {
+            validateSignature("NumericMatrix(*BitMigMatC)(NumericMatrix,NumericVector)");
+            p_BitMigMatC = (Ptr_BitMigMatC)R_GetCCallable("scoal", "_scoal_BitMigMatC");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_BitMigMatC(Shield<SEXP>(Rcpp::wrap(fit_mm)), Shield<SEXP>(Rcpp::wrap(coal_rate)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<NumericMatrix >(rcpp_result_gen);
     }
 
     inline List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices) {

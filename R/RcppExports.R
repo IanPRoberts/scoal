@@ -9,8 +9,20 @@ ED_dist_C <- function(ED1, ED2, n_deme, node_indices_1 = NULL, node_indices_2 = 
     .Call('_scoal_ED_dist_C', PACKAGE = 'scoal', ED1, ED2, n_deme, node_indices_1, node_indices_2)
 }
 
+EED_LocalDTA_C <- function(EED, fit_mm, time_scale, selected_node) {
+    .Call('_scoal_EED_LocalDTA_C', PACKAGE = 'scoal', EED, fit_mm, time_scale, selected_node)
+}
+
 mcmc_cpp <- function(N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rates, cr_prior_shape, cr_prior_rate, mm_prior_shape, mm_prior_rate) {
     invisible(.Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rates, cr_prior_shape, cr_prior_rate, mm_prior_shape, mm_prior_rate))
+}
+
+FitMigMatC <- function(bit_mm, coal_rate) {
+    .Call('_scoal_FitMigMatC', PACKAGE = 'scoal', bit_mm, coal_rate)
+}
+
+BitMigMatC <- function(fit_mm, coal_rate) {
+    .Call('_scoal_BitMigMatC', PACKAGE = 'scoal', fit_mm, coal_rate)
 }
 
 NodeCountC <- function(ED, n_deme, node_indices) {
