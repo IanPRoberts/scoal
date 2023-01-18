@@ -1,49 +1,74 @@
 f <- function(){
 
-didelot2015phylo <- ape::read.nexus("data/didelot2015.nex")
-node.color <- read.table("Data/didelot2015.nex", skip = 4, nrows = 260, comment.char = "")
-node.color <- sub('...', '', gsub('[^0-9.]','',node.color[,]))
-n.leaf.deme <- length(unique(node.color))
-leaf.deme <- rep(0, 260)
+  phylo <- ape::read.nexus("data/didelot2015.nex")
+  node.color <- read.table("data/didelot2015.nex", skip = 4, nrows = 260, comment.char = "")
+  tip.label <- gsub('.{17}$', '', node.color[,1])
+  tip.order <- sapply(1:260, function(x) which(tip.label == phylo$tip.label[x]))
 
-for (i in 1:260){
-  leaf.deme[i] <- (1:n.leaf.deme)[which(unique(node.color) == node.color[i])]
-}
-leaf.deme <- as.numeric(leaf.deme)
+  node.color <- as.factor(gsub('^.{15}|.$', '', node.color[,1]))
+  leaf.deme <- sapply(1:260, function(x) which(unique(node.color) == node.color[x]))
 
-didelot2015phylo$node.deme <- c(node.color, rep(0, 259))
-didelotED <- phylo.to.ed(didelot2015phylo)
-View(didelotED)
-
-
-save(didelot2015phylo, file = "data/didelot2015phylo.rda")
+  phylo$node.deme <- c(leaf.deme[tip.order], rep(0, 259))
+  ED <- phylo.to.ed(didelot2015phylo)
+  saveRDS(phylo, file = "data/didelot2015phylo.RDS")
+  saveRDS(ED, "data/didelot2015ED.RDS")
 }
 
 g <- function(){
-  harris2010phylo <- ape::read.tree("data/harris2010.nwk")
-  harris2010NodeData <- read.csv("data/harris2010.csv")
-  demes <- levels(as.factor(harris2010NodeData$Location)) #levels(harris2010NodeData$Location)
-  n.deme <- length(demes)
+  phylo <- ape::read.tree("data/harris2010.nwk")
+  leaf.data <- read.csv("data/harris2010.csv")
 
-  n.leaf <- dim(harris2010NodeData)[1]
-  node.deme <- rep(n.deme+1, 2 * n.leaf - 1)
-  for (i in 1:n.leaf){
-    node.deme[i] <- (1:n.deme)[which(demes == harris2010NodeData$Location[i])]
-  }
+  demes <- unique(leaf.data$Location)
+  leaf.deme <- sapply(1:58, function(x) which(demes == leaf.data$Location[x]))
 
-  node.deme[1:n.leaf] <- node.deme[as.numeric(harris2010phylo$tip.label)]  #Reorder to satisfy weird ordering of tip.labels
+  tip.order <- as.numeric(phylo$tip.label)
 
-  harris2010phylo$node.deme <- node.deme
-  harrisED <- phylo.to.ed(harris2010phylo)
-
+  phylo$node.deme <- c(leaf.deme[tip.order], rep(0, 57))
+  ED <- phylo.to.ed(phylo)
+  saveRDS(phylo, file = "data/harris2010phylo.RDS")
+  saveRDS(ED, "data/harris2010ED.RDS")
 
 
   ### Convert to .nex file
-  library(tibble)
-  library(treeio)
-  tree=read.tree('data/harris2010.nwk')
-  table=read.table('data/harris2010.csv',sep=',',header = T)
-  ti=tibble(label=as.character(table[,1]),location=table[,3])
-  td=full_join(tree,ti,by='label')
-  write.beast(td,'data/harris2010.nex')
+  # library(tibble)
+  # library(treeio)
+  # tree=read.tree('data/harris2010.nwk')
+  # table=read.table('data/harris2010.csv',sep=',',header = T)
+  # ti=tibble(label=as.character(table[,1]),location=table[,3])
+  # td=full_join(tree,ti,by='label')
+  # write.beast(td,'data/harris2010.nex')
+}
+
+h <- function(){
+  phylo <- ape::read.tree("data/dudas2017.nwk")
+  leaf.data <- read.csv("data/dudas2017.csv")
+
+  demes <- unique(leaf.data$country)
+  leaf.deme <- sapply(1:1610, function(x) which(demes == leaf.data$country[x]))
+  tip.order <- sapply(1:1610, function(x) which(phylo$tip.label[x] == leaf.data$id))
+
+  phylo$node.deme <- c(leaf.deme[tip.order], rep(0, 1609))
+  ED <- phylo.to.ed(phylo)
+  saveRDS(phylo, file = "data/dudas2017phylo.RDS")
+  saveRDS(ED, "data/dudas2017ED.RDS")
+}
+
+k <- function(){
+  phylo <- ape::read.nexus("data/MERS.nex")
+  tip.data <- read.table("data/MERS.nex", skip = 5, nrows = 274, comment.char = "")
+  leaf.data <- stringr::str_split(tip.data[,1], "\\|")
+
+  host_data <- sapply(1:274, function(x) leaf.data[[x]][3])
+  tip_label <- sapply(1:274, function(x) leaf.data[[x]][2])
+
+  # leaf.deme <- numeric(274)
+  # leaf.deme[grep("human", tip.data[,1])] <- 1
+  # leaf.deme[grep("camel", tip.data[,1])] <- 2
+  leaf.deme <- as.numeric(as.factor(host_data))
+
+  phylo$node.deme <- c(leaf.deme, rep(0, 273))
+  ED <- phylo.to.ed(phylo)
+  structured.plot(ED)
+  saveRDS(phylo, file = "data/MERSphylo.RDS")
+  saveRDS(ED, "data/MERS_ED.RDS")
 }

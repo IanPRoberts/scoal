@@ -8,7 +8,7 @@
 #' @param save.path file path to output .xml file to
 #' @param run.xml if TRUE, run generated .xml through BEAST
 #'
-#' @return
+#' @return xml file
 #'
 #' @export
 

@@ -17,14 +17,14 @@ master.xml(
 
 \item{migration.matrix}{matrix of migration rates between demes}
 
+\item{leaf.data}{nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point}
+
 \item{save.path}{file path to output .xml file to}
 
 \item{run.xml}{if TRUE, run generated .xml through BEAST}
-
-\item{data}{nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point}
 }
 \value{
-
+xml file
 }
 \description{
 Generates a .xml file to be input to BEAST 2 for structured coalescent simulations using MASTER

@@ -105,7 +105,7 @@ get.edge.id <- function(start, end, edge){
 #'
 #' @export
 
-structured.plot <- function(x, n.demes = NA){
+structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA){
   if (! ('phylo' %in% class(x))){
     phylo <- ed.to.phylo(x)
   } else{
@@ -114,17 +114,32 @@ structured.plot <- function(x, n.demes = NA){
 
   edge <- phylo$edge
 
-  if (is.na(n.demes)){
-    n.demes <- max(unique(phylo$node.deme))
-  }
-  color.palette <- rainbow(n.demes)
-  edge.color <- rep(NA,dim(edge)[1])
-  for (i in 1 : dim(edge)[1]){
-    edge.color[i] <- color.palette[phylo$node.deme[edge[i,2]]]
+  if (is.na(n_deme)){
+    n_deme <- max(unique(phylo$node.deme))
   }
 
-  plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
-  par(mar = 0.1 + c(5,4,4,2))
+  if (any(phylo$node.deme == 0)){
+    color.palette <- c(rainbow(n_deme), "black")
+    phylo$node.deme[phylo$node.deme == 0] <- n_deme + 1
+  } else{
+    color.palette <- rainbow(n_deme)
+  }
+
+  edge.color <- color.palette[phylo$node.deme[edge[,2]]]
+
+  if (time_axis){
+    if (is.na(root_time)){
+      root_time <- 0
+    }
+
+    par(mar = 0.1 + c(5,0,0,0))
+    plot(phylo, edge.color = edge.color, no.margin = FALSE, edge.width = 2, show.tip.label = FALSE)
+    axisPhylo(root.time = root_time, backward = FALSE)
+    par(mar = 0.1 + c(5,4,4,2))
+  } else {
+    plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
+    par(mar = 0.1 + c(5,4,4,2))
+  }
 }
 
 #' Normal Distribution with Reflecting Boundary
@@ -160,3 +175,37 @@ rnorm.reflect <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf){
   return(sample)
 }
 
+#' The Truncated Exponential Distribution
+#'
+#' Density, distribution function and random generation for the exponential
+#' distribution with rate \code{rate} truncated above by \code{c}
+#'
+#' @param x,q vector of quantiles
+#' @param n number of observations
+#' @param rate vector of rates
+#' @param c truncation cutoff
+#'
+#' @export
+
+dexp.trunc <- function(x, c = Inf, rate = 1){
+  #Density function
+  dexp <- rate * exp(-rate * x) / (1 - exp(-rate * c))
+  dexp
+}
+
+#' @rdname dexp.trunc
+
+pexp.trunc <- function(q, c = Inf, rate = 1){
+  #Distribution function
+  pexp <- (1 - exp(-rate * q)) / (1 - exp(-rate*c))
+  pexp
+}
+
+#' @rdname dexp.trunc
+
+rexp.trunc <- function(n, c = Inf, rate = 1){
+  #i.i.d. sample of size n
+  rexp <- runif(n)
+  rexp <- - (1/rate) * log(1 - (1 - exp(-rate * c)) * rexp)
+  rexp
+}

@@ -1,41 +1,32 @@
 #include <Rcpp.h>
 #include "DemeDecomp.h"
 #include "NodeCount.h"
-#include "StructuredLikelihood.h"
+#include "ScaledLikelihood.h"
+#include "Node_indices.h"
 using namespace Rcpp;
 
 // [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
-NumericVector mcmc_cpp(int N0, int N,
-              NumericMatrix ED, NumericVector eff_pop, double gen_len, NumericMatrix mig_mat, int n_deme,
+void mcmc_cpp(int N0, int N,
+              NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, int n_deme,
               NumericVector prop_rates,
-              double eff_pop_prior_mean, double eff_pop_prior_var, double mig_prior_mean, double mig_prior_var,
-              CharacterVector likelihood,
-              bool output_plots,
-              CharacterVector output_folder){
+              double cr_prior_shape, double cr_prior_rate, double mm_prior_shape, double mm_prior_rate){
 
-  //Prior Parameters
-  double eff_pop_prior_shape = pow(eff_pop_prior_mean, 2)/eff_pop_prior_var + 2;
-  double eff_pop_prior_rate = eff_pop_prior_mean * (pow(eff_pop_prior_mean, 2)/eff_pop_prior_var + 1);
-  double mig_prior_shape = pow(mig_prior_mean,2)/mig_prior_var;
-  double mig_prior_rate = mig_prior_mean/mig_prior_var;
+  NumericVector node_indices = NodeIndicesC(ED);
 
-  NumericVector node_indices(max(ED(_,0)), -1);
-  for (int j = 0; j < ED.nrow(); ++j){
-    node_indices(ED(j, 0) - 1) = j;
-  }
+  List ED_like = ScaledLikelihoodC(ED, coal_rate, time_scale, mig_mat, node_indices - 1);
 
-  List ED_like = StructuredLikelihoodC(ED, eff_pop, gen_len, mig_mat, node_indices + 1);
-
-  IntegerMatrix freq(2,9);
+  IntegerMatrix freq(2,10);
 
   NumericVector prop_probs = cumsum(prop_rates);
   prop_probs = prop_probs/prop_probs[prop_probs.size() - 1];
 
+  // NumericMatrix mm_prior = dgamma(mig_mat * time_scale, mm_prior_shape, mm_prior_rate, TRUE);
+
   // Output Setup
 
-  return prop_probs;
+  // return mm_prior;
 }
 
 

@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 LaTeX/
+RMarkdown/
 MCMC_Results/
 *.Rprofvis
 src/*.o
@@ -11,3 +12,4 @@ src/*.dll
 *.csv
 *.xml
 *.nexus
+src/*.so
