@@ -175,13 +175,17 @@ dta.likelihood <- function(ED, effective_population, gen_length, migration_matri
     node_parent_row <- node_indices[ED[i,2]]
     time_increment <- ED[i, 6] - ED[node_parent_row, 6]
 
-    parent_deme <- ED[node_parent_row, 5]
-    node_deme <- ED[i, 5]
-
-    if (parent_deme == node_deme){
-      log_likelihood <- log_likelihood - f_mm_rowsums[parent_deme] * time_increment
+    parent_deme <- ED[i, 5]
+    if (is.na(ED[i,3])){ #Leaf node
+      node_deme <- parent_deme
     } else{
-      log_likelihood <- log_likelihood - f_mm_rowsums[parent_deme] * time_increment + log(f_mm[parent_deme, node_deme])
+      node_deme <- ED[node_indices[ED[i,3]], 5]
+    }
+
+    log_likelihood <- log_likelihood - f_mm_rowsums[parent_deme] * time_increment
+
+    if (parent_deme != node_deme){
+      log_likelihood <- log_likelihood + log(f_mm[parent_deme, node_deme])
     }
   }
   return(list(log.likelihood = log_likelihood, likelihood = exp(log_likelihood)))

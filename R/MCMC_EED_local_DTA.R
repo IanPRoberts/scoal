@@ -14,7 +14,6 @@ eed_mcmc_rates <- function(EED, N, n_deme, coal_rate, bit_mig_mat = NA, fit_mig_
   }
 
   EED_sample <- list()
-  EED_sample[[1]] <- EED
   accepted <- 0
 
   pb <- txtProgressBar(min = 0, max = N, initial = 0, style = 3)
@@ -25,71 +24,44 @@ eed_mcmc_rates <- function(EED, N, n_deme, coal_rate, bit_mig_mat = NA, fit_mig_
   jump_times <- numeric(N * n_coal)
 
   EED_NI <- NodeIndicesC(EED)
-  current_sc_log_like <- ScaledLikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
-  current_dta_log_like <- ScaledDTALikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
-
-  for (y in 2 : n_coal){
-    proposal <- EED_local_DTA(EED, fit_mig_mat, time_scale, coal_nodes[y])
-    prop_NI <- NodeIndicesC(proposal)
-    prop_sc_log_like <- ScaledLikelihoodC(proposal, coal_rate, time_scale, bit_mig_mat, prop_NI)$log.likelihood
-    prop_dta_log_like <- ScaledDTALikelihoodC(proposal, coal_rate, time_scale, bit_mig_mat, prop_NI)$log.likelihood
-
-    accept_ratio <- min(0, prop_sc_log_like - current_sc_log_like + current_dta_log_like - prop_dta_log_like)
-
-    if (log(runif(1)) < accept_ratio){
-      current_sc_log_like <- prop_sc_log_like
-      current_dta_log_like <- prop_dta_log_like
-      EED_sample[[y]] <- proposal
-      EED <- proposal
-      EED_NI <- prop_NI
-      accepted <- accepted + 1
-      jump_times[y] <- 1
-    } else {
-      EED_sample[[y]] <- EED_sample[[y-1]]
-    }
-  }
 
   # Initialise storage for rates & time scale estimates
   if (update_rates){
-    bit_mig_mat <- scaled_mig_mat_gibbs_update(EED, time_scale, n_deme, EED_NI, prior_shape = mm_shape, prior_rate = mm_rate)
-    coal_rate <- scaled_coal_rate_gibbs_update(EED, time_scale, n_deme, EED_NI, prior_shape = cr_shape, prior_rate = cr_rate)
-    time_scale <- scaled_time_scale_gibbs_update(coal_rate, bit_mig_mat, EED, n_deme, EED_NI, prior_shape = ts_shape, prior_rate = ts_rate)
-    fit_mig_mat <- FitMigMatC(bit_mig_mat, coal_rate)
-
-    current_sc_log_like <- ScaledLikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
-    current_dta_log_like <- ScaledDTALikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
-
     mm_cr_sample <- array(NA, dim = c(n_deme, n_deme, N))
     ts_sample <- numeric(N)
-
-    mm_cr_sample[,,1] <- bit_mig_mat
-    diag(mm_cr_sample[,,1]) <- coal_rate
-    ts_sample[1] <- time_scale
   }
 
-  for (x in 2 : N){
+  current_sc_log_like <- ScaledLikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
+  current_dta_log_like <- ScaledDTALikelihoodC(EED, coal_rate, time_scale, bit_mig_mat, EED_NI)$log.likelihood
+
+  for (x in 1 : N){
     setTxtProgressBar(pb, x)
 
     #Cycle through all coalescent nodes of tree
     for (y in 1 : n_coal){
       proposal <- EED_local_DTA(EED, fit_mig_mat, time_scale, coal_nodes[y])
+      coal_node_dist <- proposal$node_dist
+      proposal <- proposal$proposal
       prop_NI <- NodeIndicesC(proposal)
       prop_sc_log_like <- ScaledLikelihoodC(proposal, coal_rate, time_scale, bit_mig_mat, prop_NI)$log.likelihood
       prop_dta_log_like <- ScaledDTALikelihoodC(proposal, coal_rate, time_scale, bit_mig_mat, prop_NI)$log.likelihood
 
-      accept_ratio <- min(0, prop_sc_log_like - current_sc_log_like + current_dta_log_like - prop_dta_log_like)
+      # accept_ratio <- min(0, prop_sc_log_like - current_sc_log_like + current_dta_log_like - prop_dta_log_like)
+      EED_deme <- EED[EED_NI[coal_nodes[y]], 5]
+      prop_deme <- EED[prop_NI[coal_nodes[y]], 5]
+
+      accept_ratio <- min(0, prop_sc_log_like - current_sc_log_like + current_dta_log_like - prop_dta_log_like + log(coal_node_dist[EED_deme]) - log(coal_node_dist[prop_deme]))
 
       if (log(runif(1)) < accept_ratio){ #ACCEPT
         current_sc_log_like <- prop_sc_log_like
         current_dta_log_like <- prop_dta_log_like
-        EED_sample[[(x-1) * n_coal + y]] <- proposal
         EED <- proposal
         EED_NI <- prop_NI
         accepted <- accepted + 1
         jump_times[(x-1) * n_coal + y] <- 1
-      } else { #REJECT
-        EED_sample[[(x-1) * n_coal + y]] <- EED_sample[[(x-1) * n_coal + y - 1]]
       }
+
+      EED_sample[[(x-1) * n_deme + y]] <- EED
     }
 
     if (update_rates){

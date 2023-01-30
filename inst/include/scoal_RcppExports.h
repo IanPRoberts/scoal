@@ -170,7 +170,7 @@ namespace scoal {
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
-    inline List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices) {
+    inline List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix bit_mig_mat, NumericVector node_indices) {
         typedef SEXP(*Ptr_ScaledDTALikelihoodC)(SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_ScaledDTALikelihoodC p_ScaledDTALikelihoodC = NULL;
         if (p_ScaledDTALikelihoodC == NULL) {
@@ -180,7 +180,7 @@ namespace scoal {
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_ScaledDTALikelihoodC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(coal_rate)), Shield<SEXP>(Rcpp::wrap(time_scale)), Shield<SEXP>(Rcpp::wrap(mig_mat)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+            rcpp_result_gen = p_ScaledDTALikelihoodC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(coal_rate)), Shield<SEXP>(Rcpp::wrap(time_scale)), Shield<SEXP>(Rcpp::wrap(bit_mig_mat)), Shield<SEXP>(Rcpp::wrap(node_indices)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

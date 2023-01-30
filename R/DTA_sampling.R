@@ -14,16 +14,17 @@
 #'
 #' @export
 
-DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = TRUE, mc.cores = NA){
-  if (parallel){
-    if (is.na(mc.cores)){
-      options(mc.cores = parallel::detectCores() /2)
+DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = FALSE, mc.cores = NA){
+  options(mc.cores = 1)
+  if (N > 1){
+    if (parallel){
+      if (is.na(mc.cores)){
+        options(mc.cores = parallel::detectCores() /2)
+      }
     }
-  } else {
-    options(mc.cores = 1)
   }
 
-  fit_rates <- mig_mat
+  fit_rates <- mig_mat * time_scale
   diag(fit_rates) <- - rowSums(mig_mat)
 
   top_ED <- strip.history(ED)
@@ -352,5 +353,5 @@ EED_local_DTA <- function(EED, fit_mig_mat, time_scale, selected_node = NA){
     }
   }
   if (length(rm_rows) > 0) prop <- prop[-rm_rows,]
-  return(prop)
+  return(list(proposal = prop, node_dist = node_dist))
 }

@@ -29,8 +29,8 @@ NodeIndicesC <- function(ED) {
     .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
 }
 
-ScaledDTALikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
-    .Call('_scoal_ScaledDTALikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, mig_mat, node_indices)
+ScaledDTALikelihoodC <- function(ED, coal_rate, time_scale, bit_mig_mat, node_indices) {
+    .Call('_scoal_ScaledDTALikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, bit_mig_mat, node_indices)
 }
 
 ScaledLikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
