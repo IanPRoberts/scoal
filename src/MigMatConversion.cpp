@@ -1,5 +1,7 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "MigMatConvert.h"
+
 using namespace Rcpp;
 
 //' @title Forward-in-time migration matrix conversion
@@ -10,7 +12,6 @@ using namespace Rcpp;
 //'
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 NumericMatrix FitMigMatC(NumericMatrix bit_mm, NumericVector coal_rate) {

@@ -1,8 +1,9 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "DemeDecomp.h"
+
 using namespace Rcpp;
 
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {

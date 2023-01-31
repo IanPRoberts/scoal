@@ -1,5 +1,7 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "Node_indices.h"
+
 using namespace Rcpp;
 
 //' @title Node Indices
@@ -8,7 +10,6 @@ using namespace Rcpp;
 //'
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 NumericVector NodeIndicesC(NumericMatrix ED) {

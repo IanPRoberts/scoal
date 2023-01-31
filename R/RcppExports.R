@@ -5,6 +5,16 @@ DemeDecompC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
+#' @title ED_Dist
+#' @description Computes the distance between pairs of migration histories on a common topology via proportion of branch lengths different between the two
+#' @param ED1 NumericMatrix Extended data object representing first migration history
+#' @param ED2 NumericMatrix Extended data object representing second migration history
+#' @param node_indices_1 NumericVector Vector giving row numbers in ED1 for node labels
+#' @param node_indices_2 NumericVector Vector giving row numbers in ED1 for node labels
+#' @returns double Proportion of tree in different demes between ED1 and ED2
+#'
+#' @export
+#'
 ED_dist_C <- function(ED1, ED2, n_deme, node_indices_1 = NULL, node_indices_2 = NULL) {
     .Call('_scoal_ED_dist_C', PACKAGE = 'scoal', ED1, ED2, n_deme, node_indices_1, node_indices_2)
 }
@@ -13,6 +23,14 @@ mcmc_cpp <- function(N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rat
     invisible(.Call('_scoal_mcmc_cpp', PACKAGE = 'scoal', N0, N, ED, coal_rate, time_scale, mig_mat, n_deme, prop_rates, cr_prior_shape, cr_prior_rate, mm_prior_shape, mm_prior_rate))
 }
 
+#' @title Forward-in-time migration matrix conversion
+#' @description Computes the forward-in-time migration matrix associated with a given backwards-in-time migration matrix, coalescent rate and time scale
+#' @param bit_mm NumericMatrix Backward-in-time migration matrix
+#' @param coal_rate NumericVector Coalescent rates
+#' @returns NumericMatrix Forward-in-time migration matrix
+#'
+#' @export
+#'
 FitMigMatC <- function(bit_mm, coal_rate) {
     .Call('_scoal_FitMigMatC', PACKAGE = 'scoal', bit_mm, coal_rate)
 }
@@ -21,22 +39,69 @@ BitMigMatC <- function(fit_mm, coal_rate) {
     .Call('_scoal_BitMigMatC', PACKAGE = 'scoal', fit_mm, coal_rate)
 }
 
+#' @title NodeCountC
+#' @description Counts the number of migrations between pairs of demes, and coalescences within each deme
+#' @param ED NumericMatrix Extended data object representing structured phylogeny
+#' @param n_deme int Number of demes modelled under ED
+#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
+#' @returns List containing matrix m with element (i,j) giving the number of migrations i -> j backwards in time, and a vector c with element i giving the number of coalescences occurring in deme i
+#'
+#' @export
+#'
 NodeCountC <- function(ED, n_deme, node_indices) {
     .Call('_scoal_NodeCountC', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
+#' @title Node Indices
+#' @description Returns a vector giving the row indices of the labels in ED
+#' @param ED NumericMatrix Extended data object representing structured coalescent genealogy
+#'
+#' @export
+#'
 NodeIndicesC <- function(ED) {
     .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
 }
 
+#' @title ScaledDTALikelihoodC
+#' @description Computes the DTA likelihood of a structured genealogy
+#' @param ED NumericMatrix Extended data object representing structured phylogeny
+#' @param coal_rate NumericVector Coalescent rate in each deme (1 / effective population size)
+#' @param bit_mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
+#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
+#' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
+#'
+#' @export
+#'
 ScaledDTALikelihoodC <- function(ED, coal_rate, time_scale, bit_mig_mat, node_indices) {
     .Call('_scoal_ScaledDTALikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, bit_mig_mat, node_indices)
 }
 
+#' @title ScaledLikelihoodC
+#' @description Computes the likelihood of a structured coalescent genealogy
+#' @param ED NumericMatrix Extended data object representing structured phylogeny
+#' @param eff_pop NumericVector Effective population of each deme
+#' @param gen_length double Generation length of each individual in the global population
+#' @param mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
+#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
+#' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
+#'
+#' @export
+#'
 ScaledLikelihoodC <- function(ED, coal_rate, time_scale, mig_mat, node_indices) {
     .Call('_scoal_ScaledLikelihoodC', PACKAGE = 'scoal', ED, coal_rate, time_scale, mig_mat, node_indices)
 }
 
+#' @title StructuredLikelihoodC
+#' @description Computes the likelihood of a structured coalescent genealogy
+#' @param ED NumericMatrix Extended data object representing structured phylogeny
+#' @param eff_pop NumericVector Effective population of each deme
+#' @param gen_length double Generation length of each individual in the global population
+#' @param mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
+#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
+#' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
+#'
+#' @export
+#'
 StructuredLikelihoodC <- function(ED, eff_pop, gen_len, mig_mat, node_indices) {
     .Call('_scoal_StructuredLikelihoodC', PACKAGE = 'scoal', ED, eff_pop, gen_len, mig_mat, node_indices)
 }

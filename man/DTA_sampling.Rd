@@ -9,7 +9,7 @@ DTA_sampling(
   mig_mat,
   time_scale = 1,
   N = 1,
-  parallel = TRUE,
+  parallel = FALSE,
   mc.cores = NA
 )
 }

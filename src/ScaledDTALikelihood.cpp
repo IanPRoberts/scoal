@@ -1,5 +1,7 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "MigMatConvert.h"
+
 using namespace Rcpp;
 
 //' @title ScaledDTALikelihoodC
@@ -12,7 +14,6 @@ using namespace Rcpp;
 //'
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix bit_mig_mat, NumericVector node_indices){
