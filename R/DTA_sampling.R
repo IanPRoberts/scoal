@@ -1,6 +1,6 @@
 #' DTA Sampling
 #'
-#' Samples N migration histories under the DTA model deme fixed at all leaves
+#' Samples N migration histories under the DTA model deme fixed at all leaves using belief propagation
 #'
 #'
 #' @param ED Extended data representation of a phylogeny including migration history
@@ -246,11 +246,11 @@ local_DTA <- function(ED, mig_mat, time_scale, selected_node = NA){
 
 #' Local DTA Update for EED data structure
 #'
-#' Updates a migration history using the DTA model for adjacent branches to a coalescent node
+#' Updates a migration history using the DTA model for adjacent branches to a coalescent node via belief propagation
 #'
 #'
 #' @param EED EED representation of a phylogeny including migration history
-#' @param mig_mat Forward-in-time (relative) migration matrix for the phylogeny
+#' @param fit_mig_mat Forward-in-time (relative) migration matrix for the phylogeny
 #' @param time_scale Time scale for the migration matrix
 #' @param selected_node Label for node proposal will be centered on (optional)
 #'
@@ -354,4 +354,230 @@ EED_local_DTA <- function(EED, fit_mig_mat, time_scale, selected_node = NA){
   }
   if (length(rm_rows) > 0) prop <- prop[-rm_rows,]
   return(list(proposal = prop, node_dist = node_dist))
+}
+
+#' Local DTA Update for EED data structure
+#'
+#' Updates a migration history using the DTA model for adjacent branches to a coalescent node via rejection sampling
+#'
+#'
+#' @param EED EED representation of a phylogeny including migration history
+#' @param fit_mig_mat Forward-in-time (relative) migration matrix for the phylogeny
+#' @param time_scale Time scale for the migration matrix
+#' @param selected_node Label for node proposal will be centered on (optional)
+#'
+#' @return Proposal ED
+#'
+#' @export
+
+local_DTA_rejection <- function(EED, coal_node, fit_mig_mat, node_indices, max_attempts = 1e5){
+  event_rates <- rowSums(fit_mig_mat)
+  coal_row <- node_indices[coal_node]
+
+  subtree_parent <- EED[coal_row, 7]
+  sp_row <- node_indices[subtree_parent]
+
+  subtree_children <- EED[coal_row, 8:9]
+  sc_rows <- node_indices[subtree_children]
+
+  coal_deme <- EED[coal_row, 5]
+  parent_deme <- EED[sp_row, 5]
+  child_demes <- EED[sc_rows, 5]
+
+  coal_time <- EED[coal_row, 6]
+  parent_time <- EED[sp_row, 6]
+  child_times <- EED[sc_rows, 6]
+
+  rm_rows <- which(xor(EED[,8] %in% EED[coal_row, c(1,8:9)],
+                       EED[,9] %in% EED[coal_row, c(1,8:9)]))
+  if (!is.na(EED[coal_row, 7])){
+    rm_rows <- rm_rows[EED[rm_rows, 1] != EED[coal_row, 7]]
+  }
+
+  accept <- FALSE
+  count <- 0
+
+  while ((!accept) && (count < max_attempts)){
+    prop <- EED
+    old_nrow <- dim(prop)[1]
+    max_label <- max(EED[,1])
+
+    if (!is.na(subtree_parent)){
+      current_node <- subtree_parent
+      current_deme <- parent_deme
+      current_time <- parent_time + rexp(1, event_rates[current_deme])
+
+      if (current_time < coal_time){
+        # Update sp_row child if migration is added
+        which.child <- which(EED[sp_row, 8:9] == coal_node)
+        prop[sp_row, 2 + which.child] <- max_label + 1
+      }
+
+      #Edge above coal_node
+      while (current_time < coal_time){
+        # Add migration node if not passed
+        prop <- rbind(prop, c(max_label + 1, current_node, max_label + 2, NA, current_deme, current_time, subtree_parent, coal_node, NA))
+
+        max_label <- max_label + 1
+        current_node <- max_label
+        current_deme <- sample.int(n_deme, 1, prob = fit_mig_mat[current_deme, ])
+        current_time <- current_time + rexp(1, event_rates[current_deme])
+      }
+      nrow <- dim(prop)[1]
+      if (nrow > old_nrow){
+        #Update coal_row if migration(s) added
+        prop[coal_row, 2] <- max_label
+        prop[coal_row, 5] <- current_deme
+
+        #Update final migration child
+        prop[dim(prop)[1], 3] <- coal_node
+        old_nrow <- nrow
+      }else {
+        prop[coal_row, 2] <- subtree_parent
+
+        which.child <- which(prop[sp_row, 8:9] == coal_node)
+        prop[sp_row, 2 + which.child] <- coal_node
+      }
+    }
+
+    for (child_id in 1 : 2){
+      current_deme <- prop[coal_row, 5]
+      current_node <- coal_node
+      current_time <- coal_time + rexp(1, event_rates[current_deme])
+
+      if (current_time < child_times[child_id]){
+        prop[coal_row, 2 + child_id] <- max_label + 1
+      }
+
+      #Edge below coal_node
+      while (current_time < child_times[child_id]){
+        # Add migration node if not past
+        prop <- rbind(prop, c(max_label + 1, current_node, max_label + 2, NA, current_deme, current_time, coal_node, subtree_children[child_id], NA))
+
+        max_label <- max_label + 1
+        current_node <- max_label
+        current_deme <- sample.int(n_deme, 1, prob = fit_mig_mat[current_deme, ])
+        current_time <- current_time + rexp(1, event_rates[current_deme])
+      }
+
+      if (current_deme != child_demes[child_id]){
+        accept <- FALSE
+        break
+      }
+      accept <- TRUE
+
+      nrow <- dim(prop)[1]
+      if (nrow > old_nrow){
+        # Update subtree_children[child_id]
+        prop[sc_rows[child_id], 2] <- max_label
+        prop[sc_rows[child_id], 5] <- current_deme
+
+        # Update child of final migration added
+        prop[nrow, 3] <- subtree_children[child_id]
+
+        old_nrow <- nrow
+      } else {
+        prop[coal_row, 2 + child_id] <- subtree_children[child_id]
+        prop[sc_rows[child_id], 2] <- coal_node
+      }
+    }
+    count <- count + 1
+  }
+  if (length(rm_rows) > 0){
+    prop <- prop[-rm_rows,]
+  }
+
+  if (count == max_attempts) stop("Attempts exceeded max_attempts")
+  return(prop)
+}
+
+#' DTA Sampling
+#'
+#' Samples a migration history under the DTA model with deme fixed at all leaves using rejection sampling
+#'
+#'
+#' @param ED Extended ED representation of a phylogeny including migration history
+#' @param fit_mig_mat Forward-in-time migration matrix for the phylogeny
+#' @param time_scale Time scale for the migration matrix
+#'
+#' @return List of proposed DTA migration histories with the same leaves as input ED
+#'
+#' @export
+
+DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempts = 1e4){
+  n_deme <- dim(fit_mig_mat)[1]
+  event_rates <- rowSums(fit_mig_mat)
+  accept <- FALSE
+
+  top_EED <- ed.to.eed(strip.history(ED))
+  root_row <- which(is.na(top_EED[,2]))
+  leaf_rows <- which(is.na(top_EED[,3]))
+  top_max_label <- max(top_EED[,1])
+
+  for (x in 1 : max_attempts){
+    prop <- top_EED
+    active_rows <- root_row
+    root_deme <- sample.int(n_deme, 1) #Uniform root deme
+    prop[root_row, 5] <- root_deme
+
+    max_label <- top_max_label
+
+    while (length(active_rows) > 0){
+      for (row in active_rows){
+        child_rows <- node_indices[na.omit(prop[row, 8:9])]
+        row_time <- prop[row, 6]
+        which.child <- 1
+
+        for (child_row in child_rows){
+          current_node <- prop[row, 1]
+          current_deme <- prop[row, 5]
+          current_time <- row_time + rexp(1, event_rates[current_deme])
+          child_time <- prop[child_row, 6]
+
+          if (current_time < child_time){
+            # Update row_children if migrations being added
+            prop[row, 2 + which.child] <- max_label + 1
+
+            while (current_time < child_time){
+              # Add migration node if not past
+              prop <- rbind(prop,
+                            c(max_label + 1, current_node, max_label + 2, NA, current_deme, current_time, prop[row, 1], prop[child_row, 1], NA))
+
+              max_label <- max_label + 1
+              current_node <- max_label
+              current_deme <- sample.int(n_deme, 1, prob = fit_mig_mat[current_deme, ])
+              current_time <- current_time + rexp(1, event_rates[current_deme])
+            }
+
+            #Update child_row parent and deme if migration(s) added
+            prop[child_row, 2] <- max_label
+            prop[child_row, 5] <- current_deme
+
+            #Update final migration child
+            prop[nrow(prop), 3] <- prop[child_row, 1]
+          } else {
+            #Child row has current node as parent, current deme as deme
+            prop[child_row, 2] <- current_node
+            prop[child_row, 5] <- current_deme
+            prop[row, 2 + which.child] <- prop[child_row, 1]
+          }
+
+          which.child <- which.child + 1
+        }
+
+      }
+      active_rows <- node_indices[na.omit(prop[active_rows, 8:9])]
+    }
+
+    if (all(prop[leaf_rows, 5] == top_EED[leaf_rows, 5])){
+      accept <- TRUE
+      break
+    }
+  }
+
+  if (accept){
+    return(prop)
+  } else {
+    stop("Attempts exceeded max_attempts")
+  }
 }
