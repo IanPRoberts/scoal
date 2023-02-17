@@ -30,5 +30,5 @@ DTA_sampling(
 List of proposed DTA migration histories with the same leaves as input ED
 }
 \description{
-Samples N migration histories under the DTA model deme fixed at all leaves
+Samples N migration histories under the DTA model deme fixed at all leaves using belief propagation
 }
