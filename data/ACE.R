@@ -1,6 +1,6 @@
 h <- function(){
 
-phylo <- harris2010phylo
+phylo <- readRDS("./data/harris2010phylo.RDS")
 n.leaf <- length(phylo$tip.label)
 x <- phylo$node.deme[1:n.leaf]
 n.deme <- 5
