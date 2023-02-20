@@ -506,6 +506,7 @@ local_DTA_rejection <- function(EED, coal_node, fit_mig_mat, node_indices, max_a
 
 DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempts = 1e4){
   n_deme <- dim(fit_mig_mat)[1]
+  fit_mig_mat <- fit_mig_mat * time_scale
   event_rates <- rowSums(fit_mig_mat)
   accept <- FALSE
 
@@ -566,7 +567,7 @@ DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempt
         }
 
       }
-      active_rows <- node_indices[na.omit(prop[active_rows, 8:9])]
+      active_rows <- node_indices[as.vector(na.omit(prop[active_rows, 8:9]))]
     }
 
     if (all(prop[leaf_rows, 5] == top_EED[leaf_rows, 5])){
