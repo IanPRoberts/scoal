@@ -28,6 +28,12 @@ NumericMatrix FitMigMatC(NumericMatrix bit_mm, NumericVector coal_rate) {
   return out;
 }
 
+// [[Rcpp::interfaces(r, cpp)]]
+#include <Rcpp.h>
+#include "MigMatConvert.h"
+
+using namespace Rcpp;
+
 //' @title Backward-in-time migration matrix conversion
 //' @description Computes the backward-in-time migration matrix associated with a given forward-in-time migration matrix, coalescent rate and time scale
 //' @param bit_mm NumericMatrix Forward-in-time migration matrix
@@ -35,7 +41,6 @@ NumericMatrix FitMigMatC(NumericMatrix bit_mm, NumericVector coal_rate) {
 //' @returns NumericMatrix Backward-in-time migration matrix
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 NumericMatrix BitMigMatC(NumericMatrix fit_mm, NumericVector coal_rate) {
