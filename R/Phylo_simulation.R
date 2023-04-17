@@ -336,7 +336,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
   node.deme <- node.deme[1:(n + Nnode)]  #Removing final entry in node.deme
 
   Phylo.sim <- list()
-  class(Phylo.sim) <- 'phylo'
+  class(Phylo.sim) <- c('str_phylo', 'phylo')
   Phylo.sim$tip.label <- data[,1]
   Phylo.sim$Nnode <- Nnode
   Phylo.sim$edge <- edge
@@ -472,7 +472,7 @@ scaled_sim <- function(leaf_data, coal_rate, time_scale, n_deme, mig_mat, plot_p
   node_deme <- node_deme[1:(n + Nnode)]  #Removing final entry in node_deme
 
   Phylo_sim <- list()
-  class(Phylo_sim) <- 'phylo'
+  class(Phylo_sim) <- c('str_phylo', 'phylo')
   Phylo_sim$tip.label <- leaf_data[,1]
   Phylo_sim$Nnode <- Nnode
   Phylo_sim$edge <- edge

@@ -266,8 +266,7 @@ as.EED.ED <- function(x, ...){
 #' @rdname as.ED
 #' @export
 as.EED.phylo <- function(x, ...){
-  x <- as.ED(x)
-  NextMethod("as.EED")
+  as.EED(as.ED(x))
 }
 
 #' @rdname as.ED
@@ -317,6 +316,5 @@ as.phylo.ED <- function(x, ...){
 #' @rdname as.ED
 #' @export
 as.phylo.EED <- function(x, ...){
-  x <- as.ED(x)
-  NextMethod("as.phylo")
+  as.phylo(as.ED(x))
 }

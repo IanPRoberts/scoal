@@ -97,46 +97,6 @@ get.edge.id <- function(start, end, edge){
   return(edge.id)
 }
 
-#' Plot Structured Coalescent Tree
-#'
-#' Plots a structured coalescent tree input as a phylo object augmented with node demes
-#'
-#' @param phylo phylo object augmented with node demes
-#'
-#' @export
-
-structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA, ...){
-  if (! ('phylo' %in% class(x))){
-    phylo <- ed.to.phylo(x)
-  } else{
-    phylo <- x
-  }
-
-  edge <- phylo$edge
-
-  if (is.na(n_deme)){
-    n_deme <- max(unique(phylo$node.deme))
-  }
-
-  if (any(phylo$node.deme == 0)){
-    color.palette <- c(rainbow(n_deme), "black")
-    phylo$node.deme[phylo$node.deme == 0] <- n_deme + 1
-  } else{
-    color.palette <- rainbow(n_deme)
-  }
-
-  edge.color <- color.palette[phylo$node.deme[edge[,2]]]
-
-  plot(phylo, edge.color = edge.color, edge.width = 2, show.tip.label = FALSE, ...)
-
-  if (time_axis){
-    if (is.na(root_time)){
-      root_time <- 0
-    }
-    axisPhylo(root.time = root_time, backward = FALSE)
-  }
-}
-
 #' Normal Distribution with Reflecting Boundary
 #'
 #' Generates normally distributed variates subject to reflecting boundary
