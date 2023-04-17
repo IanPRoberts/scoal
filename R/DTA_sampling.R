@@ -582,3 +582,121 @@ DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempt
     stop("Attempts exceeded max_attempts")
   }
 }
+
+################################################################################
+#Rewritten code, potentially slightly slower but much more concise
+
+EED_local_DTA_eigen <- function(EED, fit_rates, node_indices, eigen_vals = NULL, eigen_vecs = NULL, inverse_vecs = NULL, selected_node = NULL){
+  if (is.null(selected_node)) selected_node <- sample(EED[!is.na(EED[,4]),1], 1)
+
+  if (is.null(eigen_vals) || is.null(eigen_vecs)){
+    eigen_decomp <- eigen(fit_rates)
+    eigen_vals <- eigen_decomp$values
+    eigen_vecs <- eigen_decomp$vectors
+    inverse_vecs <- solve(eigen_vecs)
+  }
+
+  if (is.null(inverse_vecs)) inverse_vecs <- solve(eigen_vecs)
+
+  selected_row <- node_indices[selected_node]
+
+  child_nodes <- EED[selected_row, 8:9]
+  parent_nodes <- rep(selected_node, 2)
+  n_edge <- 2
+
+  if (!is.na(EED[selected_row, 7])){ #If selected_node is not the root
+    child_nodes <- append(child_nodes, selected_node)
+    parent_nodes <- append(parent_nodes, EED[selected_row, 7])
+    n_edge <- 3
+  }
+
+  child_rows <- node_indices[child_nodes]
+  parent_rows <- node_indices[parent_nodes]
+  edge_lengths <- EED[child_rows, 6] - EED[parent_rows, 6]
+
+  trans_mats <- lapply(edge_lengths, function(edge_length){
+    eigen_vecs %*% diag(exp(edge_length * eigen_vals)) %*% inverse_vecs
+  })
+
+  n_deme <- nrow(fit_rates)
+
+  node_dist <- rep(1, n_deme)
+  for (x in 1 : 2){
+    node_dist <- node_dist * trans_mats[[x]][, EED[child_rows[x], 5]]
+  }
+
+  if (n_edge == 3){
+    node_dist <- node_dist * trans_mats[[3]][EED[parent_rows[3], 5], ]
+  }
+  node_dist <- node_dist / sum(node_dist)
+
+  ################################################################################
+  prop <- EED
+  prop[selected_row, 5] <- sample.int(n_deme, 1, prob = node_dist) #Update deme at selected node
+
+  # Rows to remove from proposal
+  # Any row which has exactly one of child_nodes
+  # (only node with exactly 2 is selected_node)
+  rm_rows <- which(xor(prop[,8] %in% child_nodes,
+                       prop[,9] %in% child_nodes))
+
+  if (!is.na(prop[selected_row, 7])){
+    rm_rows <- rm_rows[prop[rm_rows, 1] != prop[selected_row, 7]]
+  }
+
+  child_demes <- prop[child_rows, 5]
+  child_times <- prop[child_rows, 6]
+  parent_demes <- prop[parent_rows, 5]
+  parent_times <- prop[parent_rows, 6]
+
+  max_label <- max(prop[,1])
+
+  for (x in 1 : n_edge){
+    #Provide eigendecomposition to sample_path function
+    mig_path <- ECctmc::sample_path(a = parent_demes[x],
+                                    b = child_demes[x],
+                                    t0 = parent_times[x],
+                                    t1 = child_times[x],
+                                    Q = fit_rates,
+                                    eigen_vals = eigen_vals,
+                                    eigen_vecs = eigen_vecs,
+                                    inverse_vecs = inverse_vecs)
+    n_mig <- nrow(mig_path) - 2 #Number of migration events to add
+
+    if (n_mig == 0){
+      # If no migrations between parent and child, still (might) need to update parent/child
+      prop[child_rows[x], 2] <- parent_nodes[x]
+      which_child <- which(prop[parent_rows[x], 8:9] == child_nodes[x])
+      prop[parent_rows[x], 2 + which_child] <- child_nodes[x]
+    } else {
+      # Add migrations if n_mig > 0
+      add_rows <- cbind(
+        max_label + 1:n_mig, #Node ID
+        max_label + 1:n_mig - 1, #Parent
+        max_label + 1:n_mig + 1, #Child 1
+        NA, #Child 2
+        mig_path[1:n_mig,2], # Deme
+        mig_path[1 + 1:n_mig,1], #Node Age
+        parent_nodes[x], #Parent coal
+        child_nodes[x], #Child coal 1
+        NA #Child coal 2
+      )
+
+      # Update first and final to have child/parent_nodes[x] in correct place
+      add_rows[1, 2] <- parent_nodes[x]
+      add_rows[n_mig, 3] <- child_nodes[x]
+
+      prop <- rbind(prop, add_rows)
+
+      # Update child/parent_nodes[x]
+      prop[child_rows[x], 2] <- max_label + n_mig
+      which_child <- which(prop[parent_rows[x], 8:9] == child_rows[x])
+      prop[parent_rows[x], 2 + which_child] <- max_label + 1
+    }
+    # Update max_label
+    max_label <- max_label + n_mig
+  }
+
+  if (length(rm_rows) > 0) prop <- prop[-rm_rows,]
+  return(list(proposal = prop, updated_node = selected_node, node_dist = node_dist))
+}
