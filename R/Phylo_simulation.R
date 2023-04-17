@@ -62,13 +62,13 @@ Homochronous.Sim <- function(Data,EffectivePop,GenLength){
 #' @param Data nx2 matrix with first column giving the tip labels and second column the time at which sample was taken
 #' @param EffectivePop effective population size from which the sample is taken
 #' @param GenLength generation length of the sampled individuals
-#' @param phylo.plot logical; if FALSE (default) plot is not produced
+#' @param plot_phylo logical; if FALSE (default) plot is not produced
 #'
 #' @return An object of class \code{phylo} (from package \code{ape}) augmented with the likelihood and log-likelihood of the simulated tree
 #'
 #' @export
 
-Heterochronous.Sim <- function(Data, effective.pop, gen.length, phylo.plot=FALSE){
+Heterochronous.Sim <- function(Data, effective.pop, gen.length, plot_phylo=FALSE){
   lambda <- effective.pop * gen.length
 
   n <- dim(Data)[1]
@@ -158,11 +158,8 @@ Heterochronous.Sim <- function(Data, effective.pop, gen.length, phylo.plot=FALSE
   Phylo.sim$log.likelihood <- likelihood
   Phylo.sim$likelihood <- exp(likelihood)
 
-  if (phylo.plot == TRUE){
-    plot(Phylo.sim, show.tip.label = FALSE)
-    axisPhylo(1, root.time = max(Data[,2]) - time, backward = FALSE)
-  }
-  Phylo.sim
+  if (plot_phylo) plot(Phylo_sim, time_axis = TRUE, root_time = max(Data[,2]))
+  return(Phylo.sim)
 }
 
 #' Simulation of Heterochronous Structured Coalescent
@@ -345,16 +342,7 @@ Structured.sim <- function(data, effective.pop, gen.length, n.deme, migration.ma
   Phylo.sim$log.likelihood <- likelihood
   Phylo.sim$likelihood <- exp(likelihood)
 
-  if (plot.phylo == TRUE){
-    color.palette <- rainbow(n.deme)
-    edge.color <- rep(NA,dim(edge)[1])
-    for (i in 1 : dim(edge)[1]){
-      edge.color[i] <- color.palette[node.deme[edge[i,2]]]
-    }
-
-    plot(Phylo.sim, edge.color = edge.color, edge.width = 2)
-    axisPhylo(1, root.time = max(data[,2]) - time, backward = FALSE)
-  }
+  if (plot_phylo) plot(Phylo_sim, time_axis = TRUE, root_time = max(leaf_data[,2]))
   return(Phylo.sim)
 }
 
@@ -481,15 +469,6 @@ scaled_sim <- function(leaf_data, coal_rate, time_scale, n_deme, mig_mat, plot_p
   Phylo_sim$log.likelihood <- likelihood
   Phylo_sim$likelihood <- exp(likelihood)
 
-  if (plot_phylo == TRUE){
-    color_palette <- rainbow(n_deme)
-    edge_color <- rep(NA,dim(edge)[1])
-    for (i in 1 : dim(edge)[1]){
-      edge_color[i] <- color_palette[node_deme[edge[i,2]]]
-    }
-
-    plot(Phylo_sim, edge.color = edge_color, edge.width = 2)
-    axisPhylo(1, root.time = max(leaf_data[,2]) - time, backward = FALSE)
-  }
+  if (plot_phylo) plot(Phylo_sim, time_axis = TRUE, root_time = max(leaf_data[,2]))
   return(Phylo_sim)
 }
