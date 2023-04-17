@@ -105,7 +105,7 @@ get.edge.id <- function(start, end, edge){
 #'
 #' @export
 
-structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA){
+structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA, ...){
   if (! ('phylo' %in% class(x))){
     phylo <- ed.to.phylo(x)
   } else{
@@ -127,18 +127,13 @@ structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA){
 
   edge.color <- color.palette[phylo$node.deme[edge[,2]]]
 
+  plot(phylo, edge.color = edge.color, edge.width = 2, show.tip.label = FALSE, ...)
+
   if (time_axis){
     if (is.na(root_time)){
       root_time <- 0
     }
-
-    par(mar = 0.1 + c(5,0,0,0))
-    plot(phylo, edge.color = edge.color, no.margin = FALSE, edge.width = 2, show.tip.label = FALSE)
     axisPhylo(root.time = root_time, backward = FALSE)
-    par(mar = 0.1 + c(5,4,4,2))
-  } else {
-    plot(phylo, edge.color = edge.color, no.margin = TRUE, edge.width = 2, show.tip.label = FALSE)
-    par(mar = 0.1 + c(5,4,4,2))
   }
 }
 

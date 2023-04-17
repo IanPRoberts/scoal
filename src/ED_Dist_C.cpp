@@ -1,6 +1,8 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "DemeDecomp.h"
 #include "Node_indices.h"
+
 using namespace Rcpp;
 
 //' @title ED_Dist
@@ -13,7 +15,6 @@ using namespace Rcpp;
 //'
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 double ED_dist_C(NumericMatrix ED1,

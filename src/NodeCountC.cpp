@@ -1,5 +1,7 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "NodeCount.h"
+
 using namespace Rcpp;
 
 //' @title NodeCountC
@@ -11,7 +13,6 @@ using namespace Rcpp;
 //'
 //' @export
 //'
-// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::export]]
 
 List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices) {

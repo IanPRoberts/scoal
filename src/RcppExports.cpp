@@ -272,24 +272,24 @@ RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
     return rcpp_result_gen;
 }
 // ScaledDTALikelihoodC
-List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices);
-static SEXP _scoal_ScaledDTALikelihoodC_try(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
+List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix bit_mig_mat, NumericVector node_indices);
+static SEXP _scoal_ScaledDTALikelihoodC_try(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP bit_mig_matSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type coal_rate(coal_rateSEXP);
     Rcpp::traits::input_parameter< double >::type time_scale(time_scaleSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type mig_mat(mig_matSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type bit_mig_mat(bit_mig_matSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(ScaledDTALikelihoodC(ED, coal_rate, time_scale, mig_mat, node_indices));
+    rcpp_result_gen = Rcpp::wrap(ScaledDTALikelihoodC(ED, coal_rate, time_scale, bit_mig_mat, node_indices));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _scoal_ScaledDTALikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP mig_matSEXP, SEXP node_indicesSEXP) {
+RcppExport SEXP _scoal_ScaledDTALikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP bit_mig_matSEXP, SEXP node_indicesSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_scoal_ScaledDTALikelihoodC_try(EDSEXP, coal_rateSEXP, time_scaleSEXP, mig_matSEXP, node_indicesSEXP));
+        rcpp_result_gen = PROTECT(_scoal_ScaledDTALikelihoodC_try(EDSEXP, coal_rateSEXP, time_scaleSEXP, bit_mig_matSEXP, node_indicesSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {

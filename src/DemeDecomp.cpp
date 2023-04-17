@@ -1,12 +1,21 @@
+// [[Rcpp::interfaces(r, cpp)]]
 #include <Rcpp.h>
 #include "DemeDecomp.h"
+
 using namespace Rcpp;
 
-// [[Rcpp::interfaces(r, cpp)]]
+//' @title Deme Decomposition
+//' @description Counts the number of each type of migration event and deme of each coalescence event
+//' @param ED Extended data representation of a migration history
+//' @param n_deme Number of demes
+//' @param node_indices Vector with element i giving row index of label i (NA if not present)
+//' @returns m Matrix giving number of each type of migration observed
+//' @returns c Vector giving number of coalescences per deme
+//' @export
+//'
 // [[Rcpp::export]]
 
 List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
-  // Remove "//[[Rcpp::export]]" to prevent access from scoal package in R
   int nrow = ED.nrow();
   NumericVector event_times = sort_unique(ED(_, 5));
   NumericVector time_increments = diff(event_times);
