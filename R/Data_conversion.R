@@ -318,3 +318,28 @@ as.phylo.ED <- function(x, ...){
 as.phylo.EED <- function(x, ...){
   as.phylo(as.ED(x))
 }
+
+####### Allow subsetting of ED and EED objects
+new_ED <- function(x) {
+  structure(x, class = "ED")
+}
+
+'[.ED' <- function(x, i, j){
+  if (missing(i)){
+    NextMethod()
+  } else{
+    new_ED(NextMethod())
+  }
+}
+
+new_EED <- function(x){
+  structure(x, class = "EED")
+}
+
+'[.EED' <- function(x, i, j){
+  if (missing(i)){
+    NextMethod()
+  } else{
+    new_EED(NextMethod())
+  }
+}

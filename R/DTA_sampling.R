@@ -104,7 +104,7 @@ DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = FALSE, m
         }
       }
     }
-    return(prop_ED)
+    return(new_ED(prop_ED))
   }
 
   if (parallel){
@@ -241,7 +241,7 @@ local_DTA <- function(ED, mig_mat, time_scale, selected_node = NA){
     }
   }
   if (length(rm_rows) > 0) prop_ED <- prop_ED[-rm_rows,]
-  return(prop_ED)
+  return(new_ED(prop_ED))
 }
 
 #' Local DTA Update for EED data structure
@@ -353,7 +353,7 @@ EED_local_DTA <- function(EED, fit_mig_mat, time_scale, selected_node = NA){
     }
   }
   if (length(rm_rows) > 0) prop <- prop[-rm_rows,]
-  return(list(proposal = prop, node_dist = node_dist))
+  return(list(proposal = new_EED(prop), node_dist = node_dist))
 }
 
 #' Local DTA Update for EED data structure
@@ -488,7 +488,7 @@ local_DTA_rejection <- function(EED, coal_node, fit_mig_mat, node_indices, max_a
   }
 
   if (count == max_attempts) stop("Attempts exceeded max_attempts")
-  return(prop)
+  return(new_EED(prop))
 }
 
 #' DTA Sampling
@@ -510,7 +510,7 @@ DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempt
   event_rates <- rowSums(fit_mig_mat)
   accept <- FALSE
 
-  top_EED <- ed.to.eed(strip.history(ED))
+  top_EED <- as.EED(strip.history(ED))
   root_row <- which(is.na(top_EED[,2]))
   leaf_rows <- which(is.na(top_EED[,3]))
   top_max_label <- max(top_EED[,1])
@@ -577,7 +577,7 @@ DTA_rejection <- function(ED, fit_mig_mat, time_scale, node_indices, max_attempt
   }
 
   if (accept){
-    return(prop)
+    return(new_EED(prop))
   } else {
     stop("Attempts exceeded max_attempts")
   }
@@ -698,5 +698,5 @@ EED_local_DTA_eigen <- function(EED, fit_rates, node_indices, eigen_vals = NULL,
   }
 
   if (length(rm_rows) > 0) prop <- prop[-rm_rows,]
-  return(list(proposal = prop, updated_node = selected_node, node_dist = node_dist))
+  return(list(proposal = new_EED(prop), updated_node = selected_node, node_dist = node_dist))
 }

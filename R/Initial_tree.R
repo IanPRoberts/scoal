@@ -10,9 +10,7 @@
 #' @export
 
 strip.history <- function(ED, node_indices = NA){
-  if (length(node_indices) == 1){
-    node_indices <- NodeIndicesC(ED)
-  }
+  if (is.na(node_indices)) node_indices <- NodeIndicesC(ED)
 
   coal_rows <- which(!is.na(ED[,4]))
   coal_nodes <- ED[coal_rows, 1]
@@ -56,7 +54,7 @@ initial.tree <- function(phylo, leaf.deme){
   n <- length(leaf.deme)
 
   phylo$node.deme <- rep(NA, 2*n - 1)
-  ED <- phylo.to.ed(phylo)
+  ED <- as.ED(phylo)
   ED[1:n, 5] <- leaf.deme
 
   observed.demes <- as.numeric(colnames(ACE$lik.anc))
@@ -79,7 +77,7 @@ initial.tree <- function(phylo, leaf.deme){
     }
   }
 
-  phylo <- ed.to.phylo(ED)
+  phylo <- as.phylo(ED)
   return(phylo)
 }
 
@@ -99,12 +97,12 @@ initial.tree <- function(phylo, leaf.deme){
 #' @export
 
 initial.ed <- function(ED, leaf.deme){
-  phylo <- ed.to.phylo(ED)
+  phylo <- as.phylo(ED)
   ACE <- ace(leaf.deme, phylo, type = "discrete")
   n <- length(leaf.deme)
 
   phylo$node.deme <- rep(NA, 2*n - 1)
-  ED <- phylo.to.ed(phylo)
+  ED <- as.ED(phylo)
   ED[1:n, 5] <- leaf.deme
 
   observed.demes <- as.numeric(colnames(ACE$lik.anc))

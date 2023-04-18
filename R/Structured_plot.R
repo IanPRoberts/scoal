@@ -46,7 +46,7 @@ plot.str_phylo <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL
   }
 
   color.palette <- c(rainbow(n_deme), "black")
-  phylo$node.deme[x$node.deme == 0] <- n_deme + 1
+  x$node.deme[x$node.deme == 0] <- n_deme + 1
 
   edge_color <- color.palette[x$node.deme[x$edge[,2]]]
 
