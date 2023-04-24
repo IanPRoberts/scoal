@@ -59,13 +59,3 @@ plot.str_phylo <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL
     axisPhylo(root.time = root_time, backward = FALSE)
   }
 }
-
-#' @export
-plot.ED <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL, ...){
-  plot(as.phylo(x), n_deme, time_axis, root_time, ...)
-}
-
-#' @export
-plot.EED <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL, ...){
-  plot(as.phylo(x), n_deme, time_axis, root_time, ...)
-}

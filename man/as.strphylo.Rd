@@ -4,6 +4,7 @@
 \alias{as.strphylo}
 \alias{as.strphylo.default}
 \alias{as.strphylo.phylo}
+\alias{as.strphylo.matrix}
 \title{Conversion to Structured Phylo}
 \usage{
 as.strphylo(x, ...)
@@ -11,6 +12,8 @@ as.strphylo(x, ...)
 \method{as.strphylo}{default}(x, ...)
 
 \method{as.strphylo}{phylo}(x, node.deme, ...)
+
+\method{as.strphylo}{matrix}(x, ...)
 }
 \arguments{
 \item{x}{object to be converted}

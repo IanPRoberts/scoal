@@ -3,7 +3,7 @@ deme.decomp <- function(ED, n.deme, node.indices){
   time.increments <- diff(event.times)
 
   k <- matrix(0, nrow = length(time.increments), ncol = n.deme)
-  root.row <- match(NA, ED[,2]) #node.indices[ED[is.na(ED[,2]),1]]
+  root.row <- match(NA, ED[,2])
   active.nodes <- ED[root.row, 3:4]
   k[1,ED[root.row, 5]] <- 2
 
