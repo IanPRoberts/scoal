@@ -3,6 +3,7 @@
 # 2. consolidate references to EED into ED and update ED references to EED only (e.g. Ewing topology moves might need cols 7:9 to be added)
 # (consolidate to a single extended data structure rather than ED and EED)
 # 3. MCMC tree output as beast .trees file (nexus with type annotation at each node)
+# 4. as.phylo.strphylo() needed ocassionally??
 #################
 
 #' Conversion to Structured Phylo

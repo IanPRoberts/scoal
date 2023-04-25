@@ -40,7 +40,7 @@ structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA, .
 
 
 #' @export
-plot.str_phylo <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL, ...){
+plot.strphylo <- function(x, n_deme = NULL, time_axis = FALSE, root_time = NULL, ...){
   if (is.null(n_deme)){
     n_deme <- max(x$node.deme)
   }

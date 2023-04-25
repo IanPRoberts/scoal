@@ -3,7 +3,7 @@
 S3method(as.strphylo,default)
 S3method(as.strphylo,matrix)
 S3method(as.strphylo,phylo)
-S3method(plot,str_phylo)
+S3method(plot,strphylo)
 export(BitMigMatC)
 export(DTA_rejection)
 export(DTA_sampling)
