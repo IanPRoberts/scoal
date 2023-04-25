@@ -113,8 +113,8 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
     coal_rate <- sprintf("%f", coal_rate)
   }
 
-  out <- paste("<beast version='2.0' namespace=",
-	"'beast.base.evolution.alignment:",
+  out <- paste("<beast version='2.0'",
+	"namespace='beast.base.evolution.alignment:",
 	"beast.pkgmgmt:",
 	"beast.base.core:",
 	"beast.base.inference:",
@@ -159,7 +159,10 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                "\t <taxa spec='TaxonSet' alignment='@alignment'/>",
                " </typeTraitSet> \n",
   ##### Leaf times
-                " <timeTraitSet spec='TraitSet' id='timeTraitSet' traitname=\"date-backward\"",
+               " <timeTraitSet",
+               "\t spec='TraitSet'",
+               "\t id='timeTraitSet'",
+               "\t traitname=\"date-backward\"",
                 "\t value=\"\n", sep = "\n\t")
 
   out <- paste(out,
@@ -184,7 +187,7 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                 "\t </substModel>",
                 " </siteModel> \n", sep = "\n\t")
 
-  ##### Evolutionary parameters initialisation
+  ##### Set up migration model
   out <- paste(out,
                 " <!-- Migration model -->",
                 " <migrationModel spec='multitypetree.evolution.tree.SCMigrationModel' id='migModel'>",
@@ -239,9 +242,10 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
   out <- paste(out,
                "<!-- Initialize tree from Newick string -->",
                "<init spec='multitypetree.evolution.tree.MultiTypeTreeFromNewick'",
-               "\t id='tree'",
-               paste0("\t value=\"", newick_tree, "\">"),
-               "\t <trait idref='typeTraitSet'/>",
+               "\t id='tree' >",
+               paste0("\t <![CDATA[ \n\t\t", newick_tree, "\n\t ]]>"),
+               "\t <typeSet idref='typeSet'/>",
+               "\t <typeTrait idref='typeTraitSet'/>",
                "\t <trait idref='timeTraitSet'/>",
                "</init> \n",
                ##### Initial condition
