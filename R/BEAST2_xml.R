@@ -84,7 +84,7 @@ master.xml <- function(effective.pop, migration.matrix, leaf.data, save.path = "
 #' Generates a .xml file to run BEAST2 using either MultiTypeTree or BASTA with a fixed tree.
 #' Initialises with all coalescent rates the same and all backward-in-time migration rates the same
 #'
-#' @param str_phylo structured phylo object giving initialisation condition for fixed tree run with MultiType Tree
+#' @param strphylo structured phylo object giving initialisation condition for fixed tree run with MultiType Tree
 #' @param coal_rate initial estimate for coalescent rates
 #' @param bit_mig_rate initial estimate for backward-in-time migration matrix
 #' @param N total number of MCMC iterations (including burn-in)
@@ -97,23 +97,23 @@ master.xml <- function(effective.pop, migration.matrix, leaf.data, save.path = "
 #'
 #' @export
 
-fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "scoal"){
-  n_tip <- length(str_phylo$tip.label)
-  node_ages <- ape::node.depth.edgelength(str_phylo)
+fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "scoal"){
+  n_tip <- length(strphylo$tip.label)
+  node_ages <- ape::node.depth.edgelength(strphylo)
 
   # Format integer initial values as integer.0 instead of just integer
-  if (isTRUE(bit_mig_rate == floor(bit_mig_rate))){
-    bit_mig_rate <- sprintf("%.1f", bit_mig_rate)
-  } else {
-    bit_mig_rate <- sprintf("%f", bit_mig_rate)
-  }
-  if (isTRUE(coal_rate == floor(coal_rate))){
-    coal_rate <- sprintf("%.1f", coal_rate)
-  } else {
-    coal_rate <- sprintf("%f", coal_rate)
-  }
+  # if (isTRUE(bit_mig_rate == floor(bit_mig_rate))){
+  #   bit_mig_rate <- sprintf("%.1f", bit_mig_rate)
+  # } else {
+  #   bit_mig_rate <- sprintf("%f", bit_mig_rate)
+  # }
+  # if (isTRUE(coal_rate == floor(coal_rate))){
+  #   coal_rate <- sprintf("%.1f", coal_rate)
+  # } else {
+  #   coal_rate <- sprintf("%f", coal_rate)
+  # }
 
-  out <- paste("<beast version='2.0'",
+  out <- paste("<beast version='2.7'",
 	"namespace='beast.base.evolution.alignment:",
 	"beast.pkgmgmt:",
 	"beast.base.core:",
@@ -136,10 +136,10 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
 	"multitypetree.operators:",
 	"multitypetree.util'>\n",
 	"<!-- Alignment -->",
-	"<alignment spec=\"beast.evolution.alignment.Alignment\" id=\"alignment\" dataType=\"nucleotide\">", sep ="\n\t")
+	"<alignment spec=\"beast.base.evolution.alignment.Alignment\" id=\"alignment\" dataType=\"nucleotide\">", sep ="\n\t")
 
   out <- paste(out,
-               paste0("<sequence taxon='", str_phylo$tip.label, "' value='?'/>", collapse = "\n\t\t"), sep = "\n\t\t")
+               paste0("<sequence taxon='", strphylo$tip.label, "' value='?'/>", collapse = "\n\t\t"), sep = "\n\t\t")
 
   out <- paste(out,
                 "</alignment> \n",
@@ -147,29 +147,29 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                 "<typeTraitSet",
                 "\t spec='TraitSet'",
                 "\t id='typeTraitSet'",
-                "\t traitname=\"type\"",
-                "\t value=\"", sep = "\n\t")
+                "\t traitname='type'",
+                "\t value='", sep = "\n\t")
 
   ###### Tip demes
   out <- paste(out,
-               paste0(str_phylo$tip.label, "=", str_phylo$node.deme[1:n_tip], collapse = ",\n\t\t\t"), sep = "\n\t\t\t")
+               paste0(strphylo$tip.label, "=", strphylo$node.deme[1:n_tip], collapse = ",\n\t\t\t"), sep = "\n\t\t\t")
 
   out <- paste(out,
-               "\">",
+               "'>",
                "\t <taxa spec='TaxonSet' alignment='@alignment'/>",
                " </typeTraitSet> \n",
   ##### Leaf times
                " <timeTraitSet",
                "\t spec='TraitSet'",
                "\t id='timeTraitSet'",
-               "\t traitname=\"date-backward\"",
-                "\t value=\"\n", sep = "\n\t")
+               "\t traitname='date-backward'",
+                "\t value='\n", sep = "\n\t")
 
   out <- paste(out,
-               paste0(str_phylo$tip.label, "=", node_ages[1:n_tip], collapse = ",\n\t\t\t"), sep = "\n\t\t\t")
+               paste0(strphylo$tip.label, "=", node_ages[1:n_tip], collapse = ",\n\t\t\t"), sep = "\n\t\t\t")
 
   out <- paste(out,
-               "\">",
+               "'>",
                "\t <taxa spec='TaxonSet' alignment='@alignment'/>",
                " </timeTraitSet> \n", sep = "\n\t")
 
@@ -191,8 +191,12 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
   out <- paste(out,
                 " <!-- Migration model -->",
                 " <migrationModel spec='multitypetree.evolution.tree.SCMigrationModel' id='migModel'>",
-                paste0("\t <rateMatrix spec='RealParameter' value=\"", bit_mig_rate, "\" dimension=\"", n_deme * (n_deme - 1), "\" id=\"rateMatrix\"/>"),
-                paste0("\t <popSizes spec='RealParameter' value=\"", coal_rate, "\" dimension=\"", n_deme, "\" id=\"popSizes\"/>"),
+                paste0("\t <rateMatrix spec='RealParameter' dimension='", n_deme * (n_deme - 1), "' id=\"rateMatrix\">"),
+                paste0("\t\t ", paste(bit_mig_mat[-(1 + 0:(n_deme - 1) * (n_deme + 1))], collapse = " ")),
+                "\t </rateMatrix>",
+                paste0("\t <popSizes spec='RealParameter' dimension=\"", n_deme, "\" id=\"popSizes\">"),
+                paste0("\t\t ", paste(1/coal_rate, collapse = " ")),
+                "\t </popSizes>",
                "\t <typeSet id=\"typeSet\" spec='multitypetree.evolution.tree.TypeSet' typeTraitSet=\"@typeTraitSet\"/>",
                 " </migrationModel> \n\n", sep = "\n\t")
 
@@ -230,12 +234,12 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                sep = "\n\t")
 
 
-  # Convert str_phylo to BEAST2 metacommented Newick
-  phylo <- str_phylo
+  # Convert strphylo to BEAST2 metacommented Newick
+  phylo <- strphylo
   class(phylo) <- "phylo"
   phylo$node.deme <- phylo$log.likelihood <- phylo$likelihood <- NULL
   treedata <- tidytree::as.treedata(phylo)
-  treedata@data <- tidytree::tibble(type = paste0("\"", str_phylo$node.deme, "\""), node = 1:length(str_phylo$node.deme))
+  treedata@data <- tidytree::tibble(type = paste0("\"", strphylo$node.deme, "\""), node = 1:length(strphylo$node.deme))
 
   newick_tree <- treeio::write.beast.newick(treedata)
 
@@ -365,7 +369,6 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                  "\t <parameterInverse idref=\"rateMatrix\"/>",
                  "\t <parameterInverse idref=\"mutationRate\"/>",
                  "</operator>",
-                 "-->",
                  #Multi-type tree scale 2
                  "<operator",
                  "\t spec=\"MultiTypeTreeScale\"",
@@ -375,7 +378,8 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                  "\t migrationModel=\"@migModel\"",
                  "\t scaleFactor=\"0.98\"",
                  "\t useOldTreeScaler=\"true\">",
-                 "</operator>"
+                 "</operator>",
+                 "-->"
                  ,sep = "\n\t")
   } else if (BEAST2_package == "BASTA"){
     ##### BASTA operators
@@ -388,13 +392,12 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                # Tracer log file
                "<logger",
                paste0("\t logEvery=\"", thin, "\""),
-               paste0("\t fileName=\"", run_name, ".log\">"),
+               "\t fileName=\"$(filebase).log\">",
                "\t <model idref='posterior'/>",
                "\t <log idref=\"posterior\"/>",
                "\t <log idref=\"treePrior\"/>",
                "\t <log spec='TreeHeightLogger' tree='@tree'/>",
                "<log id=\"migModelLogger\" spec=\"MigrationModelLogger\" migrationModel=\"@migModel\" multiTypeTree=\"@tree\"/>",
-               #"\t <log idref=\"migModel\"/>",
                "\t <!--",
                "\t <log idref=\"mutationRate\"/>",
                "\t <log idref=\"hky.kappa\"/>",
@@ -404,20 +407,16 @@ fixed_tree_xml <- function(str_phylo, n_deme, coal_rate = 1, bit_mig_rate = 1, N
                # Trees output
                "<logger",
                paste0("\t logEvery=\"", thin, "\""),
-               paste0("\t fileName=\"", run_name, ".tree.txt\""),
+               "\t fileName=\"$(filebase).$(tree).trees\"",
                "\t mode=\"tree\">",
                "\t <log idref=\"tree\"/>",
                "</logger>",
                #
-               "<logger logEvery=\"100000\">",
+               "<logger logEvery=\"1000\">",
                "\t <model idref='posterior'/>",
                "\t <log idref=\"posterior\"/>",
                "\t<log idref=\"treePrior\"/>",
                "\t <log spec='TreeHeightLogger' tree='@tree'/>",
-               "\t <log idref=\"migModel\"/>",
-               "\t <!--",
-               "\t <log idref=\"mutationRate\"/>",
-               "\t -->",
                "\t <ESS spec='beast.base.inference.util.ESS' name='log' arg=\"@treePrior\"/>",
                "\t <ESS spec='beast.base.inference.util.ESS' name='log' arg=\"@rateMatrix\"/>",
                "\t <ESS spec='beast.base.inference.util.ESS' name='log' arg=\"@popSizes\"/>",
