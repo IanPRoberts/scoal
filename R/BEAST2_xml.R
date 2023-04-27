@@ -2,80 +2,79 @@
 #'
 #' Generates a .xml file to be input to BEAST 2 for structured coalescent simulations using MASTER
 #'
-#' @param effective.pop effective population size from which the sample is taken
-#' @param migration.matrix matrix of migration rates between demes
-#' @param leaf.data  nx3 matrix with first column giving the tip labels, second column the time at which the sample was taken and third column the initial deme of each sample point
-#' @param save.path file path to output .xml file to
-#' @param run.xml if TRUE, run generated .xml through BEAST
+#' @param coal_rate vector of coalescent rates
+#' @param bit_mig_mat matrix of backward-in-time migration rates
+#' @param leaf_data  nx3 matrix or data.frame with first column giving tip labels, second column sample times and third column the initial deme of each sample point
+#' @param n_deme number of distinct demes
+#' @param xml_path path to output nexus file
+#' @param con A connection object or a character string for location to output xml file
 #'
 #' @return xml file
 #'
 #' @export
 
-master.xml <- function(effective.pop, migration.matrix, leaf.data, save.path = ".", run.xml = FALSE){
-  if (save.path == "."){
-    save.path <- getwd()
+master_xml <- function(coal_rate, bit_mig_mat, leaf_data, n_deme, xml_path, con = stdout()){
+
+  out <- paste("<beast version='2.7' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'>",
+               "<run spec='InheritanceTrajectory' verbosity='0'> \n",
+               "<model spec='Model'>",
+               paste0("\t <populationType spec='PopulationType' typeName='L' id='L' dim='", n_deme, "'/>"),
+               "\t <reactionGroup spec='ReactionGroup' reactionGroupName='Coalescence'>",
+               sep = "\n\t")
+
+  for (i in 1 : n_deme){
+    out <- paste(out,
+                 paste0("<reaction spec='Reaction' rate='", coal_rate[i], "'>"),
+                 paste0("\t 2L[", i-1, "]:1 -> L[", i-1, "]:1 "),
+                 "</reaction>",
+                 sep = "\n\t\t\t")
   }
 
-  n.deme <- length(effective.pop)
-  out <- paste0("<beast version='2.0' namespace='master:master.model:master.steppers:master.conditions:master.postprocessors:master.outputs'> \n",
-  "\t <run spec='InheritanceTrajectory' \n",
-  "\t\t verbosity='0'> \n\n",
-  "\t\t <model spec='Model'> \n",
-  "\t\t\t <populationType spec='PopulationType' typeName='L' id='L' dim='", n.deme, "'/> \n",
-  "\t\t\t <reactionGroup spec='ReactionGroup' reactionGroupName='Coalescence'> \n")
+  out <- paste(out,
+               "</reactionGroup> \n",
+               "<reactionGroup spec='ReactionGroup' reactionGroupName='Migration'>",
+               sep = "\n\t\t")
 
-  for (i in 1 : n.deme){
-    out <- paste0(out,
-                       "\t\t\t\t <reaction spec='Reaction' rate='", 1/effective.pop[i], "'> \n",
-                       "\t\t\t\t\t 2L[", i-1, "]:1 -> L[", i-1, "]:1 \n",
-                       "\t\t\t\t </reaction> \n")
-  }
-
-  out <- paste0(out,
-                     "\t\t\t </reactionGroup> \n\n",
-                     "\t\t\t <reactionGroup spec='ReactionGroup' reactionGroupName='Migration'> \n")
-
-  for (i in 1 : n.deme){
-    for (j in (1:n.deme)[-i]){
-      out <- paste0(out,
-                         "\t\t\t\t <reaction spec='Reaction' rate='", migration.matrix[i,j], "'> \n",
-                         "\t\t\t\t\t L[", i-1, "] -> L[", j-1, "] \n",
-                         "\t\t\t\t </reaction> \n")
+  for (i in 1 : n_deme){
+    for (j in (1:n_deme)[-i]){
+      out <- paste(out,
+                   paste0("<reaction spec='Reaction' rate='", bit_mig_mat[i,j], "'>"),
+                   paste0("\t L[", i-1, "] -> L[", j-1, "]"),
+                   "</reaction>",
+                   sep = "\n\t\t\t\t")
     }
   }
 
-  out <- paste0(out,
-                     "\t\t\t </reactionGroup> \n\n",
-                     "\t\t </model> \n\n",
-                     "\t\t <initialState spec='InitState'> \n")
+  out <- paste(out,
+               "\t </reactionGroup> \n\n",
+               "</model> \n\n",
+               "<initialState spec='InitState'>",
+               sep = "\n\t")
 
-  leaf.times <- unique(leaf.data[,2])
-  for (time in leaf.times){
-    for (deme in 1 : n.deme){
-      leaf.set <- (1 : dim(leaf.data)[1])[(leaf.data[,2] == time) & (leaf.data[,3] == deme)]
-      if (length(leaf.set) > 0){
-        out <- paste0(out,
-                      "\t\t\t <lineageSeedMultiple spec='MultipleIndividuals' copies='", length(leaf.set), "' time='", time, "'> \n",
-                      "\t\t\t\t <population spec='Population' type='@L' location='", deme - 1, "'/> \n",
-                      "\t\t\t </lineageSeedMultiple> \n")
+  leaf_times <- unique(leaf_data[,2])
+  n_leaf <- nrow(leaf_data)
+  for (time in leaf_times){
+    for (deme in 1 : n_deme){
+      leaf_set <- (1 : n_leaf)[(leaf_data[,2] == time) & (leaf_data[,3] == deme)]
+      if (length(leaf_set) > 0){
+        out <- paste(out,
+                     paste0("<lineageSeedMultiple spec='MultipleIndividuals' copies='", length(leaf_set), "' time='", time, "'>"),
+                     paste0("\t <population spec='Population' type='@L' location='", deme - 1, "'/>"),
+                     "</lineageSeedMultiple>",
+                     sep = "\n\t\t")
       }
     }
   }
 
-  out <- paste0(out,
-                "\t\t </initialState> \n\n",
-                "\t\t <lineageEndCondition spec='LineageEndCondition' nLineages='1'/> \n\n",
-                "\t\t <output spec='NexusOutput' fileName='", save.path, "/SCMasterSimTree_out.nexus' reverseTime='true'/> \n",
-                  "\t </run> \n",
-                  "</beast>")
+  out <- paste(out,
+               "\t </initialState> \n",
+               "\t <lineageEndCondition spec='LineageEndCondition' nLineages='1'/> \n",
+               paste0("\t\t <output spec='NexusOutput' fileName='", xml_path, "' reverseTime='true'/>"),
+               "\t </run>",
+               "</beast>",
+               sep = "\n")
 
-  file.create(paste0(save.path, "/SCMasterSim.xml"))
-  writeLines(out, con = paste0(save.path, "/SCMasterSim.xml"))
-
-  if (run.xml == TRUE){
-    system(paste0('java -jar "C:/Program Files/BEAST/lib/launcher.jar" "', save.path, '/SCMasterSim.xml"'))
-  }
+  writeLines(out, con = con)
 }
 
 

@@ -4,7 +4,7 @@
 \alias{parent.node}
 \title{Parent node}
 \usage{
-parent.node(node, edge, node.ages)
+\method{parent}{node}(node, edge, node.ages)
 }
 \arguments{
 \item{node}{Node to find parent node of}
