@@ -35,7 +35,7 @@ deme.decomp <- function(ED, n.deme, node.indices){
         active.nodes <- c(active.nodes, ED[current.rows, 3])
       }
     }
-    active.nodes <- active.nodes[!current.indices]
+    active.nodes <- active.nodes[!active.nodes %in% ED[current.rows, 1]]
   }
 
   return(k)

@@ -56,7 +56,7 @@ List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
       }
     }
 
-    for (node = current_nodes.begin(); node != current_nodes.end(); ++node){ //Remmove current_nodes from active_nodes
+    for (node = current_nodes.begin(); node != current_nodes.end(); ++node){ //Remove current_nodes from active_nodes
      active_nodes.remove(*node);
     }
 
