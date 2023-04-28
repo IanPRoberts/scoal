@@ -80,7 +80,13 @@ ed.mig.birth <- function(ED, n.deme, fix.leaf.deme = TRUE, node.indices){
     cumulative.edge.length <- c(0, cumsum(edge.length)[-length(edge.length)])  #Offset cumsum(edge.length) by 1 in case new.location is on first edge in edge length
     new.age <- ED[child.row, 6] - (new.location - max(cumulative.edge.length[cumulative.edge.length < new.location])) #Age of new.node (currently have distance along tree from new.location)
 
-    ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age))
+    #Coal parent/child
+    coal_pc <- ED[parent.row, 7:9]
+    if (!is.na(ED[parent.row, 4])){ #If parent.row is coalescent node, update parent/child
+      coal_pc <- c(parent.node, ED[parent.row, 7 + which.child], NA)
+    }
+
+    ED <- rbind(ED, c(new.node, parent.node, child.node, NA, old.deme, new.age, coal_pc))
     prop.ratio <- (n.deme - 1) * tree.length / (length(migration.nodes) + 1)
     log.prop.ratio <- log(n.deme - 1) + log(tree.length) - log(length(migration.nodes) + 1)
 
@@ -216,10 +222,18 @@ ed.mig.pair.birth <- function(ED, n.deme, node.indices){
   new.deme <- sample.vector((1:n.deme)[-ED[selected.row,5]], 1)
 
   ED[selected.row, 2] <- new.nodes[1]
-  ED[parent.row, 2 + which(ED[parent.row,3:4] == selected.node)] <- new.nodes[2]
+  which.child <- which(ED[parent.row, 3:4] == selected.node)
+  ED[parent.row, 2 + which.child] <- new.nodes[2]
+
+  #Coal parent/child
+  coal_pc <- ED[parent.row, 7:9]
+  if (!is.na(ED[parent.row, 4])){ #If parent.row is coalescent node, update parent/child
+    coal_pc <- c(parent.node, ED[parent.row, 7 + which.child], NA)
+  }
+
   ED <- rbind(ED,
-              c(new.nodes[1], new.nodes[2], selected.node, NA, new.deme, new.node.ages[1]),
-              c(new.nodes[2], parent.node, new.nodes[1], NA, ED[selected.row, 5], new.node.ages[2])
+              c(new.nodes[1], new.nodes[2], selected.node, NA, new.deme, new.node.ages[1], coal_pc),
+              c(new.nodes[2], parent.node, new.nodes[1], NA, ED[selected.row, 5], new.node.ages[2], coal_pc)
   )
 
   n.nodes <- dim(ED)[1]
@@ -354,9 +368,11 @@ ed.coal.merge <- function(ED, n.deme, node.indices){
     prop.ratio <- (ED[selected.row, 6] - ED[parent.row ,6]) / ((ED[child.child.rows[1], 6] - ED[selected.row, 6]) * (ED[child.child.rows[2], 6] - ED[selected.row, 6]))
     log.prop.ratio <- log(abs(ED[selected.row, 6] - ED[parent.row ,6])) - log(abs(ED[child.child.rows[1], 6] - ED[selected.row, 6])) - log(abs(ED[child.child.rows[2], 6] - ED[selected.row, 6]))
 
+    #Coal parent/child
+    coal_pc <- c(ED[selected.row, 7], selected.node, NA)
 
     ED <- ED[!ED[,1] %in% child.nodes, ] #Remove child migration nodes
-    ED <- rbind(ED, c(new.node, parent.node, selected.node, NA, old.deme, new.node.time)) #Add new parent migration node
+    ED <- rbind(ED, c(new.node, parent.node, selected.node, NA, old.deme, new.node.time, coal_pc)) #Add new parent migration node
 
     node.indices[child.nodes] <- 0
     index.changes.1 <- (node.indices > child.rows[1])
@@ -411,7 +427,12 @@ ed.coal.split <- function(ED, n.deme, node.indices){
     log.prop.ratio <- log(n.deme - 1) + log(abs(ED[child.rows[1], 6] - ED[selected.row, 6])) + log(abs(ED[child.rows[2], 6] - ED[selected.row, 6]))
     ED[selected.row, 3:5] <- c(new.nodes, proposal.deme)
     ED[child.rows, 2] <- new.nodes
-    ED <- rbind(ED, matrix(c(new.nodes, rep(selected.node,2), child.nodes, rep(NA,2), rep(proposal.deme, 2), new.node.times), 2))
+
+    #Coal parent/child
+    coal_pc <- cbind(selected.node, ED[selected.row, 8:9], NA) #Coal parent = root.node, coal children = coal children of root
+
+    ED <- rbind(ED,
+                cbind(new.nodes, selected.node, child.nodes, NA, proposal.deme, new.node.times, coal_pc))
 
     if (new.nodes[2] > length(node.indices)){
       new.node.indices <- numeric(new.nodes[2])
@@ -447,7 +468,12 @@ ed.coal.split <- function(ED, n.deme, node.indices){
     ED[child.rows, 2] <- new.nodes
     ED[selected.row, 2:5] <- c(parent.parent.node, new.nodes, ED[parent.row, 5])
     ED <- ED[-parent.row, ]
-    ED <- rbind(ED, matrix(c(new.nodes, rep(selected.node, 2), child.nodes, rep(NA, 2), rep(ED[selected.row, 5],2), new.node.times), 2))
+
+    #Coal parent/child
+    coal_pc <- cbind(selected.node, ED[selected.row, 8:9], NA) #Coal parent = root.node, coal children = coal children of root
+
+    ED <- rbind(ED,
+                cbind(new.nodes, selected.node, child.nodes, NA, ED[selected.row, 5], new.node.times, coal_pc))
 
     node.indices[parent.node] <- 0
     index.changes <- (node.indices > parent.row)
