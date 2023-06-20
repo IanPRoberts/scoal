@@ -33,7 +33,7 @@ sample.vector <- function(x, size, replace = FALSE, prob = NULL){
 #'
 #' @export
 
-parent.node <- function(node, edge, node.ages){
+parent_node <- function(node, edge, node.ages){
   all.nodes <- sort(unique(as.vector(edge)))
   node.freq <- table(match(as.vector(edge),all.nodes))  #Frequency of each node featured in edge matrix
 
@@ -58,13 +58,13 @@ parent.node <- function(node, edge, node.ages){
 #' Given a node from a \code{phylo} object, identifies the node IDs of any direct
 #' child nodes
 #'
-#' @inheritParams parent.node
+#' @inheritParams parent_node
 #'
 #' @return Vector of node IDs of any child nodes. If the input node is a leaf, returns NA
 #'
 #' @export
 
-child.nodes <- function(node, edge, node.ages){
+child_nodes <- function(node, edge, node.ages){
   all.nodes <- sort(unique(as.vector(edge)))
   node.freq <- table(match(as.vector(edge),all.nodes))  #Frequency of each node featured in edge matrix
 
