@@ -13,7 +13,7 @@ fixed_tree_xml(
   thin = 1000,
   con = stdout(),
   BEAST2_package = "MTT",
-  run_name = "scoal"
+  run_name = "$(filebase)"
 )
 }
 \arguments{

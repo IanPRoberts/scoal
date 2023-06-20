@@ -96,7 +96,7 @@ master_xml <- function(coal_rate, bit_mig_mat, leaf_data, n_deme, xml_path, con 
 #'
 #' @export
 
-fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "scoal"){
+fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "$(filebase)"){
   n_tip <- length(strphylo$tip.label)
   node_ages <- ape::node.depth.edgelength(strphylo)
 
@@ -238,7 +238,7 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin
   class(phylo) <- "phylo"
   phylo$node.deme <- phylo$log.likelihood <- phylo$likelihood <- NULL
   treedata <- tidytree::as.treedata(phylo)
-  treedata@data <- tidytree::tibble(type = paste0("\"", strphylo$node.deme, "\""), node = 1:length(strphylo$node.deme))
+  treedata@data <- tidytree::tibble(type = paste0("\"", strphylo$node.deme - 1, "\""), node = 1:length(strphylo$node.deme))
 
   newick_tree <- treeio::write.beast.newick(treedata)
 
@@ -391,7 +391,8 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin
                # Tracer log file
                "<logger",
                paste0("\t logEvery=\"", thin, "\""),
-               "\t fileName=\"$(filebase).log\">",
+               # paste0("\t fileName=\"$(filebase).log\">"),
+               paste0('\t fileName="', run_name, '.log">'),
                "\t <model idref='posterior'/>",
                "\t <log idref=\"posterior\"/>",
                "\t <log idref=\"treePrior\"/>",
@@ -406,7 +407,8 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin
                # Trees output
                "<logger",
                paste0("\t logEvery=\"", thin, "\""),
-               "\t fileName=\"$(filebase).$(tree).trees\"",
+               # "\t fileName=\"$(filebase).$(tree).trees\"",
+               paste0('\t fileName="', run_name, '.$(tree).trees"'),
                "\t mode=\"tree\">",
                "\t <log idref=\"tree\"/>",
                "</logger>",

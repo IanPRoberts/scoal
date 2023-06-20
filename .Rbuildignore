@@ -3,5 +3,5 @@
 ^/Presentation$
 ^/Testing$
 ^/LaTeX$
-^MCMC_Results$
-^RMarkdown$
+^/MCMC_Results$
+^/RMarkdown$
