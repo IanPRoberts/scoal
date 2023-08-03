@@ -724,7 +724,7 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 
 
   n_nodes <- nrow(st_labels)
-  st_root <- st_labels[n_nodes,1] #Label of st_root -> should be node with least node age
+  st_root <- st_labels[n_nodes,1] #Label of st_root -> node with least node age
   st_root_row <- node_indices[st_root]
 
   #Parent coal nodes within subtree
@@ -735,12 +735,10 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
   st_edge_lengths <- EED[st_rows, 6] - EED[st_parent_rows, 6]
   st_edge_lengths[is.na(st_edge_lengths)] <- 0
 
-  st_parent_ids <- sapply(st_parent_rows, function(x) which(st_rows == x)) #Assign parent node id corresponding to position in subtree node ordering
 
   #Child coal nodes within subtree
   st_children <- matrix(NA, n_nodes, 2) #unname(EED[st_rows, 8:9])
   st_child_rows <- matrix(NA, n_nodes, 2) #matrix(node_indices[st_children], ncol = 2)
-  st_child_ids <- matrix(NA, n_nodes, 2)
 
   for (st_id in 1 : n_nodes){
     for (child_id in 1 : 2){
@@ -748,22 +746,27 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
       child_row <- node_indices[child_label]
 
       if (!is.na(child_row)){
-
         while (!(child_label %in% st_labels[,1])){
           child_label <- EED[child_row, 2]
           child_row <- node_indices[child_label]
         }
-        st_child_ids[st_id, child_id] <- which(st_labels[,1] == child_label)
       }
       st_children[st_id, child_id] <- child_label
       st_child_rows[st_id, child_id] <- child_row
     }
   }
 
+  st_child_ids <- matrix(NA, n_nodes, 2)
+  st_parent_ids <- numeric(n_nodes)
+  for (st_id in 1 : n_nodes){
+    st_parent_ids[st_parent_labels == st_labels[st_id]] <- st_id
+    st_child_ids[st_children == st_labels[st_id]] <- st_id
+  }
+
   #Transition matrices
   trans_mats <- array(0, c(n_deme, n_deme, n_nodes))
   for (st_id in 1:(n_nodes - 1)){ #Don't need to exponentiate to identity matrix for edge length 0 above root
-    trans_mats[,,st_id] <- Re(eigen_decomp$vectors %*% diag(exp(st_edge_lengths[st_id] * eigen_decomp$values)) %*% inverse_vecs) #expm::expm(st_edge_lengths[st_id] * fit_rates)
+    trans_mats[,,st_id] <- Re(eigen_decomp$vectors %*% diag(exp(st_edge_lengths[st_id] * eigen_decomp$values)) %*% inverse_vecs)
   }
 
   messages <- array(NA, dim = c(n_nodes, n_nodes, n_deme))
@@ -791,7 +794,7 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
   if (is.na(EED[st_rows[n_nodes], 2])){ #st_root == global_root
     #Deme distribution just product of incoming messages from below
     node_dist <- messages[st_child_ids[n_nodes, 1], n_nodes,] * messages[st_child_ids[n_nodes, 2], n_nodes,]
-    EED[st_root_row, 5] <- sample(1:n_deme, 1, prob = node_dist)
+    EED[st_root_row, 5] <- sample.int(n_deme, 1, prob = node_dist)
   }
 
   for (st_id in (n_nodes - 1):1){ #Loop over non-subtree-leaf coalescent nodes
@@ -801,7 +804,7 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 
       #Deme distribution is product of transition from determined parent with product of backwards messages from node's children
       node_dist <- trans_mats[parent_deme,,st_id] * messages[st_child_ids[st_id,1], st_id,] * messages[st_child_ids[st_id,2], st_id,]
-      EED[node_row, 5] <- sample(1:n_deme, 1, prob = node_dist)
+      EED[node_row, 5] <- sample.int(n_deme, 1, prob = node_dist)
     }
   }
 
@@ -817,7 +820,9 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
     parent_deme <- EED[st_parent_rows[st_id], 5]
     parent_time <- EED[st_parent_rows[st_id], 6]
 
-    mig_path <- ECctmc::sample_path(parent_deme, EED[node_row, 5], 0, st_edge_lengths[st_id], Q = fit_rates)
+    # mig_path <- ECctmc::sample_path_unif(parent_deme, EED[node_row, 5], 0, st_edge_lengths[st_id], Q = fit_rates)
+    mig_path <- ECctmc::sample_path_unif3(parent_deme, EED[node_row, 5], 0, st_edge_lengths[st_id],
+                                          Q = fit_rates, P = trans_mats[,,st_id])
     n_mig <- nrow(mig_path) - 2
 
     which_child <- which(st_children[st_parent_ids[st_id], ] == node_label)
