@@ -12,7 +12,6 @@ deme.decomp <- function(ED, n.deme, node.indices){
     active.rows <- node.indices[active.nodes]
     current.indices <- ED[active.rows, 6] %in% event.times[i] #match(event.times[i], ED[active.rows, 6])
     current.rows <- active.rows[current.indices]
-    print(current.rows)
 
     if (length(current.rows) > 1){ #Multiple leaves
       for (j in current.rows){
@@ -38,5 +37,5 @@ deme.decomp <- function(ED, n.deme, node.indices){
     active.nodes <- active.nodes[!active.nodes %in% ED[current.rows, 1]]
   }
 
-  return(k)
+  return(list(k= k, event.times = event.times, time.increments = time.increments))
 }
