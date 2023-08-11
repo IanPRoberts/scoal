@@ -78,6 +78,20 @@ NodeIndicesC <- function(ED) {
     .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
 }
 
+#' @title ScaledLikelihoodC
+#' @description Computes the likelihood of a structured coalescent genealogy
+#' @param ED NumericMatrix Extended data object representing structured phylogeny
+#' @param coal_rate NumericVector Effective population of each deme
+#' @param mig_mat NumericMatrix Backwards-in-time migration rates between pairs of demes
+#' @param node_indices NumericVector Vector giving row numbers in ED for node labels
+#' @returns List containing log-likelihood and likelihood of the structured coalescent genealogy
+#'
+#' @export
+#'
+SC_like_C <- function(ED, coal_rate, bit_mig_mat, node_indices) {
+    .Call('_scoal_SC_like_C', PACKAGE = 'scoal', ED, coal_rate, bit_mig_mat, node_indices)
+}
+
 #' @title ScaledDTALikelihoodC
 #' @description Computes the DTA likelihood of a structured genealogy
 #' @param ED NumericMatrix Extended data object representing structured phylogeny

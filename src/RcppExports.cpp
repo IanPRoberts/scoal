@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include "../inst/include/scoal.h"
+#include <RcppArmadillo.h>
 #include <Rcpp.h>
 #include <string>
 #include <set>
@@ -271,6 +272,43 @@ RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// SC_like_C
+double SC_like_C(NumericMatrix ED, NumericVector coal_rate, NumericMatrix bit_mig_mat, NumericVector node_indices);
+static SEXP _scoal_SC_like_C_try(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP bit_mig_matSEXP, SEXP node_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coal_rate(coal_rateSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type bit_mig_mat(bit_mig_matSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(SC_like_C(ED, coal_rate, bit_mig_mat, node_indices));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _scoal_SC_like_C(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP bit_mig_matSEXP, SEXP node_indicesSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_scoal_SC_like_C_try(EDSEXP, coal_rateSEXP, bit_mig_matSEXP, node_indicesSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // ScaledDTALikelihoodC
 List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix bit_mig_mat, NumericVector node_indices);
 static SEXP _scoal_ScaledDTALikelihoodC_try(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP time_scaleSEXP, SEXP bit_mig_matSEXP, SEXP node_indicesSEXP) {
@@ -397,6 +435,7 @@ static int _scoal_RcppExport_validate(const char* sig) {
         signatures.insert("NumericMatrix(*BitMigMatC)(NumericMatrix,NumericVector)");
         signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
         signatures.insert("NumericVector(*NodeIndicesC)(NumericMatrix)");
+        signatures.insert("double(*SC_like_C)(NumericMatrix,NumericVector,NumericMatrix,NumericVector)");
         signatures.insert("List(*ScaledDTALikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
         signatures.insert("List(*ScaledLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
         signatures.insert("List(*StructuredLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
@@ -413,6 +452,7 @@ RcppExport SEXP _scoal_RcppExport_registerCCallable() {
     R_RegisterCCallable("scoal", "_scoal_BitMigMatC", (DL_FUNC)_scoal_BitMigMatC_try);
     R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
     R_RegisterCCallable("scoal", "_scoal_NodeIndicesC", (DL_FUNC)_scoal_NodeIndicesC_try);
+    R_RegisterCCallable("scoal", "_scoal_SC_like_C", (DL_FUNC)_scoal_SC_like_C_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledDTALikelihoodC", (DL_FUNC)_scoal_ScaledDTALikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledLikelihoodC", (DL_FUNC)_scoal_ScaledLikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_StructuredLikelihoodC", (DL_FUNC)_scoal_StructuredLikelihoodC_try);
@@ -428,6 +468,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_scoal_BitMigMatC", (DL_FUNC) &_scoal_BitMigMatC, 2},
     {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
     {"_scoal_NodeIndicesC", (DL_FUNC) &_scoal_NodeIndicesC, 1},
+    {"_scoal_SC_like_C", (DL_FUNC) &_scoal_SC_like_C, 4},
     {"_scoal_ScaledDTALikelihoodC", (DL_FUNC) &_scoal_ScaledDTALikelihoodC, 5},
     {"_scoal_ScaledLikelihoodC", (DL_FUNC) &_scoal_ScaledLikelihoodC, 5},
     {"_scoal_StructuredLikelihoodC", (DL_FUNC) &_scoal_StructuredLikelihoodC, 5},

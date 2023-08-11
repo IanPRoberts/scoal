@@ -4,6 +4,7 @@
 #ifndef RCPP_scoal_RCPPEXPORTS_H_GEN_
 #define RCPP_scoal_RCPPEXPORTS_H_GEN_
 
+#include <RcppArmadillo.h>
 #include <Rcpp.h>
 
 namespace scoal {
@@ -168,6 +169,27 @@ namespace scoal {
         if (rcpp_result_gen.inherits("try-error"))
             throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
         return Rcpp::as<NumericVector >(rcpp_result_gen);
+    }
+
+    inline double SC_like_C(NumericMatrix ED, NumericVector coal_rate, NumericMatrix bit_mig_mat, NumericVector node_indices) {
+        typedef SEXP(*Ptr_SC_like_C)(SEXP,SEXP,SEXP,SEXP);
+        static Ptr_SC_like_C p_SC_like_C = NULL;
+        if (p_SC_like_C == NULL) {
+            validateSignature("double(*SC_like_C)(NumericMatrix,NumericVector,NumericMatrix,NumericVector)");
+            p_SC_like_C = (Ptr_SC_like_C)R_GetCCallable("scoal", "_scoal_SC_like_C");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_SC_like_C(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(coal_rate)), Shield<SEXP>(Rcpp::wrap(bit_mig_mat)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<double >(rcpp_result_gen);
     }
 
     inline List ScaledDTALikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix bit_mig_mat, NumericVector node_indices) {
