@@ -812,6 +812,8 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
   # Subtree update #
   ##################
   max_label <- max(EED[,1])
+  log_like <- 0 #Proposal log likelihood
+
   #Fill in parent edge of each node in st_labels except st_root
   for (st_id in 1 : (n_nodes - 1)){ #Skip subtree root (a.s. last in node_order)
     node_row <- st_rows[st_id]
@@ -823,6 +825,16 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
     # mig_path <- ECctmc::sample_path_unif(parent_deme, EED[node_row, 5], 0, st_edge_lengths[st_id], Q = fit_rates)
     mig_path <- ECctmc::sample_path_unif3(parent_deme, EED[node_row, 5], 0, st_edge_lengths[st_id],
                                           Q = fit_rates, P = trans_mats[,,st_id])
+
+
+    ###### ECctmc::sample_path_unif returns t(mig_path) if 0 migrations added
+    ###### BUG IN SOURCE CODE!!!
+    if (nrow(mig_path) == ncol(mig_path)){
+      if (mig_path[1,2] == st_edge_lengths[st_id]){
+        mig_path <- t(mig_path)
+      }
+    }
+
     n_mig <- nrow(mig_path) - 2
 
     which_child <- which(st_children[st_parent_ids[st_id], ] == node_label)
@@ -832,6 +844,11 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 
       EED[st_parent_rows[st_id], 2 + which_child] <- max_label + 1 #Update child of node_parent
       for (k in 1 : n_mig){
+        #log-probability of holding time until next migration i -> j
+        log_like <- log_like +
+          log(fit_rates[mig_path[k, 2], mig_path[k + 1, 2]]) + #log(f_ij)
+          fit_rates[mig_path[k, 2], mig_path[k, 2]] * (mig_path[k+1, 1] - mig_path[k,1]) # - f_{i+} * (t_j - t_i)
+
         max_label <- max_label + 1
         EED <- rbind(EED,
                      c(max_label, #New migration ID
@@ -850,6 +867,9 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
       EED[node_row, 2] <- st_parent_labels[st_id] #Update parent of current node
       EED[st_parent_rows[st_id], 2 + which_child] <- node_label #Update child of parent node
     }
+
+    #log-probability of no further migrations between last two events on mig_path
+    log_like <- log_like + fit_rates[mig_path[n_mig + 1, 2], mig_path[n_mig + 2, 2]] * (mig_path[n_mig+2, 1] - mig_path[n_mig + 1, 1])
   }
 
   #############################
@@ -889,7 +909,7 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 
   EED <- EED[-EED_rm_rows,]
 
-  return(proposal=EED)
+  return(list(proposal=EED, prop_prob = log_like))
 }
 
 
