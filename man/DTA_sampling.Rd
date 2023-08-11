@@ -16,8 +16,6 @@ DTA_sampling(
 \arguments{
 \item{ED}{Extended data representation of a phylogeny including migration history}
 
-\item{mig_mat}{Forward-in-time migration matrix for the phylogeny}
-
 \item{time_scale}{Time scale for the migration matrix}
 
 \item{N}{Number of migration histories to sample}
@@ -25,6 +23,8 @@ DTA_sampling(
 \item{parallel}{Logical, whether or not to generate proposals in parallel}
 
 \item{mc.cores}{(optional) If parallel is TRUE, number of cores to parallelise over}
+
+\item{fit_mig_mat}{Forward-in-time migration matrix for the phylogeny}
 }
 \value{
 List of proposed DTA migration histories with the same leaves as input ED
