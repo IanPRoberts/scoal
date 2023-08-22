@@ -20,11 +20,14 @@
 #' @export
 
 local_DTA_mcmc <- function(N = 1e6, ED, coal_rate, bit_mig_mat, fit_mig_mat = FitMigMatC(bit_mig_mat, coal_rate),
+                           st_radius = 5,
                            cr_mode = 1, cr_var = 1,
                            mm_mode = 0.05, mm_var = 0.5,
                            output_dir = '~', run_name = 'Local_DTA',
                            thin = 1e3,
-                           prop_rates = c(400, 1, 1)){
+                           prop_rates = c(10, 1, 1)){
+  pb <- txtProgressBar(0, N, style = 3)
+
   # Prior parameters
   cr_rate <- (cr_mode + sqrt(cr_mode^2 + 4 * cr_var))/(2 * cr_var)
   cr_shape <- 1 + cr_mode * cr_rate
@@ -91,7 +94,7 @@ local_DTA_mcmc <- function(N = 1e6, ED, coal_rate, bit_mig_mat, fit_mig_mat = Fi
     move_id <- sample(1:3, 1, prob = prop_rates)
 
     if (move_id == 1){
-      subtree <- st_centre_dist(ED, st_width = 2.5, ED_NI)
+      subtree <- st_centre_dist(ED, st_radius, ED_NI)
       proposal <- local_DTA_subtree_proposal(subtree$EED, subtree$st_labels, fit_rates, eigen_decomp = eigen_decomp, inverse_vecs = inverse_vecs)
 
       # Early acceptance if prop == EED
@@ -137,6 +140,7 @@ local_DTA_mcmc <- function(N = 1e6, ED, coal_rate, bit_mig_mat, fit_mig_mat = Fi
 
 
     if (x %% thin == 0){ #x (mod thin) = 0, i.e. thin-many iterations have passed
+      setTxtProgressBar(pb, x)
       cat(paste0("\n", x), #sample
           ED_SC, # likelihood
           ED_SC + mm_prior + cr_prior, # posterior
@@ -158,7 +162,7 @@ local_DTA_mcmc <- function(N = 1e6, ED, coal_rate, bit_mig_mat, fit_mig_mat = Fi
     }
 
   }
-
+  close(pb)
   cat("END;",
       file = tree_file, append = TRUE, sep = "")
 }
