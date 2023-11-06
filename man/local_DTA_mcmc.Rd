@@ -10,6 +10,7 @@ local_DTA_mcmc(
   coal_rate,
   bit_mig_mat,
   fit_mig_mat = FitMigMatC(bit_mig_mat, coal_rate),
+  st_radius = 5,
   cr_mode = 1,
   cr_var = 1,
   mm_mode = 0.05,
@@ -17,7 +18,7 @@ local_DTA_mcmc(
   output_dir = "~",
   run_name = "Local_DTA",
   thin = 1000,
-  prop_rates = c(400, 1, 1)
+  prop_rates = c(10, 1, 1)
 )
 }
 \arguments{
