@@ -106,9 +106,15 @@ MTT_node_retype <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED)){
     n_mig <- nrow(mig_path) - 2
     which_child <- which(ED[parent_row, 8:9] == ED[node_row, 1])
 
-    if (n_mig > 0){ #Add new migrations
-      #log_like <- ...
+    trans_mat <- expm::expm(bit_rates * edge_length)
 
+    #log(bit_rates[i,i]) = NaN; removed by sum(..., na.rm=TRUE)
+    log_like <- log_like +
+      suppressWarnings(sum(log(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-1, 2] - 1)]), na.rm=TRUE)) + #sum(log(\lambda_{ij}))
+      sum(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-(1 + 0:n_mig), 2] - 1)] * (mig_path[-1,1] - mig_path[-(1 + 0:n_mig), 1])) - # - sum(\lambda_{i+} * (t_j - t_i))
+      log(trans_mat[node_deme, parent_deme]) #Dividing by conditional probability
+
+    if (n_mig > 0){ #Add new migrations
       new_migrations <- cbind(max_label + 1:n_mig, #New migration IDs
                               max_label + 1 + 1:n_mig, #Parent ID = next new migration ID
                               max_label - 1 + 1:n_mig, NA, #Child ID = previous new migration ID
@@ -142,14 +148,7 @@ MTT_node_retype <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED)){
 #' @rdname MTT_node_retype
 #' @export
 
-MTT_node_retype_eigen <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED), eigen_vals = NULL, eigen_vecs = NULL, inverse_vecs = NULL){
-  if (is.null(eigen_vals) || is.null(eigen_vecs)){
-    eigen_decomp <- eigen(bit_rates)
-    eigen_vals <- eigen_decomp$values
-    eigen_vecs <- eigen_decomp$vectors
-    inverse_vecs <- solve(eigen_vecs)
-  }
-
+MTT_node_retype_eigen <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED), eigen_vals = eigen(bit_rates)$values, eigen_vecs = eigen(bit_rates)$vectors, inverse_vecs = solve(eigen_vecs)){
   st_root <- unname(st_labels[1,1]) #st_labels[1,] always corresponds to st_root by construction
   st_leaves <- st_labels[!(st_labels[,8] %in% st_labels[,1]),1]
 
@@ -172,7 +171,7 @@ MTT_node_retype_eigen <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED
   ED[int_coal_node_row, 5] <- sample(1:n_deme, length(internal_coal_nodes), TRUE)
 
   ### Complete migration history
-  max_label <- max(ED[,1])
+  max_label <- ED[nrow(ED), 1] #max(ED[,1]) is label of final row
   log_like <- 0 #Proposal log likelihood
 
   for (row_id in 2 : nrow(st_labels)){ #Row 1 = st_root
@@ -203,9 +202,13 @@ MTT_node_retype_eigen <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED
     n_mig <- nrow(mig_path) - 2
     which_child <- which(ED[parent_row, 8:9] == ED[node_row, 1])
 
-    if (n_mig > 0){ #Add new migrations
-      #log_like <- ...
+    #log(bit_rates[i,i]) = NaN; removed by sum(..., na.rm=TRUE)
+    log_like <- log_like +
+      suppressWarnings(sum(log(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-1, 2] - 1)]), na.rm=TRUE)) + #sum(log(\lambda_{ij}))
+      sum(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-(1 + 0:n_mig), 2] - 1)] * (mig_path[-1,1] - mig_path[-(1 + 0:n_mig), 1])) - # - sum(\lambda_{i+} * (t_j - t_i))
+      log(trans_mat[node_deme, parent_deme]) #Dividing by conditional probability
 
+    if (n_mig > 0){ #Add new migrations
       new_migrations <- cbind(max_label + 1:n_mig, #New migration IDs
                               max_label + 1 + 1:n_mig, #Parent ID = next new migration ID
                               max_label - 1 + 1:n_mig, NA, #Child ID = previous new migration ID
@@ -282,15 +285,9 @@ MTT_proposal_like <- function(ED, bit_mig_mat, NI = NodeIndicesC(ED)){
       edge_length <- ED[row_id, 6] - ED[parent_row, 6]
       trans_mat <- expm::expm(bit_rates * edge_length) #Use eigen decomposition!!
 
-      log_like <- log_like - log(trans_mat[ED[parent_row, 5], ED[row_id, 5]])
+      log_like <- log_like - log(trans_mat[ED[row_id, 5], ED[parent_row, 5]])
     }
   }
-
-  # log_bmm <- log(bit_mig_mat)
-  # diag(log_bmm) <- 0
-  #
-  # n_deme <- nrow(bit_mig_mat)
-  # log_like <- sum(log_bmm[n_deme * (ED[parent_rows, 5] - 1) + ED[,5]] - edge_lengths * bit_rowsums[ED[,5]], na.rm=TRUE) #Index matrix as a vector using x[i,j] = x[i + (j-1) * nrow(x)] for matrix stored byrow=FALSE
 
   return(list(log.likelihood = log_like, likelihood = exp(log_like)))
 }
@@ -330,7 +327,7 @@ MTT_proposal_like_eigen <- function(ED, bit_rates, NI = NodeIndicesC(ED), eigen_
     if (!is.na(parent_row)){
       edge_length <- ED[row_id, 6] - ED[parent_row, 6]
       trans_mat <- eigen_vecs %*% diag(exp(edge_length * eigen_vals)) %*% inverse_vecs
-      log_like <- log_like - log(trans_mat[ED[parent_row, 5], ED[row_id, 5]])
+      log_like <- log_like - log(trans_mat[ED[row_id, 5], ED[parent_row, 5]])
     }
   }
 
@@ -491,9 +488,8 @@ MTT_node_retype_MCMC <- function(N = 1e6,
         prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
         log_AR <- min(0, prop_SC - ED_SC +
                       MTT_local_like(ED, subtree$st_labels, bit_mig_mat, ED_NI)$log.likelihood -
-                      MTT_local_like(proposal$proposal, subtree$st_labels, bit_mig_mat, prop_NI)$log.likelihood
-                        # MTT_proposal_like(ED, bit_mig_mat, ED_NI)$log.likelihood -
-                        # MTT_proposal_like(proposal$proposal, bit_mig_mat, prop_NI)$log.likelihood
+                      proposal$prop_prob
+                      # MTT_local_like(proposal$proposal, subtree$st_labels, bit_mig_mat, prop_NI)$log.likelihood
         )
 
         if (log(runif(1)) < log_AR){
@@ -639,7 +635,8 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
         prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
         log_AR <- min(0, Re(prop_SC - ED_SC +
                               MTT_local_like_eigen(ED, subtree$st_labels, bit_rates, ED_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood -
-                              MTT_local_like_eigen(proposal$proposal, subtree$st_labels, bit_rates, prop_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood
+                              proposal$prop_prob
+                              # MTT_local_like_eigen(proposal$proposal, subtree$st_labels, bit_rates, prop_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood
         ))
 
         if (log(runif(1)) < log_AR){
