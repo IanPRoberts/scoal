@@ -295,14 +295,7 @@ MTT_proposal_like <- function(ED, bit_mig_mat, NI = NodeIndicesC(ED)){
 #' @rdname MTT_proposal_like
 #' @export
 
-MTT_proposal_like_eigen <- function(ED, bit_rates, NI = NodeIndicesC(ED), eigen_vals = NULL, eigen_vecs = NULL, inverse_vecs = NULL){
-  if (is.null(eigen_vals) || is.null(eigen_vecs)){
-    eigen_decomp <- eigen(bit_rates)
-    eigen_vals <- eigen_decomp$values
-    eigen_vecs <- eigen_decomp$vectors
-    inverse_vecs <- solve(eigen_vecs)
-  }
-
+MTT_proposal_like_eigen <- function(ED, bit_rates, NI = NodeIndicesC(ED), eigen_vals = eigen(bit_rates)$values, eigen_vecs = eigen(bit_rates)$vectors, inverse_vecs = solve(eigen_vecs)){
   parent_rows <- NI[ED[,2]]
   edge_lengths <- ED[,6] - ED[parent_rows, 6]
   log_like <- 0
@@ -565,6 +558,7 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
 
   bit_rates <- bit_mig_mat
   diag(bit_rates) <- - rowSums(bit_mig_mat)
+  n_deme <- nrow(bit_rates)
 
   eigen_decomp <- eigen(bit_rates)
   eigen_vecs <- eigen_decomp$vectors
@@ -635,8 +629,8 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
         prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
         log_AR <- min(0, Re(prop_SC - ED_SC +
                               MTT_local_like_eigen(ED, subtree$st_labels, bit_rates, ED_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood -
-                              proposal$prop_prob
-                              # MTT_local_like_eigen(proposal$proposal, subtree$st_labels, bit_rates, prop_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood
+                              # proposal$prop_prob
+                              MTT_local_like_eigen(proposal$proposal, subtree$st_labels, bit_rates, prop_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood
         ))
 
         if (log(runif(1)) < log_AR){

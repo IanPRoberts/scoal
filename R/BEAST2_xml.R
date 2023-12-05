@@ -24,7 +24,7 @@ master_xml <- function(coal_rate, bit_mig_mat, leaf_data, n_deme, xml_path, con 
 
   for (i in 1 : n_deme){
     out <- paste(out,
-                 paste0("<reaction spec='Reaction' rate='", coal_rate[i], "'>"),
+                 paste0("<reaction spec='Reaction' rate='", coal_rate[i] / 2, "'>"), #Coalescent rates halved to account for MASTER treating coalescence between (i,j) as distinct from coalescence between (j,i)
                  paste0("\t 2L[", i-1, "]:1 -> L[", i-1, "]:1 "),
                  "</reaction>",
                  sep = "\n\t\t\t")
