@@ -913,6 +913,8 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 }
 
 
+#Breadth-first search to identify all nodes within distance 'st_width' of a central location
+
 st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = runif(1), edge_lengths = numeric(0)){
   if (length(edge_lengths) == 0){
     edge_lengths <- EED[,6] - EED[NI[EED[,2]], 6]
@@ -981,11 +983,12 @@ st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = run
                        EED[st_root_row, c(1, 6)])
   }
 
-  st_labels[, 2] <- abs(st_centre_age - st_labels[, 2])
+  st_labels[, 2] <- st_centre_age - st_labels[, 2] #abs(st_centre_age - st_labels[, 2])
 
   current_parents <- st_labels[,1]
 
-  if (st_labels[1,2] > st_width){
+  # if (st_labels[1,2] > st_width){ #If st_child age < st_leaf_age
+  if (st_labels[1,2] < -st_width){
     current_parents <- current_parents[-1]
   }
 
@@ -1001,7 +1004,8 @@ st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = run
           child_row <- NI[EED[node_row, 2 + child_id]]
 
           #### Need to remove new_parents below st_leaf_age and global leaves
-          child_dist <- node_dist + edge_lengths[child_row]
+          # child_dist <- node_dist + edge_lengths[child_row]
+          child_dist <- node_dist - edge_lengths[child_row]
           st_labels <- rbind(st_labels,
                              c(EED[child_row, 1], child_dist))
 
@@ -1015,7 +1019,8 @@ st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = run
   }
 
   for (row_id in 1 : nrow(st_labels)){
-    if (st_labels[row_id, 2] > st_width){
+    # if (st_labels[row_id, 2] > st_width){
+    if (st_labels[row_id, 2] < - st_width){
       #If node is greater than distance st_width from st_centre add virtual migration
       max_label <- max_label + 1
 
@@ -1048,7 +1053,7 @@ st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = run
 
       NI[max_label] <- nrow(EED)
 
-      st_labels[row_id,] <- c(EED[nrow(EED), 1], st_width)
+      st_labels[row_id,] <- c(EED[nrow(EED), 1], - st_width)
     }
   }
 
