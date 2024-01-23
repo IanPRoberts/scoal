@@ -882,6 +882,7 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
       # Other subtree nodes contribute transition matrix %*% incoming messages
       # messages[st_id, st_parent_ids[st_id], ] <- trans_mats[,, st_id] %*% apply(messages[st_child_ids[st_id,], st_id,], 2, prod)
       messages[st_id, st_parent_ids[st_id], ] <- trans_mats[,, st_id] %*% (messages[st_child_ids[st_id,1], st_id ,] * messages[st_child_ids[st_id,2], st_id, ])
+      messages[st_id, st_parent_ids[st_id], ] <- messages[st_id, st_parent_ids[st_id], ] / sum(messages[st_id, st_parent_ids[st_id], ])
     }
   }
 
