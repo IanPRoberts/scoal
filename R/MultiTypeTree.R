@@ -205,7 +205,9 @@ MTT_node_retype_eigen <- function(ED, st_labels, bit_rates, NI = NodeIndicesC(ED
     #log(bit_rates[i,i]) = NaN; removed by sum(..., na.rm=TRUE)
     log_like <- log_like +
       suppressWarnings(sum(log(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-1, 2] - 1)]), na.rm=TRUE)) + #sum(log(\lambda_{ij}))
-      sum(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-(1 + 0:n_mig), 2] - 1)] * (mig_path[-1,1] - mig_path[-(1 + 0:n_mig), 1])) - # - sum(\lambda_{i+} * (t_j - t_i))
+      sum(bit_rates[mig_path[-nrow(mig_path), 2] + n_deme * (mig_path[-nrow(mig_path), 2] - 1)] * #lambda_{i+}
+            (mig_path[-nrow(mig_path),1] - mig_path[-1, 1])) - # * (t_j - t_i)
+      # sum(bit_rates[mig_path[-(1 + 0:n_mig), 2] + n_deme * (mig_path[-(1 + 0:n_mig), 2] - 1)] * (mig_path[-1,1] - mig_path[-(1 + 0:n_mig), 1])) - # - sum(\lambda_{i+} * (t_j - t_i))
       log(trans_mat[node_deme, parent_deme]) #Dividing by conditional probability
 
     if (n_mig > 0){ #Add new migrations
@@ -481,8 +483,8 @@ MTT_node_retype_MCMC <- function(N = 1e6,
         prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
         log_AR <- min(0, prop_SC - ED_SC +
                       MTT_local_like(ED, subtree$st_labels, bit_mig_mat, ED_NI)$log.likelihood -
-                      proposal$prop_prob
-                      # MTT_local_like(proposal$proposal, subtree$st_labels, bit_mig_mat, prop_NI)$log.likelihood
+                      # proposal$prop_prob
+                      MTT_local_like(proposal$proposal, subtree$st_labels, bit_mig_mat, prop_NI)$log.likelihood
         )
 
         if (log(runif(1)) < log_AR){
