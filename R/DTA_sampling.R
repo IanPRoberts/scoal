@@ -133,7 +133,7 @@ bit_global_DTA <- function(ED, bit_rates, root_deme = NA){
   top_ED <- strip.history(ED)
   node_indices <- NodeIndicesC(top_ED)
   n_leaf <- (nrow(top_ED) + 1)/2
-  n_deme <- nrow(bit_mig_mat)
+  n_deme <- nrow(bit_rates)
 
   ### Transition matrices
   eigen_decomp <- eigen(bit_rates)
@@ -162,6 +162,8 @@ bit_global_DTA <- function(ED, bit_rates, root_deme = NA){
       messages[node_row, node_parent_row, ] <- trans_mats[,, node_row] %*% apply(messages[node_children_rows, node_row,], 2, prod)
       messages[node_row, node_parent_row, ] <- messages[node_row, node_parent_row, ] / sum(messages[node_row, node_parent_row, ]) #Normalise messages to prevent numerical underflow
     }
+
+    if (any(is.na(messages))) browser()
   }
 
   prop_ED <- top_ED #New proposal

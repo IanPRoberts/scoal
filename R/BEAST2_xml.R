@@ -88,15 +88,16 @@ master_xml <- function(coal_rate, bit_mig_mat, leaf_data, n_deme, xml_path, con 
 #' @param bit_mig_rate initial estimate for backward-in-time migration matrix
 #' @param N total number of MCMC iterations (including burn-in)
 #' @param thin thinning increment for the MCMC
-#' @param con A connection object or a character string
+#' @param con A connection object or a character string giving the location for the output xml file (stdout() prints to console)
 #' @param BEAST2_package Select package to prepare xml file for, either MTT (MultiTypeTree) or BASTA
 #' @param run_name Name for logger files to be saved as
+#' @param
 #'
 #' @return output file or file content on screen
 #'
 #' @export
 
-fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "$(filebase)"){
+fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin=1e3, con = stdout(), BEAST2_package = "MTT", run_name = "$(filebase)", priors = 'default'){
   n_tip <- length(strphylo$tip.label)
   node_ages <- ape::node.depth.edgelength(strphylo)
 

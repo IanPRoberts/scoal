@@ -36,11 +36,11 @@ ED.dist <- function(ED1, ED2, node_indices_1 = NA, node_indices_2 = NA){
   for (i in 2 : length(pooled_event_times) - 1){
     k_diff[i,] <- abs(deme_decomp_1$k[count_1,] - deme_decomp_2$k[count_2,])
     if (pooled_event_times[i+1] == deme_decomp_1$event.times[count_1 + 1]){
-      count_1 <- count_1 + 1
+      count_1 <- min(count_1 + 1, nrow(deme_decomp_1$k))
     }
 
     if (pooled_event_times[i+1] == deme_decomp_2$event.times[count_2 + 1]){
-      count_2 <- count_2 + 1
+      count_2 <- min(count_2 + 1, nrow(deme_decomp_2$k))
     }
   }
 
