@@ -12,9 +12,9 @@ MTT_node_retype_eigen(
   st_labels,
   bit_rates,
   NI = NodeIndicesC(ED),
-  eigen_vals = NULL,
-  eigen_vecs = NULL,
-  inverse_vecs = NULL
+  eigen_vals = eigen(bit_rates)$values,
+  eigen_vecs = eigen(bit_rates)$vectors,
+  inverse_vecs = solve(eigen_vecs)
 )
 }
 \arguments{

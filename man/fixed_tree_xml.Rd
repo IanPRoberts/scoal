@@ -13,7 +13,8 @@ fixed_tree_xml(
   thin = 1000,
   con = stdout(),
   BEAST2_package = "MTT",
-  run_name = "$(filebase)"
+  run_name = "$(filebase)",
+  priors = "default"
 )
 }
 \arguments{
@@ -25,7 +26,7 @@ fixed_tree_xml(
 
 \item{thin}{thinning increment for the MCMC}
 
-\item{con}{A connection object or a character string}
+\item{con}{A connection object or a character string giving the location for the output xml file (stdout() prints to console)}
 
 \item{BEAST2_package}{Select package to prepare xml file for, either MTT (MultiTypeTree) or BASTA}
 

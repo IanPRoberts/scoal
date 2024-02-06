@@ -13,9 +13,9 @@ MTT_proposal_like_eigen(
   ED,
   bit_rates,
   NI = NodeIndicesC(ED),
-  eigen_vals = NULL,
-  eigen_vecs = NULL,
-  inverse_vecs = NULL
+  eigen_vals = eigen(bit_rates)$values,
+  eigen_vecs = eigen(bit_rates)$vectors,
+  inverse_vecs = solve(eigen_vecs)
 )
 
 MTT_local_like(ED, st_labels, bit_mig_mat, NI = NodeIndicesC(ED))
