@@ -32,6 +32,8 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
                                  adaptation_rate = 0.6, target_accept_rate = 0.234,
                                  output_dir, run_name = 'Local_DTA'){
 
+  start_time <- Sys.time()
+
   # Convert priors to rate-shape parameterisation from mode-variance
   cr_rate <- (cr_mode + sqrt(cr_mode^2 + 4 * cr_var))/(2 * cr_var)
   cr_shape <- 1 + cr_mode * cr_rate
@@ -56,18 +58,16 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
 
 
   # Write iteration number, likelihood, posterior and subtree radius to stdout()
-  cat('',
-      'Sample',
+  cat('Sample',
       'Likelihood',
       'Posterior',
-      'Subtree radius',
+      'Subtree radius\n',
       sep = '\t')
 
-  cat('\n',
-      0, # Sample
+  cat(0, # Sample
       sprintf('%.03f', ED_SC), # Likelihood
       sprintf('%.03f', ED_SC + mm_prior + cr_prior), # posterior
-      sprintf('%.03f', st_radius), #subtree radius (being adapted!)
+      sprintf('%.03f\n', st_radius), #subtree radius (being adapted!)
       sep = '\t')
 
   # Set up .freq file to store move acceptance frequencies
@@ -173,11 +173,10 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
 
     if (x %% thin == 0){
       # Write iteration, likelihood, posterior and subtree radius to stdout()
-      cat('\n',
-          x, # Sample
+      cat(x, # Sample
           sprintf('%.03f', ED_SC), # Likelihood
           sprintf('%.03f', ED_SC + mm_prior + cr_prior), # posterior
-          sprintf('%.03f', st_radius), #subtree radius (being adapted!)
+          sprintf('%.03f\n', st_radius), #subtree radius (being adapted!)
           sep = '\t')
 
       # Write continuous parameters to .log file
@@ -207,6 +206,8 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
           file = tree_file, append = TRUE, sep = "")
     }
   }
-  cat("END;",
-      file = tree_file, append = TRUE, sep = "")
+  cat("END;", file = tree_file, append = TRUE, sep = "")
+
+  end_time <- Sys.time()
+  cat('\nElapsed time:', round(as.numeric(end_time - start_time), digits = 1), 'seconds')
 }
