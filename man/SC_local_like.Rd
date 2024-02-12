@@ -22,6 +22,10 @@ SC_local_like(
 \item{bit_mig_mat}{Backward-in-time migration matrix for the phylogeny}
 
 \item{event_ids}{Pair of event IDs to compute likelihood between}
+
+\item{node_indices}{Node indices}
+
+\item{deme_decomp}{Deme Decomp}
 }
 \value{
 Likelihood & log_likelihood between events

@@ -105,7 +105,7 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
     treedata <- treeio::as.treedata(phylo)
     treedata@data <- tidytree::tibble(type = paste0("\"", phylo$node.deme, "\""), node = 1:length(phylo$node.deme))
 
-    header <- capture.output(write.nexus("STATE_0" = phylo, file = stdout(), translate = TRUE)) #Generate full .trees file for initial tree - need all except final "END;"
+    header <- capture.output(write.beast("STATE_0" = phylo, file = stdout(), translate = TRUE)) #Generate full .trees file for initial tree - need all except final "END;"
     header[2] <- paste("[R-package scoal, ", date(), "]\n\n", sep = "") #Update package line of .trees file to scoal
     cat(header[-length(header)], file = tree_file, sep = "\n") #Save file with updated package line, omitting "END;" on final line
   }

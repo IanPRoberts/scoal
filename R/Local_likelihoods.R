@@ -7,8 +7,8 @@
 #' @param coal_rate Vector of coalescent rates
 #' @param bit_mig_mat Backward-in-time migration matrix for the phylogeny
 #' @param event_ids Pair of event IDs to compute likelihood between
-#' @param node_indices
-#' @param deme_decomp
+#' @param node_indices Node indices
+#' @param deme_decomp Deme Decomp
 #' @return Likelihood & log_likelihood between events
 #'
 #' @export

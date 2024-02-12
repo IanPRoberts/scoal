@@ -91,7 +91,6 @@ master_xml <- function(coal_rate, bit_mig_mat, leaf_data, n_deme, xml_path, con 
 #' @param con A connection object or a character string giving the location for the output xml file (stdout() prints to console)
 #' @param BEAST2_package Select package to prepare xml file for, either MTT (MultiTypeTree) or BASTA
 #' @param run_name Name for logger files to be saved as
-#' @param
 #'
 #' @return output file or file content on screen
 #'
