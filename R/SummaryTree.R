@@ -109,8 +109,9 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
                                ED[sapply(ED[,8], identical, coal_node_label), 1], #sapply(..., identical) avoids 'NA==...' returning NA
                                coal_node_label)) #Add coal_node_label at end
       branch_rows <- NI[branch_nodes]
+      branch_rows <- branch_rows[order(ED[branch_rows, 6])] #Ensure branch nodes are stored in ascending age order
 
-      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_nodes, 6])]
+      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_rows, 6])]
     }
 
     consensus_deme <- numeric(n_splits + 1)
@@ -174,8 +175,9 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
                                ED[sapply(ED[,8], identical, tip_node_label), 1], #sapply(..., identical) avoids 'NA==...' returning NA
                                tip_node_label)) #Add tip_node_label at end
       branch_rows <- NI[branch_nodes]
+      branch_rows <- branch_rows[order(ED[branch_rows, 6])] #Ensure branch nodes are stored in ascending age order
 
-      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_nodes, 6])]
+      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_rows, 6])]
     }
 
     consensus_deme <- numeric(n_splits + 1)
