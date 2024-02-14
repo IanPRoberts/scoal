@@ -58,13 +58,169 @@ summary_tree <- function(ED_sample, locations, n_deme = NA){
 #' @param ED_sample Sample of migration histories on same topology
 #' @param n_splits Number of splits per branch used to discretise the tree
 #' @param consensus_prob Consensus probability to be exceeded to allow colouring
-#' @param n_deme (optional) Number of demes
+#' @param plot Logical value of whether to plot consensus tree
 #'
-#' @return Returns deme frequencies at each location
+#' @return Returns consensus tree in ED format
 #'
 #' @export
 
-consensus_tree <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA, plot = TRUE){
+consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  TRUE){
+  n_deme <- max(ED_list[[1]][,5])
+  n_trees <- length(ED_list)
+  n_leaf <- sum(is.na(ED_list[[1]][,3]))
+
+  #Strip migration events from tree
+  topology <- ED_list[[1]]
+  topology <- topology[(is.na(topology[,3])) | (!is.na(topology[,4])),]
+  topology[,2:4] <- topology[,7:9]
+  topology[!is.na(topology[,3]), 5] <- 0 #Set non-leaf demes to 0, i.e. undetermined
+
+  NI_list <- lapply(ED_list, NodeIndicesC) # Node indices for each ED in ED_list
+
+  #n_coal_nodes * n_trees matrix giving ordering of coalescent nodes for each tree
+  ordered_coal_nodes <- sapply(ED_list, function(x){
+    coal_rows <- !is.na(x[,4])
+    x[coal_rows, 1][order(x[coal_rows, 6])] #x[...,1] gives coalescent node labels; [order(...)] sorts into ascending node age
+  })
+
+  max_label <- max(topology[,1])
+
+  # Edges ending at coalescent node - index by (a.s. unique) event times
+  for (coal_node_id in 2 : nrow(ordered_coal_nodes)){ #Root node is a.s. first node in coal_node_order
+    observed_demes <- matrix(NA, n_trees, n_splits + 1)
+
+    coal_node_row <- NI_list[[1]][ordered_coal_nodes[coal_node_id, 1]]
+    edge_length <- topology[coal_node_row, 6] - topology[NI_list[[1]][topology[coal_node_row, 7]], 6] #Branch length of current branch only
+    split_width <- edge_length / (n_splits + 1)
+    observation_times <- topology[coal_node_row, 6] - split_width * 1:n_splits #Age of splits along branch
+
+    for (tree_id in n_trees : 1){ #Iterate in reverse order to leave final setup at tree_id = 1 to be same as topology
+      ED <- ED_list[[tree_id]]
+      NI <- NI_list[[tree_id]]
+
+      coal_node_label <- ordered_coal_nodes[coal_node_id, tree_id]
+      coal_node_row <- NI[coal_node_label]
+
+      observed_demes[tree_id, 1] <- ED[coal_node_row, 5] #Observed demes at current coalescent node
+
+      #Find all nodes on branch (including coal_node and parent coal of coal_node)
+      coal_parent <- ED[coal_node_row, 7]
+      branch_nodes <- unique(c(coal_parent, #Possibly add coal_parent twice if ED[coal_parent, 8] == coal_node_label
+                               ED[sapply(ED[,8], identical, coal_node_label), 1], #sapply(..., identical) avoids 'NA==...' returning NA
+                               coal_node_label)) #Add coal_node_label at end
+      branch_rows <- NI[branch_nodes]
+
+      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_nodes, 6])]
+    }
+
+    consensus_deme <- numeric(n_splits + 1)
+    consensus_freq <- consensus_prob * n_trees
+    for (split_id in 1 : (n_splits + 1)){
+      tab <- table(observed_demes[,split_id])
+
+      possible_demes <- names(tab[tab >= consensus_freq])
+      if (length(possible_demes) == 0){
+        consensus_deme[split_id] <- 0
+      } else {
+        consensus_deme[split_id] <- as.numeric(sample(possible_demes, 1)) #Sample uniformly in case of tie over multiple options (only possible if consensus_prob <= 0.5)
+      }
+    }
+
+    # Add nodes to topology at split points
+    topology <- rbind(topology,
+                      cbind(max_label + 1 : n_splits, #Node ID
+                            c(max_label + 2 : n_splits, coal_parent), #Parent
+                            c(coal_node_label, max_label + 2 : n_splits - 1), #Child 1
+                            NA, #Child 2
+                            consensus_deme[-1], #Deme
+                            observation_times, #Node Age
+                            coal_parent, #Parent coal
+                            coal_node_label, #Child coal 1
+                            NA)) #Child coal 2
+
+    topology[coal_node_row, c(2, 5)] <- c(max_label + 1, consensus_deme[1]) #Update parent of coal_node
+
+    #Update child of parent_coal_node
+    coal_parent_row <- NI[coal_parent]
+    which_child <- which(topology[coal_parent_row, 8:9] == coal_node_label)
+    topology[NI[coal_parent], 2 + which_child] <- max_label + n_splits
+
+    max_label <- max_label + n_splits
+  }
+
+  # Edges ending at migration node - index by tip label
+  tip_labels <- topology[is.na(topology[,3]), 1]
+
+  for (tip_id in 1 : length(tip_labels)){
+    observed_demes <- matrix(NA, n_trees, n_splits + 1)
+
+    tip_row <- NI_list[[1]][tip_labels[tip_id]]
+    edge_length <- topology[tip_row, 6] - topology[NI_list[[1]][topology[tip_row, 7]], 6] #Branch length above tip
+    split_width <- edge_length / (n_splits + 1)
+    observation_times <- topology[tip_row, 6] - split_width * 1 : n_splits #Age of splits along branch
+
+    for (tree_id in n_trees : 1){
+      ED <- ED_list[[tree_id]]
+      NI <- NI_list[[tree_id]]
+
+      tip_node_label <- tip_labels[tip_id]
+      tip_node_row <- NI[tip_node_label]
+
+      observed_demes[tree_id, 1] <- ED[tip_node_row, 5] #Observed demes at current tip
+
+      #Find all nodes on branch (including coal_node and parent coal of coal_node)
+      coal_parent <- ED[tip_node_row, 7]
+      branch_nodes <- unique(c(coal_parent, #Possibly add coal_parent twice if ED[coal_parent, 8] == tip_node_label
+                               ED[sapply(ED[,8], identical, tip_node_label), 1], #sapply(..., identical) avoids 'NA==...' returning NA
+                               tip_node_label)) #Add tip_node_label at end
+      branch_rows <- NI[branch_nodes]
+
+      observed_demes[tree_id, 1 + 1:n_splits] <- ED[branch_rows, 5][1 + findInterval(observation_times, ED[branch_nodes, 6])]
+    }
+
+    consensus_deme <- numeric(n_splits + 1)
+    consensus_freq <- consensus_prob * n_trees
+    for (split_id in 1 : (n_splits + 1)){
+      tab <- table(observed_demes[,split_id])
+
+      possible_demes <- names(tab[tab >= consensus_freq])
+      if (length(possible_demes) == 0){
+        consensus_deme[split_id] <- 0
+      } else {
+        consensus_deme[split_id] <- as.numeric(sample(possible_demes, 1)) #Sample uniformly in case of tie over multiple options (only possible if consensus_prob <= 0.5)
+      }
+    }
+
+    # Add nodes to topology at split points
+    topology <- rbind(topology,
+                      cbind(max_label + 1 : n_splits, #Node ID
+                            c(max_label + 2 : n_splits, coal_parent), #Parent
+                            c(tip_node_label, max_label + 2 : n_splits - 1), #Child 1
+                            NA, #Child 2
+                            consensus_deme[-1], #Deme
+                            observation_times, #Node Age
+                            coal_parent, #Parent coal
+                            tip_node_label, #Child coal 1
+                            NA)) #Child coal 2
+
+    topology[tip_node_row, c(2, 5)] <- c(max_label + 1, consensus_deme[1]) #Update parent of coal_node
+
+    #Update child of parent_coal_node
+    coal_parent_row <- NI[coal_parent]
+    which_child <- which(topology[coal_parent_row, 8:9] == coal_node_label)
+    topology[NI[coal_parent], 2 + which_child] <- max_label + n_splits
+
+    max_label <- max_label + n_splits
+  }
+
+  if (plot){
+    structured.plot(topology)
+  }
+
+  return(ED=topology)
+}
+
+consensus_tree_old <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA, plot = TRUE){
   if (is.na(n_deme)){
     n_deme <- max(ED_sample[[1]][,5])
   }
