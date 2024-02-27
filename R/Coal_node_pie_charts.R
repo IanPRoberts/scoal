@@ -11,7 +11,7 @@
 #'
 #' @export
 
-coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9)){
+coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9), cex = 0.5){
   n_trees <- length(ED_list)
   n_deme <- max(ED_list[[1]][,5])
 
@@ -22,14 +22,12 @@ coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA
   topology[!is.na(topology[,3]), 5] <- 0
 
   #Construct deme frequency at each coalescent node in ascending node age
-  no_mig_list <- ED_list #Remove migration events from all trees in ED_list
   deme_freq <- matrix(0, nrow(topology), n_deme)
 
-  for (tree_id in 1 : n_trees){
-    ED <- no_mig_list[[tree_id]]
+  for (tree_id in n_trees : 1){ #Loop in reverse tree order to leave node_order as order(topology[,6]) after final iteration
+    ED <- ED_list[[tree_id]]
     ED <- ED[(is.na(ED[,3])) | (!is.na(ED[,4])),]
     ED[,2:4] <- ED[,7:9]
-    no_mig_list[[tree_id]] <- ED
 
     node_order <- order(ED[,6]) #Store entries of deme_freq in ascending age (root = 0, newest leaf = max(ED[,6]))
 
@@ -38,27 +36,27 @@ coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA
     }
   }
 
-  node_order <- order(topology[,6])
-  rownames(deme_freq) <- topology[node_order, 1]
-
-  #Fix frequency of leaf demes - if leaves have identical ages, order() not guaranteed to give same order each time
-  for (row_id in 1 : nrow(topology)){
-    if (is.na(topology[row_id, 3])){
-      deme_freq[row_id, topology[node_order[row_id], 5]] <- n_trees
-    }
-  }
+  #Remove leaf deme frequencies from deme_freq (should be a.s. one deme throughout run)
+  deme_freq <- deme_freq[!is.na(topology[node_order, 4]),]
 
   if (nrow(plot_ED) == 0){
     plot_ED <- topology
     plot_ED[,5] <- 0
   }
 
+  plot_ED_coal_nodes <- !is.na(plot_ED[,4])
+  plot_ED_coal_node_order <- order(plot_ED[plot_ED_coal_nodes, 6])
+
+
+  rownames(deme_freq) <- plot_ED[plot_ED_coal_nodes, 1][plot_ED_coal_node_order]
 
   if (plot){
     structured.plot(plot_ED)
-    node_order <- node_order[(rowSums(deme_freq == 0) < n_deme - 1) & (!is.na(topology[node_order, 3]))] #Remove leaves and nodes with 100% one deme
-    nodelabels(node = plot_ED[node_order, 1], pie = deme_freq[node_order,], cex = 0.5)
+    pie_plot <- rowSums(deme_freq == 0) < n_deme - 1 #Logical on whether 100% same deme observed (in which case no pie chart plotted!)
+    nodelabels(node = as.numeric(rownames(deme_freq))[pie_plot],
+               pie = deme_freq[pie_plot,]/rowSums(deme_freq[pie_plot,]),
+               cex = cex)
   }
 
-  return(list(ED = topology, deme_freq))
+  return(list(ED = topology, node_freq = deme_freq))
 }
