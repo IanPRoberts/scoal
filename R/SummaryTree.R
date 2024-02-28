@@ -119,7 +119,7 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
     for (split_id in 1 : (n_splits + 1)){
       tab <- table(observed_demes[,split_id])
 
-      possible_demes <- names(tab[tab >= consensus_freq])
+      possible_demes <- names(tab[tab > consensus_freq])
       if (length(possible_demes) == 0){
         consensus_deme[split_id] <- 0
       } else {
@@ -214,6 +214,28 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
 
     max_label <- max_label + n_splits
   }
+
+  # Remove unnecessary self-migration events
+  NI <- NodeIndicesC(topology)
+  rm_rows <- numeric(0)
+  for (row_id in 1 : nrow(topology)){
+    if ((is.na(topology[row_id, 4])) & (!is.na(topology[row_id, 3]))){ #If migration event
+      parent_row <- NI[topology[row_id, 2]]
+      parent_deme <- topology[parent_row, 5]
+
+      if (parent_deme == topology[row_id, 5]){ #If current deme matches parent deme
+        rm_rows <- append(rm_rows, row_id) #Add current row to be removed
+        which_child <- which(topology[parent_row, 3:4] == topology[row_id, 1])
+        topology[parent_row, 2 + which_child] <- topology[row_id, 3] #Child(parent_row) is now child(current_row)
+
+        child_row <- NI[topology[row_id, 3]]
+        topology[child_row, 2] <- topology[row_id, 2] #Parent of child(current_row) is now parent(current_row)
+      }
+    }
+  }
+
+  topology <- topology[-rm_rows,]
+
 
   if (plot){
     structured.plot(topology)
