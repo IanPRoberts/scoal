@@ -229,7 +229,7 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat, N=1e7, thin
                 "\t <migrationModel idref=\"migModel\"/>",
                 "</input> \n",
                ##### MCMC setup
-               paste0("<run spec=\"MCMC\" id=\"mcmc\" chainLength=\"", sprintf("%i", N), "\" storeEvery=\"", sprintf("%i", thin) ,"\">"),
+               paste0("<run spec=\"MCMC\" id=\"mcmc\" chainLength=\"", format(N, scientific=FALSE), "\" storeEvery=\"", format(thin, scientific=FALSE), "\">"),
                sep = "\n\t")
 
 
