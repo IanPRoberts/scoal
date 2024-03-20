@@ -27,20 +27,20 @@ double ED_dist_C(NumericMatrix ED1,
   NumericVector ni_1;
   NumericVector ni_2;
   if (node_indices_1.isNull()){
-    ni_1 = NodeIndicesC(ED1);
+    ni_1 = NodeIndices(ED1);
   } else{
     ni_1 = node_indices_1.get();
   }
 
   if (node_indices_2.isNull()){
-    ni_2 = NodeIndicesC(ED2);
+    ni_2 = NodeIndices(ED2);
   } else{
     ni_2 = node_indices_2.get();
   }
 
   // Pooled event times (sorted & unique)
-  List dd_1 = DemeDecompC(ED1, n_deme, ni_1);
-  List dd_2 = DemeDecompC(ED2, n_deme, ni_2);
+  List dd_1 = DemeDecomp(ED1, n_deme, ni_1);
+  List dd_2 = DemeDecomp(ED2, n_deme, ni_2);
 
   NumericVector et_1 = dd_1["event.times"];
   NumericVector et_2 = dd_2["event.times"];

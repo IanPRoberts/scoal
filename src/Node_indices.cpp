@@ -12,7 +12,7 @@ using namespace Rcpp;
 //'
 // [[Rcpp::export]]
 
-NumericVector NodeIndicesC(NumericMatrix ED) {
+NumericVector NodeIndices(NumericMatrix ED) {
   int max_lab = max(ED(_,0));
 
   NumericVector node_indices(max_lab);

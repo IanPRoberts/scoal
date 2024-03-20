@@ -1,3 +1,4 @@
+###### Replaced by C++ code ######
 deme.decomp <- function(ED, n.deme, node.indices){
   event.times <- sort(unique(ED[,6]))
   time.increments <- diff(event.times)

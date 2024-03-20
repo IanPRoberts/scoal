@@ -1,70 +1,81 @@
-#' Summary tree
+#' Coalescent Node Pie Charts
 #'
-#' Generates a summary tree with pie charts at selected locations
+#' Tabulates the frequency of each deme at each leaf and coalescent node of a phylogenetic tree
 #'
 #'
-#' @param ED_sample Sample of migration histories on same topology
-#' @param locations Vector of locations to compute pie charts
-#' @param n_deme (optional) Number of demes
+#' @param ED_sample Sample of migration histories on same topology (ED with 9 columns)
+#' @param plot Logical value whether to plot tree with superimposed pie charts
+#' @param plot_ED (optional) ED to superimpose with pie charts (clear migration history if left blank)
 #'
 #' @return Returns deme frequencies at each location
 #'
 #' @export
 
-summary_tree <- function(ED_sample, locations, n_deme = NA){
-  if (is.na(n_deme)){
-    n_deme <- max(ED_sample[[1]][,5])
-  }
+coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9), cex = 0.5){
+  n_trees <- length(ED_list)
+  n_deme <- max(ED_list[[1]][,5])
 
-  top_ED <- strip.history(ED_sample[[1]]) #topology ED - all mig nodes & demes reset
+  #Strip migration events from tree
+  topology <- ED_list[[1]]
+  topology <- topology[(is.na(topology[,3])) | (!is.na(topology[,4])),]
+  topology[,2:4] <- topology[,7:9]
+  topology[!is.na(topology[,3]), 5] <- 0
 
-  root_row <- which(is.na(top_ED[,2]))
-  node_indices <- NodeIndicesC(top_ED)
-  cum_lengths <- c(0,cumsum(top_ED[-root_row,6] - top_ED[node_indices[top_ED[-root_row, 2]],6]))
+  #Construct deme frequency at each coalescent node in ascending node age
+  deme_freq <- matrix(0, nrow(topology), n_deme)
 
-  below_coals <- sapply(1:length(locations), function(x) max(which(cum_lengths <= locations[x])))
-  excess_height <- locations - cum_lengths[below_coals] #Height of locations above below coal node
+  for (tree_id in n_trees : 1){ #Loop in reverse tree order to leave node_order as order(topology[,6]) after final iteration
+    ED <- ED_list[[tree_id]]
+    ED <- ED[(is.na(ED[,3])) | (!is.na(ED[,4])),]
+    ED[,2:4] <- ED[,7:9]
 
-  deme_freq <- matrix(0, n_deme, length(locations))
+    node_order <- order(ED[,6]) #Store entries of deme_freq in ascending age (root = 0, newest leaf = max(ED[,6]))
 
-  for (j in 1 : length(ED_sample)){
-    ED <- ED_sample[[j]]
-    node_indices <- NodeIndicesC(ED)
-
-    for (i in 1 : length(locations)){
-      height <- 0
-      row <- below_coals[i]
-      deme <- ED[row, 5]
-
-      while (height < excess_height[i]){
-        parent_row <- node_indices[ED[row, 2]]
-        deme <- ED[parent_row, 5]
-        height <- ED[row, 6] - ED[parent_row, 6]
-        row <- parent_row
-      }
-
-      deme_freq[deme, i] <- deme_freq[deme, i] + 1
+    for (row_id in 1 : nrow(ED)){ #Loop robust only for non-simultaneous events, i.e. coalescent nodes
+      deme_freq[row_id, ED[node_order[row_id], 5]] <- deme_freq[row_id, ED[node_order[row_id], 5]] + 1
     }
   }
-  return(deme_freq)
+
+  #Remove leaf deme frequencies from deme_freq (should be a.s. one deme throughout run)
+  deme_freq <- deme_freq[!is.na(topology[node_order, 4]),]
+
+  if (nrow(plot_ED) == 0){
+    plot_ED <- topology
+    plot_ED[,5] <- 0
+  }
+
+  plot_ED_coal_nodes <- !is.na(plot_ED[,4])
+  plot_ED_coal_node_order <- order(plot_ED[plot_ED_coal_nodes, 6])
+
+
+  rownames(deme_freq) <- plot_ED[plot_ED_coal_nodes, 1][plot_ED_coal_node_order]
+
+  if (plot){
+    structured.plot(plot_ED)
+    pie_plot <- rowSums(deme_freq == 0) < n_deme - 1 #Logical on whether 100% same deme observed (in which case no pie chart plotted!)
+    nodelabels(node = as.numeric(rownames(deme_freq))[pie_plot],
+               pie = deme_freq[pie_plot,]/rowSums(deme_freq[pie_plot,]),
+               cex = cex)
+  }
+
+  return(list(ED = topology, node_freq = deme_freq))
 }
 
 
 #' Consensus tree
 #'
-#' Generates a consensus tree by discretising branches and colouring each section if the consensus probability is sufficiently large
+#' Generates an approximate consensus tree by discretising branches and colouring each section if the consensus probability is sufficiently large
 #'
+#' @inheritParams coalescent_node_pie_charts
 #'
-#' @param ED_sample Sample of migration histories on same topology
 #' @param n_splits Number of splits per branch used to discretise the tree
 #' @param consensus_prob Consensus probability to be exceeded to allow colouring
-#' @param plot Logical value of whether to plot consensus tree
 #'
 #' @return Returns consensus tree in ED format
 #'
 #' @export
 
-consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  TRUE){
+approximate_consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.5, plot =  TRUE){
   n_deme <- max(ED_list[[1]][,5])
   n_trees <- length(ED_list)
   n_leaf <- sum(is.na(ED_list[[1]][,3]))
@@ -75,7 +86,7 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
   topology[,2:4] <- topology[,7:9]
   topology[!is.na(topology[,3]), 5] <- 0 #Set non-leaf demes to 0, i.e. undetermined
 
-  NI_list <- lapply(ED_list, NodeIndicesC) # Node indices for each ED in ED_list
+  NI_list <- lapply(ED_list, NodeIndices) # Node indices for each ED in ED_list
 
   #n_coal_nodes * n_trees matrix giving ordering of coalescent nodes for each tree
   ordered_coal_nodes <- sapply(ED_list, function(x){
@@ -216,7 +227,7 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
   }
 
   # Remove unnecessary self-migration events
-  NI <- NodeIndicesC(topology)
+  NI <- NodeIndices(topology)
   rm_rows <- numeric(0)
   for (row_id in 1 : nrow(topology)){
     if ((is.na(topology[row_id, 4])) & (!is.na(topology[row_id, 3]))){ #If migration event
@@ -242,98 +253,4 @@ consensus_tree <- function(ED_list, n_splits = 5, consensus_prob = 0.6, plot =  
   }
 
   return(ED=topology)
-}
-
-consensus_tree_old <- function(ED_sample, n_splits = 5, consensus_prob = 0.8, n_deme = NA, plot = TRUE){
-  if (is.na(n_deme)){
-    n_deme <- max(ED_sample[[1]][,5])
-  }
-
-  top_ED <- strip.history(ED_sample[[1]])
-  root_node <- top_ED[is.na(top_ED[,2]),1]
-  nodes <-top_ED[,1:2]
-  nodes <- nodes[nodes[,1] != root_node,]
-
-  deme_freq <- matrix(0, n_splits * dim(nodes)[1], n_deme)
-  node_freq <- matrix(0, dim(nodes)[1], n_deme)
-
-  pb <- txtProgressBar(min = 0, max = length(ED_sample), initial = 0, style = 3)
-
-  for (i in 1 : length(ED_sample)){
-    ED <- ED_sample[[i]]
-    node_indices <- NodeIndicesC(ED)
-    rows <- matrix(node_indices[nodes], ncol = 2)
-    row_heights <- matrix(ED[rows, 6], ncol = 2)
-
-    split_heights <- matrix(NA, dim(nodes)[1], n_splits)
-
-    for (j in 1 : dim(nodes)[1]){
-      node_freq[j, ED[rows[j,1], 5]] <- node_freq[j, ED[rows[j,1], 5]] + 1
-      split_heights[j,] <- seq(row_heights[j,1], row_heights[j,2], length.out = n_splits + 2)[1 : n_splits + 1]
-      height <- row_heights[j,1]
-      node_row <- rows[j,1]
-
-      for (k in 1 : n_splits){
-        while (height > split_heights[j,k]){
-          node_row <- node_indices[ED[node_row, 2]]
-          height <- ED[node_row, 6]
-        }
-        deme_freq[(j - 1) * n_splits + k, ED[node_row, 5]] <- deme_freq[(j - 1) * n_splits + k, ED[node_row, 5]] + 1
-      }
-    }
-
-    setTxtProgressBar(pb, i)
-  }
-
-  close(pb)
-
-  consensus_freq <- consensus_prob * length(ED_sample)
-  split_deme <- sapply(1 : dim(deme_freq)[1],
-                       function(x){
-                         if (any(deme_freq[x,] > consensus_freq)){
-                           return(which(deme_freq[x,] == max(deme_freq[x,])))
-                         } else{
-                           return(0)
-                         }
-                       })
-
-  node_deme <- sapply(1 : dim(node_freq)[1],
-                      function(x){
-                        if (any(node_freq[x,] > consensus_freq)){
-                          return(which(node_freq[x,] == max(node_freq[x,])))
-                        } else{
-                          return(0)
-                        }
-                      })
-
-  max_filled_row <- dim(top_ED)[1]
-  consensus_ED <- matrix(0, max_filled_row + length(split_deme), 6)
-  consensus_ED[1 : max_filled_row,] <- top_ED
-  consensus_ED[(1 : max_filled_row)[-which(top_ED[,1] == root_node)], 5] <- node_deme
-  node_indices <- NodeIndicesC(top_ED)
-  rows <- matrix(node_indices[nodes], ncol = 2)
-  max_label <- max(top_ED[,1])
-
-  for (j in 1 : dim(rows)[1]){
-    consensus_ED[rows[j,1], 2] <- max_label + 1
-    for (k in 1 : n_splits){
-      max_filled_row <- max_filled_row + 1
-      max_label <- max_label + 1
-
-      if (k == n_splits){
-        parent <- top_ED[rows[j, 1], 2]
-      } else {
-        parent <- max_label + 1
-      }
-
-      consensus_ED[max_filled_row,] <- c(max_label, parent, max_label - 1, NA, split_deme[(j-1) * n_splits + k], split_heights[j,k])
-
-    }
-  }
-
-  if (plot){
-    structured.plot(consensus_ED)
-  }
-
-  return(list(ED = consensus_ED, deme_freq = deme_freq))
 }

@@ -25,17 +25,17 @@ namespace scoal {
         }
     }
 
-    inline List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
-        typedef SEXP(*Ptr_DemeDecompC)(SEXP,SEXP,SEXP);
-        static Ptr_DemeDecompC p_DemeDecompC = NULL;
-        if (p_DemeDecompC == NULL) {
-            validateSignature("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
-            p_DemeDecompC = (Ptr_DemeDecompC)R_GetCCallable("scoal", "_scoal_DemeDecompC");
+    inline List DemeDecomp(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+        typedef SEXP(*Ptr_DemeDecomp)(SEXP,SEXP,SEXP);
+        static Ptr_DemeDecomp p_DemeDecomp = NULL;
+        if (p_DemeDecomp == NULL) {
+            validateSignature("List(*DemeDecomp)(NumericMatrix,int,NumericVector)");
+            p_DemeDecomp = (Ptr_DemeDecomp)R_GetCCallable("scoal", "_scoal_DemeDecomp");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_DemeDecompC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+            rcpp_result_gen = p_DemeDecomp(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
@@ -129,17 +129,17 @@ namespace scoal {
         return Rcpp::as<NumericMatrix >(rcpp_result_gen);
     }
 
-    inline List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
-        typedef SEXP(*Ptr_NodeCountC)(SEXP,SEXP,SEXP);
-        static Ptr_NodeCountC p_NodeCountC = NULL;
-        if (p_NodeCountC == NULL) {
-            validateSignature("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
-            p_NodeCountC = (Ptr_NodeCountC)R_GetCCallable("scoal", "_scoal_NodeCountC");
+    inline List NodeCount(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+        typedef SEXP(*Ptr_NodeCount)(SEXP,SEXP,SEXP);
+        static Ptr_NodeCount p_NodeCount = NULL;
+        if (p_NodeCount == NULL) {
+            validateSignature("List(*NodeCount)(NumericMatrix,int,NumericVector)");
+            p_NodeCount = (Ptr_NodeCount)R_GetCCallable("scoal", "_scoal_NodeCount");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_NodeCountC(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices)));
+            rcpp_result_gen = p_NodeCount(Shield<SEXP>(Rcpp::wrap(ED)), Shield<SEXP>(Rcpp::wrap(n_deme)), Shield<SEXP>(Rcpp::wrap(node_indices)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
@@ -150,17 +150,17 @@ namespace scoal {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
-    inline NumericVector NodeIndicesC(NumericMatrix ED) {
-        typedef SEXP(*Ptr_NodeIndicesC)(SEXP);
-        static Ptr_NodeIndicesC p_NodeIndicesC = NULL;
-        if (p_NodeIndicesC == NULL) {
-            validateSignature("NumericVector(*NodeIndicesC)(NumericMatrix)");
-            p_NodeIndicesC = (Ptr_NodeIndicesC)R_GetCCallable("scoal", "_scoal_NodeIndicesC");
+    inline NumericVector NodeIndices(NumericMatrix ED) {
+        typedef SEXP(*Ptr_NodeIndices)(SEXP);
+        static Ptr_NodeIndices p_NodeIndices = NULL;
+        if (p_NodeIndices == NULL) {
+            validateSignature("NumericVector(*NodeIndices)(NumericMatrix)");
+            p_NodeIndices = (Ptr_NodeIndices)R_GetCCallable("scoal", "_scoal_NodeIndices");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_NodeIndicesC(Shield<SEXP>(Rcpp::wrap(ED)));
+            rcpp_result_gen = p_NodeIndices(Shield<SEXP>(Rcpp::wrap(ED)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

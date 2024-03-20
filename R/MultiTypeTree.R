@@ -5,19 +5,19 @@
 #' @param ED Extended data representation of phylogenetic tree and initial migration history
 #' @param st_labels Reduced extended data structure consisting of the rows of ED corresponding to coalescent nodes in the selected subtree only
 #' @param bit_rates Transition matrix of a Markov process corresponding to a process with rates given by the backwards-in-time migration matrix
-#' @param NI Vector of row indices corresponding to which row of ED corresponds to each node label
+#' @param ED_NI Vector of row indices corresponding to which row of ED corresponds to each node label
 #'
 #' @return  List consisting of proposal, a structured phylogeny with updates made to the selected subtree, and prop_prob, the probability of the given update
 #'
 #' @export
 
-MTT_node_retype <- function(ED, st_labels, bit_rates, NI = NodeIndices(ED), eigen_vals = eigen(bit_rates)$values, eigen_vecs = eigen(bit_rates)$vectors, inverse_vecs = solve(eigen_vecs)){
+MTT_node_retype <- function(ED, st_labels, bit_rates, ED_NI = NodeIndices(ED), eigen_vals = eigen(bit_rates)$values, eigen_vecs = eigen(bit_rates)$vectors, inverse_vecs = solve(eigen_vecs)){
   st_root <- unname(st_labels[1,1]) #st_labels[1,] always corresponds to st_root by construction
   st_leaves <- st_labels[!(st_labels[,8] %in% st_labels[,1]),1]
 
   #Identify migrations with child and parent inside subtree
   rm_mig_pos <- (is.na(ED[,9])) & (ED[,8] %in% st_labels[,1]) & (ED[,7] %in% st_labels[,1])
-  ED_rm_rows <- NI[ED[rm_mig_pos,1]]
+  ED_rm_rows <- ED_NI[ED[rm_mig_pos,1]]
 
   internal_coal_nodes <- st_labels[!(st_labels[,1] %in% c(st_root, st_leaves)),1]
 
@@ -27,7 +27,7 @@ MTT_node_retype <- function(ED, st_labels, bit_rates, NI = NodeIndices(ED), eige
     }
   }
 
-  int_coal_node_row <- NI[internal_coal_nodes]
+  int_coal_node_row <- ED_NI[internal_coal_nodes]
 
   #### Sample new deme at internal coalescent nodes
   n_deme <- nrow(bit_rates)
@@ -38,10 +38,10 @@ MTT_node_retype <- function(ED, st_labels, bit_rates, NI = NodeIndices(ED), eige
   log_like <- 0 #Proposal log likelihood
 
   for (row_id in 2 : nrow(st_labels)){ #Row 1 = st_root
-    node_row <- NI[st_labels[row_id, 1]]
+    node_row <- ED_NI[st_labels[row_id, 1]]
     node_deme <- ED[node_row, 5]
 
-    parent_row <- NI[st_labels[row_id, 7]]
+    parent_row <- ED_NI[st_labels[row_id, 7]]
     parent_deme <- ED[parent_row, 5]
 
     edge_length <- ED[node_row, 6] - ED[parent_row, 6]
@@ -150,7 +150,7 @@ MTT_node_retype_MCMC <- function(N = 1e6,
   inverse_vecs <- solve(eigen_vecs)
 
   # Initial likelihoods and priors
-  ED_NI <- NodeIndicesC(ED)
+  ED_NI <- NodeIndices(ED)
   ED_SC <- SC_like_C(ED, coal_rate, bit_mig_mat, ED_NI)
 
   mm_prior <- sum(dgamma(bit_mig_mat, mm_shape, mm_rate, log = TRUE)[-(1 + 0:(n_deme - 1) * (n_deme + 1))])
@@ -209,11 +209,10 @@ MTT_node_retype_MCMC <- function(N = 1e6,
       if ((nrow(ED) == nrow(proposal$proposal)) && (all(na.omit(as.vector(ED == proposal$proposal))))){
         freq[1, move_id] <- freq[1, move_id] + 1
       } else {
-        prop_NI <- NodeIndicesC(proposal$proposal)
+        prop_NI <- NodeIndices(proposal$proposal)
         prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
         log_AR <- min(0, Re(prop_SC - ED_SC +
                               MTT_local_like(ED, subtree$st_labels, bit_rates, ED_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood -
-                              # proposal$prop_prob
                               MTT_local_like(proposal$proposal, subtree$st_labels, bit_rates, prop_NI, eigen_vals, eigen_vecs, inverse_vecs)$log.likelihood
         ))
 

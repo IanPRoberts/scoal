@@ -13,7 +13,7 @@ void mcmc_cpp(int N0, int N,
               NumericVector prop_rates,
               double cr_prior_shape, double cr_prior_rate, double mm_prior_shape, double mm_prior_rate){
 
-  NumericVector node_indices = NodeIndicesC(ED);
+  NumericVector node_indices = NodeIndices(ED);
 
   List ED_like = ScaledLikelihoodC(ED, coal_rate, time_scale, mig_mat, node_indices - 1);
 

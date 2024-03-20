@@ -24,8 +24,8 @@ List StructuredLikelihoodC(NumericMatrix ED, NumericVector eff_pop, double gen_l
   List deme_decomp;
   List node_count;
 
-  deme_decomp = DemeDecompC(ED, n_deme, node_indices);
-  node_count = NodeCountC(ED, n_deme, node_indices);
+  deme_decomp = DemeDecomp(ED, n_deme, node_indices);
+  node_count = NodeCount(ED, n_deme, node_indices);
 
   NumericMatrix k =  deme_decomp["k"];
   NumericVector time_increments = deme_decomp["time.increments"];

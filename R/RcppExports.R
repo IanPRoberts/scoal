@@ -10,8 +10,8 @@
 #' @returns c Vector giving number of coalescences per deme
 #' @export
 #'
-DemeDecompC <- function(ED, n_deme, node_indices) {
-    .Call('_scoal_DemeDecompC', PACKAGE = 'scoal', ED, n_deme, node_indices)
+DemeDecomp <- function(ED, n_deme, node_indices) {
+    .Call('_scoal_DemeDecomp', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
 #' @title ED_Dist
@@ -64,8 +64,8 @@ BitMigMatC <- function(fit_mm, coal_rate) {
 #'
 #' @export
 #'
-NodeCountC <- function(ED, n_deme, node_indices) {
-    .Call('_scoal_NodeCountC', PACKAGE = 'scoal', ED, n_deme, node_indices)
+NodeCount <- function(ED, n_deme, node_indices) {
+    .Call('_scoal_NodeCount', PACKAGE = 'scoal', ED, n_deme, node_indices)
 }
 
 #' @title Node Indices
@@ -74,8 +74,8 @@ NodeCountC <- function(ED, n_deme, node_indices) {
 #'
 #' @export
 #'
-NodeIndicesC <- function(ED) {
-    .Call('_scoal_NodeIndicesC', PACKAGE = 'scoal', ED)
+NodeIndices <- function(ED) {
+    .Call('_scoal_NodeIndices', PACKAGE = 'scoal', ED)
 }
 
 #' @title ScaledLikelihoodC

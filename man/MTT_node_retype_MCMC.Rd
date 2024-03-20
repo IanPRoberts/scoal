@@ -2,26 +2,9 @@
 % Please edit documentation in R/MultiTypeTree.R
 \name{MTT_node_retype_MCMC}
 \alias{MTT_node_retype_MCMC}
-\alias{MTT_node_retype_MCMC_eigen}
 \title{MultiTypeTree MCMC}
 \usage{
 MTT_node_retype_MCMC(
-  N = 1e+06,
-  ED,
-  coal_rate,
-  bit_mig_mat,
-  st_depth = 1,
-  cr_mode = 1,
-  cr_var = 1,
-  mm_mode = 0.05,
-  mm_var = 0.5,
-  thin = 1000,
-  prop_rates = c(100, 1, 1),
-  output_dir = "~",
-  run_name = "MTT_R"
-)
-
-MTT_node_retype_MCMC_eigen(
   N = 1e+06,
   ED,
   coal_rate,

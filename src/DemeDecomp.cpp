@@ -15,7 +15,7 @@ using namespace Rcpp;
 //'
 // [[Rcpp::export]]
 
-List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices) {
+List DemeDecomp(NumericMatrix ED, int n_deme, NumericVector node_indices) {
   int nrow = ED.nrow();
   NumericVector event_times = sort_unique(ED(_, 5));
   NumericVector time_increments = diff(event_times);

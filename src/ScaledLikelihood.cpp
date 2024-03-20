@@ -21,8 +21,8 @@ using namespace Rcpp;
 
 List ScaledLikelihoodC(NumericMatrix ED, NumericVector coal_rate, double time_scale, NumericMatrix mig_mat, NumericVector node_indices) {
   int n_deme = coal_rate.size();
-  List deme_decomp = DemeDecompC(ED, n_deme, node_indices);
-  List node_count = NodeCountC(ED, n_deme, node_indices);
+  List deme_decomp = DemeDecomp(ED, n_deme, node_indices);
+  List node_count = NodeCount(ED, n_deme, node_indices);
 
   NumericMatrix k =  deme_decomp["k"];
   NumericVector time_increments = deme_decomp["time.increments"];

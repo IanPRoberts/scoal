@@ -14,23 +14,23 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// DemeDecompC
-List DemeDecompC(NumericMatrix ED, int n_deme, NumericVector node_indices);
-static SEXP _scoal_DemeDecompC_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+// DemeDecomp
+List DemeDecomp(NumericMatrix ED, int n_deme, NumericVector node_indices);
+static SEXP _scoal_DemeDecomp_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
     Rcpp::traits::input_parameter< int >::type n_deme(n_demeSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(DemeDecompC(ED, n_deme, node_indices));
+    rcpp_result_gen = Rcpp::wrap(DemeDecomp(ED, n_deme, node_indices));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+RcppExport SEXP _scoal_DemeDecomp(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_scoal_DemeDecompC_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
+        rcpp_result_gen = PROTECT(_scoal_DemeDecomp_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -45,7 +45,7 @@ RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indic
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -83,7 +83,7 @@ RcppExport SEXP _scoal_ED_dist_C(SEXP ED1SEXP, SEXP ED2SEXP, SEXP n_demeSEXP, SE
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -127,7 +127,7 @@ RcppExport SEXP _scoal_mcmc_cpp(SEXP N0SEXP, SEXP NSEXP, SEXP EDSEXP, SEXP coal_
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -162,7 +162,7 @@ RcppExport SEXP _scoal_FitMigMatC(SEXP bit_mmSEXP, SEXP coal_rateSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -197,28 +197,28 @@ RcppExport SEXP _scoal_BitMigMatC(SEXP fit_mmSEXP, SEXP coal_rateSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// NodeCountC
-List NodeCountC(NumericMatrix ED, int n_deme, NumericVector node_indices);
-static SEXP _scoal_NodeCountC_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+// NodeCount
+List NodeCount(NumericMatrix ED, int n_deme, NumericVector node_indices);
+static SEXP _scoal_NodeCount_try(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
     Rcpp::traits::input_parameter< int >::type n_deme(n_demeSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type node_indices(node_indicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(NodeCountC(ED, n_deme, node_indices));
+    rcpp_result_gen = Rcpp::wrap(NodeCount(ED, n_deme, node_indices));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
+RcppExport SEXP _scoal_NodeCount(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indicesSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_scoal_NodeCountC_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
+        rcpp_result_gen = PROTECT(_scoal_NodeCount_try(EDSEXP, n_demeSEXP, node_indicesSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -233,26 +233,26 @@ RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indice
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// NodeIndicesC
-NumericVector NodeIndicesC(NumericMatrix ED);
-static SEXP _scoal_NodeIndicesC_try(SEXP EDSEXP) {
+// NodeIndices
+NumericVector NodeIndices(NumericMatrix ED);
+static SEXP _scoal_NodeIndices_try(SEXP EDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type ED(EDSEXP);
-    rcpp_result_gen = Rcpp::wrap(NodeIndicesC(ED));
+    rcpp_result_gen = Rcpp::wrap(NodeIndices(ED));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
+RcppExport SEXP _scoal_NodeIndices(SEXP EDSEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_scoal_NodeIndicesC_try(EDSEXP));
+        rcpp_result_gen = PROTECT(_scoal_NodeIndices_try(EDSEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -267,7 +267,7 @@ RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -304,7 +304,7 @@ RcppExport SEXP _scoal_SC_like_C(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP bit_mig_m
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -342,7 +342,7 @@ RcppExport SEXP _scoal_ScaledDTALikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEX
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -380,7 +380,7 @@ RcppExport SEXP _scoal_ScaledLikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP t
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -418,7 +418,7 @@ RcppExport SEXP _scoal_StructuredLikelihoodC(SEXP EDSEXP, SEXP eff_popSEXP, SEXP
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
+        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -428,13 +428,13 @@ RcppExport SEXP _scoal_StructuredLikelihoodC(SEXP EDSEXP, SEXP eff_popSEXP, SEXP
 static int _scoal_RcppExport_validate(const char* sig) { 
     static std::set<std::string> signatures;
     if (signatures.empty()) {
-        signatures.insert("List(*DemeDecompC)(NumericMatrix,int,NumericVector)");
+        signatures.insert("List(*DemeDecomp)(NumericMatrix,int,NumericVector)");
         signatures.insert("double(*ED_dist_C)(NumericMatrix,NumericMatrix,int,Nullable<NumericVector>,Nullable<NumericVector>)");
         signatures.insert("void(*mcmc_cpp)(int,int,NumericMatrix,NumericVector,double,NumericMatrix,int,NumericVector,double,double,double,double)");
         signatures.insert("NumericMatrix(*FitMigMatC)(NumericMatrix,NumericVector)");
         signatures.insert("NumericMatrix(*BitMigMatC)(NumericMatrix,NumericVector)");
-        signatures.insert("List(*NodeCountC)(NumericMatrix,int,NumericVector)");
-        signatures.insert("NumericVector(*NodeIndicesC)(NumericMatrix)");
+        signatures.insert("List(*NodeCount)(NumericMatrix,int,NumericVector)");
+        signatures.insert("NumericVector(*NodeIndices)(NumericMatrix)");
         signatures.insert("double(*SC_like_C)(NumericMatrix,NumericVector,NumericMatrix,NumericVector)");
         signatures.insert("List(*ScaledDTALikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
         signatures.insert("List(*ScaledLikelihoodC)(NumericMatrix,NumericVector,double,NumericMatrix,NumericVector)");
@@ -445,13 +445,13 @@ static int _scoal_RcppExport_validate(const char* sig) {
 
 // registerCCallable (register entry points for exported C++ functions)
 RcppExport SEXP _scoal_RcppExport_registerCCallable() { 
-    R_RegisterCCallable("scoal", "_scoal_DemeDecompC", (DL_FUNC)_scoal_DemeDecompC_try);
+    R_RegisterCCallable("scoal", "_scoal_DemeDecomp", (DL_FUNC)_scoal_DemeDecomp_try);
     R_RegisterCCallable("scoal", "_scoal_ED_dist_C", (DL_FUNC)_scoal_ED_dist_C_try);
     R_RegisterCCallable("scoal", "_scoal_mcmc_cpp", (DL_FUNC)_scoal_mcmc_cpp_try);
     R_RegisterCCallable("scoal", "_scoal_FitMigMatC", (DL_FUNC)_scoal_FitMigMatC_try);
     R_RegisterCCallable("scoal", "_scoal_BitMigMatC", (DL_FUNC)_scoal_BitMigMatC_try);
-    R_RegisterCCallable("scoal", "_scoal_NodeCountC", (DL_FUNC)_scoal_NodeCountC_try);
-    R_RegisterCCallable("scoal", "_scoal_NodeIndicesC", (DL_FUNC)_scoal_NodeIndicesC_try);
+    R_RegisterCCallable("scoal", "_scoal_NodeCount", (DL_FUNC)_scoal_NodeCount_try);
+    R_RegisterCCallable("scoal", "_scoal_NodeIndices", (DL_FUNC)_scoal_NodeIndices_try);
     R_RegisterCCallable("scoal", "_scoal_SC_like_C", (DL_FUNC)_scoal_SC_like_C_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledDTALikelihoodC", (DL_FUNC)_scoal_ScaledDTALikelihoodC_try);
     R_RegisterCCallable("scoal", "_scoal_ScaledLikelihoodC", (DL_FUNC)_scoal_ScaledLikelihoodC_try);
@@ -461,13 +461,13 @@ RcppExport SEXP _scoal_RcppExport_registerCCallable() {
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_scoal_DemeDecompC", (DL_FUNC) &_scoal_DemeDecompC, 3},
+    {"_scoal_DemeDecomp", (DL_FUNC) &_scoal_DemeDecomp, 3},
     {"_scoal_ED_dist_C", (DL_FUNC) &_scoal_ED_dist_C, 5},
     {"_scoal_mcmc_cpp", (DL_FUNC) &_scoal_mcmc_cpp, 12},
     {"_scoal_FitMigMatC", (DL_FUNC) &_scoal_FitMigMatC, 2},
     {"_scoal_BitMigMatC", (DL_FUNC) &_scoal_BitMigMatC, 2},
-    {"_scoal_NodeCountC", (DL_FUNC) &_scoal_NodeCountC, 3},
-    {"_scoal_NodeIndicesC", (DL_FUNC) &_scoal_NodeIndicesC, 1},
+    {"_scoal_NodeCount", (DL_FUNC) &_scoal_NodeCount, 3},
+    {"_scoal_NodeIndices", (DL_FUNC) &_scoal_NodeIndices, 1},
     {"_scoal_SC_like_C", (DL_FUNC) &_scoal_SC_like_C, 4},
     {"_scoal_ScaledDTALikelihoodC", (DL_FUNC) &_scoal_ScaledDTALikelihoodC, 5},
     {"_scoal_ScaledLikelihoodC", (DL_FUNC) &_scoal_ScaledLikelihoodC, 5},
