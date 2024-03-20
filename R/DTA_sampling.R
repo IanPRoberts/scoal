@@ -5,7 +5,6 @@
 #'
 #' @param ED Extended data representation of a phylogeny including migration history
 #' @param fit_mig_mat Forward-in-time migration matrix for the phylogeny
-#' @param time_scale Time scale for the migration matrix
 #' @param N Number of migration histories to sample
 #' @param parallel Logical, whether or not to generate proposals in parallel
 #' @param mc.cores (optional) If parallel is TRUE, number of cores to parallelise over
@@ -14,7 +13,7 @@
 #'
 #' @export
 
-DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = FALSE, mc.cores = NA){
+DTA_sampling <- function(ED, mig_mat, N = 1, parallel = FALSE, mc.cores = NA){
   options(mc.cores = 1)
   if (N > 1){
     if (parallel){
@@ -24,7 +23,7 @@ DTA_sampling <- function(ED, mig_mat, time_scale = 1, N = 1, parallel = FALSE, m
     }
   }
 
-  fit_rates <- mig_mat * time_scale
+  fit_rates <- mig_mat
   diag(fit_rates) <- - rowSums(mig_mat)
 
   top_ED <- strip.history(ED)
@@ -1013,152 +1012,4 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
   EED <- EED[-EED_rm_rows,]
 
   return(list(proposal=EED, prop_prob = log_like))
-}
-
-
-#Breadth-first search to identify all nodes within distance 'st_width' of a central location
-
-st_centre_dist <- function(EED, st_width, NI, st_child = NA, st_centre_loc = runif(1), edge_lengths = numeric(0)){
-  if (length(edge_lengths) == 0){
-    edge_lengths <- EED[,6] - EED[NI[EED[,2]], 6]
-    edge_lengths[is.na(edge_lengths)] <- 0
-  }
-
-  if (is.na(st_child)){
-    st_child <- sample(EED[,1], 1, prob = edge_lengths)
-  }
-
-  st_child_row <- NI[st_child]
-  st_root <- st_child
-  st_root_row <- st_child_row
-
-  st_centre_age <- EED[st_child_row, 6] - edge_lengths[st_child_row] * st_centre_loc
-
-  root_node <- EED[is.na(EED[,2]), 1]
-  root_row <- NI[root_node]
-
-  st_root_age <- max(EED[root_row, 6], st_centre_age - st_width)
-
-  #st_labels contains node_ID, parent, children and distance from st_centre
-  st_labels <- matrix(NA, nrow = 0, ncol = 2,
-                      dimnames = list(NULL, c("Node_ID", "Node_dist")))
-
-  while (EED[st_root_row, 6] > st_root_age){
-    st_labels <- rbind(st_labels,
-                       EED[st_root_row, c(1, 6)])
-    st_root <- EED[st_root_row, 2]
-    st_root_row <- NI[st_root]
-  }
-
-  if (EED[st_root_row, 6] < st_root_age){
-    #Add virtual migration as st_root if needed
-    max_label <- max(EED[,1]) + 1
-    which_child <- which(EED[st_root_row, 3:4] == st_labels[nrow(st_labels), 1])
-    st_root_child <- EED[st_root_row, 2 + which_child]
-
-    if (is.na(EED[st_root_row, 4])){ #If st_root is a migration, parent coal is parent coal of st_root
-      parent_coal <- EED[st_root_row, 7]
-    } else { #Else parent coal is st_root
-      parent_coal <- st_root
-    }
-
-    EED <- rbind(EED,
-                 c(max_label, #Label
-                   st_root, #Parent
-                   EED[st_root_row, 2 + which_child], #Child 1
-                   NA, #Child 2
-                   EED[NI[st_root_child], 5], #Deme
-                   st_root_age, #Node age
-                   parent_coal, #Parent coal
-                   EED[st_root_row, 7 + which_child], #Child coal 1
-                   NA #Child coal 2
-                 ))
-
-    EED[NI[st_root_child], 2] <- max_label
-    EED[st_root_row, 2 + which_child] <- max_label
-    NI[max_label] <- nrow(EED)
-
-    st_labels <- rbind(st_labels,
-                       EED[nrow(EED), c(1, 6)])
-  } else { #No virtual migration required as st_root is global root
-    max_label <- max(EED[,1])
-    st_labels <- rbind(st_labels,
-                       EED[st_root_row, c(1, 6)])
-  }
-
-  st_labels[, 2] <- st_centre_age - st_labels[, 2] #abs(st_centre_age - st_labels[, 2])
-
-  current_parents <- st_labels[,1]
-
-  # if (st_labels[1,2] > st_width){ #If st_child age < st_leaf_age
-  if (st_labels[1,2] < -st_width){
-    current_parents <- current_parents[-1]
-  }
-
-  while (length(current_parents) > 0){
-    new_parents <- numeric(0)
-    for (node in current_parents){
-      node_row <- NI[node]
-      which_child <- which(!(na.omit(EED[node_row, 3:4]) %in% st_labels[,1]))
-      node_dist <- st_labels[which(st_labels[,1] == node), 2]
-
-      if (length(which_child) > 0){
-        for (child_id in which_child){
-          child_row <- NI[EED[node_row, 2 + child_id]]
-
-          #### Need to remove new_parents below st_leaf_age and global leaves
-          # child_dist <- node_dist + edge_lengths[child_row]
-          child_dist <- node_dist - edge_lengths[child_row]
-          st_labels <- rbind(st_labels,
-                             c(EED[child_row, 1], child_dist))
-
-          if ((abs(child_dist) < st_width) & (!is.na(EED[child_row, 3]))){
-            new_parents <- append(new_parents, EED[child_row, 1])
-          }
-        }
-      }
-    }
-    current_parents <- new_parents
-  }
-
-  for (row_id in 1 : nrow(st_labels)){
-    # if (st_labels[row_id, 2] > st_width){
-    if (st_labels[row_id, 2] < - st_width){
-      #If node is greater than distance st_width from st_centre add virtual migration
-      max_label <- max_label + 1
-
-      node_row <- NI[st_labels[row_id, 1]]
-
-      if ((is.na(EED[node_row, 4])) & (!is.na(EED[node_row, 3]))){
-        #Current node is a migration -> child coal is child coal of current node
-        child_coal <- EED[node_row, 8]
-      } else {
-        #Current node is a coalescent or leaf -> child coal is current node
-        child_coal <- st_labels[row_id, 1]
-      }
-
-      EED <- rbind(EED,
-                   c(max_label, #Label
-                     EED[node_row, 2], #Parent
-                     EED[node_row, 1], #Child 1
-                     NA, #Child 2
-                     EED[node_row, 5], #Deme
-                     EED[node_row, 6] + st_width - abs(st_labels[row_id, 2]), #Node age
-                     EED[node_row, 7], #Parent coal
-                     child_coal, #Child coal 1
-                     NA #Child coal 2
-                   ))
-
-      parent_row <- NI[EED[node_row, 2]]
-      EED[node_row, 2] <- max_label
-      which_child <- which(EED[parent_row, 3:4] == st_labels[row_id, 1])
-      EED[parent_row, 2 + which_child] <- max_label
-
-      NI[max_label] <- nrow(EED)
-
-      st_labels[row_id,] <- c(EED[nrow(EED), 1], - st_width)
-    }
-  }
-
-  return(list(EED = EED, st_labels = EED[NI[st_labels[,1]],]))
 }

@@ -1,48 +1,3 @@
-#' MultiTypeTree Subtree
-#'
-#' Extracts a subtree (and associated sub-migration history) of a structured
-#' genealogy consisting of the parent branch of a coalescent event and a fixed
-#' number of generations of descendant branches
-#'
-#' @param ED Extended data representation of phylogenetic tree and initial migration history
-#' @param st_depth Number of generations below the selected coalescent node to include in the subtree
-#' @param NI Vector of row indices corresponding to which row of ED corresponds to each node label
-#' @param selected_node (optional) Selected coalescent node to use as centre of subtree
-#'
-#' @return List consisting of ED, the structured phylogeny input, and st_labels, a reduced extended data structure consisting of the coalescent nodes in the subtree only
-#'
-#' @export
-
-MTT_st_coal_node <- function(ED, st_depth = 1, NI = NodeIndicesC(ED), selected_node = NA){
-  if (is.na(selected_node)){
-    coal_nodes <- ED[!is.na(ED[,4]), 1]
-    selected_node <- sample(coal_nodes, 1)
-  }
-
-  selected_row <- NI[selected_node]
-  st_root <- ED[selected_row, 7]
-  max_label <- max(ED[,1]) + 1
-
-  if (is.na(st_root)){
-    st_root <- selected_node
-    st_labels <- st_root
-  } else {
-    st_labels <- c(st_root, selected_node)
-  }
-
-  active_rows <- selected_row
-
-  for (gen in 1 : st_depth){
-    child_coals <- unname(na.omit(ED[active_rows, 8:9]))
-    st_labels <- append(st_labels,
-                        child_coals)
-    active_rows <- NI[child_coals]
-  }
-
-
-  return(list(ED = ED, st_labels = ED[NI[st_labels],]))
-}
-
 #' MultiTypeTree Node Retype
 #'
 #' Generates a new migration history on a subtree drawn using MTT_st_coal_node()
@@ -472,7 +427,7 @@ MTT_node_retype_MCMC <- function(N = 1e6,
     move_id <- sample(1:3, 1, prob = prop_rates)
 
     if (move_id == 1){
-      subtree <- MTT_st_coal_node(ED, st_depth)
+      subtree <- coal_node_subtree(ED, st_depth)
       proposal <- MTT_node_retype(ED, subtree$st_labels, bit_rates, ED_NI)
 
       # Early acceptance if prop == ED
@@ -620,7 +575,7 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
     move_id <- sample(1:3, 1, prob = prop_rates)
 
     if (move_id == 1){
-      subtree <- MTT_st_coal_node(ED, st_depth)
+      subtree <- coal_node_subtree(ED, st_depth)
       proposal <- MTT_node_retype_eigen(ED, subtree$st_labels, bit_rates, ED_NI, eigen_vals, eigen_vecs, inverse_vecs)
 
       # Early acceptance if prop == ED
