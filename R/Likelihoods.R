@@ -1,18 +1,16 @@
-#' Calculates Likelihood of a Coalescent Tree
+#' Kingman Coalescent Likelihood
 #'
 #' Returns the likelihood and log-likelihood of a (possibly heterochronous)
 #' coalescent tree
 #'
 #' @param phylo object of class \code{phylo}
-#' @param effective.pop effective population size from which the sample is taken
-#' @param gen.length mean generation length of the sampled individuals
+#' @param coal_rate Coalescent rate of the population (reciprocal of the product of effective population size and generation length)
 #'
 #' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
 #'
 #' @export
 
-phylo.likelihood <- function(phylo, effective.pop, gen.length){
-  lambda <- effective.pop * gen.length
+phylo_likelihood <- function(phylo, coal_rate){
   n <- length(phylo$tip.label)
 
   node.heights <- node.depth.edgelength(phylo)  #Horizontal distance from root
@@ -35,113 +33,38 @@ phylo.likelihood <- function(phylo, effective.pop, gen.length){
   }
 
   likelihood <- 0  #Initialise log likelihood at 0
-  likelihood <- sum(- (k * ( k-1) / (2 * lambda)) * time.increments) - (n-1) * log(lambda)
+  likelihood <- sum(- (k * ( k-1) / 2 * coal_rate) * time.increments) + (n-1) * log(coal_rate)
   return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
 }
 
-
-
-#' Calculates the likelihood of a structured coalescent tree
+#' Structured Coalescent Likelihood
 #'
-#' Returns the likelihood and log-likelihood of a tree generated under the
-#' structured coalescent process
+#' Computes the likelihood and log-likelihood of a structured genealogy under the
+#' structured coalescent model
 #'
-#' @param phylo object of class \code{phylo} augmented with deme labels for each node
-#' @param effective.pop effective population sizes from which the sample is taken
-#' @param gen.length mean generation length of the sampled individuals
-#' @param migration.matrix matrix of migration rates between demes
+#' @param ED Extended data representation of a structured genealogy
+#' @param coal_rate Vector of coalescent rates
+#' @param bit_mig_mat Matrix of backwards-in-time migration rates
+#' @param ED_NI Node indices obtained from NodeIndices()
 #'
 #' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
 #'
 #' @export
 
+SC_likelihood <- function(ED, coal_rate, bit_mig_mat, ED_NI){
+  n_deme <- nrow(bit_mig_mat)
+  ED_DD <- DemeDecomp(ED, n_deme, ED_NI)
+  ED_NC <- NodeCount(ED, n_deme, ED_NI)
 
-structured.likelihood <- function(phylo, effective.pop, gen.length, migration.matrix){
-  lambda <- effective.pop * gen.length
-  n <- length(phylo$tip.label) #Number of tips
-  n.deme <- dim(migration.matrix)[1] #Number of demes
-  n.migrations <- phylo$Nnode - n + 1 #Number of migration events
-  diag(migration.matrix) <- 0  #Prevent self-migrations
-
-  if (length(lambda) == 1){
-    lambda <- rep(lambda,n.deme)
-  }
-
-  #Identify node type (migration/coalescence/leaf)
-  leaf.nodes <- 1:n
-  migration.nodes <- phylo$edge[!phylo$edge[,1] %in% phylo$edge[duplicated(phylo$edge[,1]),1],1] #Unique elements in col 1 of edge matrix
-  coalescence.nodes <- ((n+1):(n.migrations+2*n-1))[!((n+1):(n.migrations+2*n-1) %in% migration.nodes)] #All remaining nodes
-
-  node.heights <- node.depth.edgelength(phylo)  #Horizontal distance from root
-  event.times <- sort(unique(node.heights))  #Times of events, root at time=0
-  time.increments <- diff(event.times)
-
-  #Augments phylo$edge to add edge "start" and "end" times
-  n.edges <- dim(phylo$edge)[1]
-  aug.edge <- matrix(0,nrow = n.edges, ncol = 4)
-  aug.edge[,c(1,2)] <- phylo$edge
-  aug.edge[,c(3,4)] <- node.heights[aug.edge[,c(1,2)]]
-
-  #Number of lineages in each deme between each event time
-  check.time <- event.times[-length(event.times)] + 0.5 * time.increments
-  k <- matrix(0, nrow = length(check.time), ncol = n.deme)
-  for (i in 1 : length(time.increments)){
-    current.edges <- which((aug.edge[,3] < check.time[i]) & (aug.edge[,4] > check.time[i]) )
-    for (j in 1 : n.deme){
-      k[i,j] <- sum(phylo$node.deme[aug.edge[current.edges,2]] == j)
-    }
-  }
-
-  #Number of coalescence events in each deme
-  c <- rep(0,n.deme)
-  for (j in 1 : n.deme){
-    c[j] <- sum(phylo$node.deme[coalescence.nodes] == j)
-  }
-
-  #Number of migration events between each pair of demes
-  m <- matrix(0,nrow = n.deme, ncol = n.deme)
-  for (nodes in migration.nodes){
-    i <- phylo$node.deme[aug.edge[which(aug.edge[,1] == nodes),2]]
-    j <- phylo$node.deme[nodes]
-    m[i,j] <- m[i,j] + 1
-  }
-
-  #Likelihood computation
-  likelihood <- 0
-  likelihood <- - sum(rowSums(t(t(k * (k-1)) / (2 * lambda)) + t(t(k) * rowSums(migration.matrix))) * time.increments) -
-    sum(c * log(lambda)) + sum(log(migration.matrix ^ m))
-  return(c(likelihood, exp(likelihood)))  #Output (log-likelihood, likelihood)
-}
-
-#' Calculates the likelihood of a structured coalescent tree
-#'
-#' Returns the likelihood and log-likelihood of a tree generated under the
-#' structured coalescent process
-#'
-#' @param ED Extended data representation of a structured coalescent process
-#'  @param effective.pop effective population sizes from which the samples are taken
-#' @param gen.length mean generation length of the sampled individuals
-#' @param migration.matrix matrix of migration rates between demes
-#'
-#' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
-#'
-#' @export
-
-ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.indices){
-  n.deme <- length(effective.pop)
-  lambda <- effective.pop * gen.length
-  deme_decomp <- DemeDecompC(ED, n.deme, node.indices)
-  node_count <- NodeCountC(ED, n.deme, node.indices)
-
-  k <- deme_decomp$k
-  time_increments <- deme_decomp$time.increments
-  c <- node_count$c
-  m <- node_count$m
+  k <- ED_DD$k
+  time_increments <- ED_DD$time.increments
+  c <- ED_NC$c
+  m <- ED_NC$m
 
   deme_lengths <- colSums(k * time_increments)
   coal_constants <- colSums(k * (k-1) * time_increments) / ( 2 * lambda)
-  mm_row_sum <- rowSums(migration.matrix)
-  log_mig_mat <- log(migration.matrix)
+  mm_row_sum <- rowSums(bit_mig_mat)
+  log_mig_mat <- log(bit_mig_mat)
   diag(log_mig_mat) <- 0
 
   like <- sum(m * log_mig_mat) - sum(c * log(effective.pop)) - sum(coal_constants) - sum(deme_lengths * mm_row_sum)
@@ -150,39 +73,34 @@ ed.likelihood <- function(ED, effective.pop, gen.length, migration.matrix, node.
 }
 
 
-#' Calculates the DTA likelihood for a structured coalescent tree
+#' Discrete Trait Analysis likelihood
 #'
 #' Returns the DTA likelihood and log-DTA-likelihood of a structured coalescent tree
 #'
-#' @param ED Extended data representation of a structured coalescent process
-#'  @param effective_population effective population sizes from which the samples are taken
-#' @param gen_length mean generation length of the sampled individuals
-#' @param migration_matrix matrix of migration rates between demes
-#' @param node_indices Vector giving row indices for each node label
+#' @inheritParams SC_likelihood
+#' @param fit_mig_mat Matrix of forwards-in-time migration rates
 #'
 #' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
 #'
 #' @export
 
-dta.likelihood <- function(ED, effective_population, gen_length, migration_matrix, node_indices){
+DTA_likelihood <- function(ED, fit_mig_mat, ED_NI){
   root_row <- which(is.na(ED[,2]))
-
-  f_mm <- forward.migration.matrix(migration_matrix, effective_population)
-  f_mm_rowsums <- rowSums(f_mm)
+  fmm_rowsums <- rowSums(fit_mig_mat)
   log_likelihood <- 0
 
   for (i in (1 : dim(ED)[1])[-root_row]){
-    node_parent_row <- node_indices[ED[i,2]]
+    node_parent_row <- ED_NI[ED[i,2]]
     time_increment <- ED[i, 6] - ED[node_parent_row, 6]
 
     parent_deme <- ED[i, 5]
     if (is.na(ED[i,3])){ #Leaf node
       node_deme <- parent_deme
     } else{
-      node_deme <- ED[node_indices[ED[i,3]], 5]
+      node_deme <- ED[ED_NI[ED[i,3]], 5]
     }
 
-    log_likelihood <- log_likelihood - f_mm_rowsums[parent_deme] * time_increment
+    log_likelihood <- log_likelihood - fmm_rowsums[parent_deme] * time_increment
 
     if (parent_deme != node_deme){
       log_likelihood <- log_likelihood + log(f_mm[parent_deme, node_deme])
@@ -191,34 +109,48 @@ dta.likelihood <- function(ED, effective_population, gen_length, migration_matri
   return(list(log.likelihood = log_likelihood, likelihood = exp(log_likelihood)))
 }
 
-#' Calculates synthetic likelihood for a coalescent tree with migration history
+#' MultiTypeTree Probability Density
 #'
-#' Computes a synthetic likelihood for a coalescent tree with migration history
-#' with a Poisson marginal distribution on the number of migrations
+#' Computes the relevant probability density to compute transition kernels for
+#' the MultiTypeTree node retype move
 #'
-#' @param ED Extended data representation of a structured coalescent process
-#' @param rate Poisson rate for synthetic likelihood
-#' @param effective.pop Effective population sizes
-#' @param migration.matrix Migration matrix
-#' @param node.indices
+#' @inheritParams SC_likelihood
+#' @param bit_rates Transition matrix corresponding to the backwards-in-time migration process
+#' @param eigen_vals Vector of eigenvalues of \code{bit_rates}
+#' @param eigen_vecs Matrix of eigenvectors of \code{bit_rates}
+#' @param inverse_vecs Inverse matrix of \code{eigen_vecs}
 #'
-#' @return A vector (\code{log-likelihood}, \code{likelihood}) giving the log-likelihood and likelihood of \code{phylo}
+#' @return List consisting of the log.likelihood and likelihood of the structured genealogy
 #'
 #' @export
 
-synth.likelihood <- function(ED, effective.pop, rate, migration.matrix, node.indices){
-  root.row <- which(is.na(ED[,2]))
-  n.deme <- length(effective.pop)
-  tree.length <- 0
+MTT_likelihood <- function(ED, bit_rates, ED_NI = NodeIndices(ED), eigen_vals = eigen(bit_rates)$values, eigen_vecs = eigen(bit_rates)$vectors, inverse_vecs = solve(eigen_vecs)){
+  parent_rows <- ED_NI[ED[,2]]
+  edge_lengths <- ED[,6] - ED[parent_rows, 6]
+  log_like <- 0
 
-  for (i in (1 : dim(ED)[1])[-root.row]){
-    node.parent <- ED[i,2]
-    parent.row <- node.indices[node.parent]
-    tree.length <- tree.length + ED[i,6] - ED[parent.row,6]
+  parent_demes <- ED[parent_rows, 5]
+  for (i in 1 : nrow(ED)){
+    if (!is.na(parent_rows[i])){
+      current_deme <- ED[i,5]
+      log_like <- log_like + edge_lengths[i] * bit_rates[current_deme, current_deme] #bit_rates[i,i] = rowSums(bit_mig_mat)[i]
+
+      if (parent_demes[i] != current_deme){
+        log_like <- log_like + log(bit_rates[current_deme, parent_demes[i]])
+      }
+    }
   }
 
-  M <- dim(ED)[1] - root.row
-  like <- M * (log(rate) - log(tree.length) - log(n.deme - 1)) - log(n.deme) - rate
+  non_mig_nodes <- which((!is.na(ED[,4])) | (is.na(ED[,3])))
 
-  return(list(log.likelihood = like, likelihood = exp(like)))
+  for (row_id in non_mig_nodes){
+    parent_row <- ED_NI[ED[row_id, 7]]
+    if (!is.na(parent_row)){
+      edge_length <- ED[row_id, 6] - ED[parent_row, 6]
+      trans_mat <- eigen_vecs %*% diag(exp(edge_length * eigen_vals)) %*% inverse_vecs
+      log_like <- log_like - log(trans_mat[ED[row_id, 5], ED[parent_row, 5]])
+    }
+  }
+
+  return(list(log.likelihood = log_like, likelihood = exp(log_like)))
 }
