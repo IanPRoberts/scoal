@@ -4,7 +4,12 @@
 \alias{coalescent_node_pie_charts}
 \title{Coalescent Node Pie Charts}
 \usage{
-coalescent_node_pie_charts(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9))
+coalescent_node_pie_charts(
+  ED_list,
+  plot = TRUE,
+  plot_ED = matrix(NA, 0, 9),
+  cex = 0.5
+)
 }
 \arguments{
 \item{plot}{Logical value whether to plot tree with superimposed pie charts}

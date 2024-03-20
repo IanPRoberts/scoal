@@ -11,10 +11,15 @@ fixed_tree_xml(
   bit_mig_mat,
   N = 1e+07,
   thin = 1000,
+  tree_thin = thin,
   con = stdout(),
-  BEAST2_package = "MTT",
   run_name = "$(filebase)",
-  priors = "default"
+  BEAST2_package = "MTT",
+  priors = "default",
+  cr_shape = NULL,
+  cr_rate = NULL,
+  mm_shape = NULL,
+  mm_rate = NULL
 )
 }
 \arguments{
@@ -26,11 +31,15 @@ fixed_tree_xml(
 
 \item{thin}{thinning increment for the MCMC}
 
+\item{tree_thin}{Thinning rate for tree samples to be saved (Default value equal to thin)}
+
 \item{con}{A connection object or a character string giving the location for the output xml file (stdout() prints to console)}
+
+\item{run_name}{Name for logger files to be saved as}
 
 \item{BEAST2_package}{Select package to prepare xml file for, either MTT (MultiTypeTree) or BASTA}
 
-\item{run_name}{Name for logger files to be saved as}
+\item{priors}{either 'default' in which lognormal priors are used or 'gamma' in which gamma/inverse gamma priors are used (and prior parameters must be specified)}
 
 \item{bit_mig_rate}{initial estimate for backward-in-time migration matrix}
 }

@@ -4,25 +4,19 @@
 \alias{consensus_tree}
 \title{Consensus tree}
 \usage{
-consensus_tree(
-  ED_sample,
-  n_splits = 5,
-  consensus_prob = 0.8,
-  n_deme = NA,
-  plot = TRUE
-)
+consensus_tree(ED_list, n_splits = 5, consensus_prob = 0.6, plot = TRUE)
 }
 \arguments{
-\item{ED_sample}{Sample of migration histories on same topology}
-
 \item{n_splits}{Number of splits per branch used to discretise the tree}
 
 \item{consensus_prob}{Consensus probability to be exceeded to allow colouring}
 
-\item{n_deme}{(optional) Number of demes}
+\item{plot}{Logical value of whether to plot consensus tree}
+
+\item{ED_sample}{Sample of migration histories on same topology}
 }
 \value{
-Returns deme frequencies at each location
+Returns consensus tree in ED format
 }
 \description{
 Generates a consensus tree by discretising branches and colouring each section if the consensus probability is sufficiently large
