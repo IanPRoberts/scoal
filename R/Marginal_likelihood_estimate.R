@@ -28,17 +28,17 @@ structured_coalescent_marginal_likelihood <- function(N, N0, method,
                                                       n_stones=100,
                                                       output_file=NULL){
   #Select correct setup depending on input method
-  if (estimate_method %in% c('harmonic', 'Harmonic', 'h', 'H')){
+  if (method %in% c('harmonic', 'Harmonic', 'h', 'H')){
     estimate_method <- 'Harmonic mean'
     batch_size <- N
     n_batches <- 1
     betas <- as.vector(1)
-  } else if (estimate_method %in% c('thermodynamic', 'Thermodynamic', 't', 'T')) {
+  } else if (method %in% c('thermodynamic', 'Thermodynamic', 't', 'T')) {
     estimate_method <- 'Thermodynamic integration'
     batch_size <- 1
     n_batches <- N
     betas <- N:0/N
-  } else if (estimate_method %in% c('stepping_stones', 'Stepping_stones', 's', 'S')){
+  } else if (method %in% c('stepping_stones', 'Stepping_stones', 's', 'S')){
     estimate_method <- 'Stepping stones sampling'
     n_batches <- n_stones + 1
     alpha <- 0.25
