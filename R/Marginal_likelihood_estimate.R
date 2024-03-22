@@ -17,6 +17,9 @@
 #' @param target_accept_rate Target acceptance rate for migration history updates
 #' @param n_stones Number of stepping stones to use (unused in harmonic mean or thermodynamic integration estimates)
 #'
+#' @details
+#' \code{structured_coalescent_marginal_likelihood} estimates the marginal likelihood of the underlying phylogenetic tree and sampling demes using Gamma priors on coalescent and migration rates only.
+#'
 #' @export
 
 structured_coalescent_marginal_likelihood <- function(N, N0, method,
@@ -152,6 +155,231 @@ structured_coalescent_marginal_likelihood <- function(N, N0, method,
 
       ED_SC <- SC_like_C(ED, coal_rate, bit_mig_mat, ED_NI) #Update (log-)likelihood following parameter updates
 
+      subtree <- st_centre_dist(ED, st_radius, ED_NI)
+      proposal <- local_DTA_subtree_proposal(subtree$EED, subtree$st_labels, fit_rates,
+                                             eigen_decomp = eigen_decomp, inverse_vecs = inverse_vecs)
+
+      prop_NI <- NodeIndicesC(proposal$proposal)
+      prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
+
+      log_AR <- min(0, betas[batch_id] * (prop_SC - ED_SC) + #log difference in power posteriors
+                      local_DTA_likelihood(subtree$st_labels, coal_rate, bit_mig_mat)$log.likelihood - #log(q(H | H'))
+                      proposal$prop_prob) #log(q(H' | H))
+
+      if (log(runif(1)) < log_AR){
+        # Accept
+        ED <- proposal$proposal
+        ED_NI <- prop_NI
+        ED_SC <- prop_SC
+      }
+      log_likelihoods[iter_id, batch_id] <- ED_SC
+
+      if (!is.null(output_file)){
+        cat(betas[batch_id], '\t', ED_SC, '\n', file=output_file, append = TRUE)
+      }
+    }
+  }
+
+  close(pb)
+
+  if (estimate_method == 'Harmonic mean'){
+    #Factor out minimum likelihood for numerical stability
+    min_likelihood <- min(log_likelihoods)
+    log_likelihoods <- log_likelihoods - min_likelihood
+    marginal_likelihood <- log(batch_size * n_batches / sum(exp(-log_likelihoods))) + min_likelihood
+  } else if (estimate_method == "Thermodynamic integration") {
+    #Potential function given by log likelihood (already stored)
+    log_likelihoods <- as.vector(log_likelihoods)
+    marginal_likelihood <- (2 * sum(log_likelihoods) - log_likelihoods[1] - log_likelihoods[n_batches])/ (2 * n_batches)
+  } else if (estimate_method == 'Stepping stones sampling'){
+    #Estimate each ratio of normalising constants and take product to give (unlogged) marginal likelihood estimate
+    ratio_estimates <- min_likelihood <- numeric(n_batches)
+    for (batch_id in 1 : n_batches){
+      #Factor out minimum likelihood for numerical stability - can use different minimum for each annealing level (beta value)
+      min_likelihood[batch_id] <- min(log_likelihoods[,batch_id])
+      log_likelihoods[,batch_id] <- log_likelihoods[,batch_id] - min_likelihood[batch_id]
+      ratio_estimates[batch_id] <- log(mean(exp((betas[batch_id + 1] - betas[batch_id]) * log_likelihoods[,batch_id]))) + (betas[batch_id + 1] - betas[batch_id]) * min_likelihood[batch_id]
+    }
+    marginal_likelihood <- sum(ratio_estimates)
+  }
+
+  if (!is.null(output_file)){
+    cat('\nlog(marginal likelihood) = ', marginal_likelihood, '\n', file=output_file, append = TRUE)
+  }
+
+  return(marginal_likelihood)
+}
+
+#' @rdname structured_coalescent_marginal_likelihood
+#' @param coal_rate_prior Function to evaluate coalescent rates vector prior (input coal_rate only and return log prior density)
+#' @param coal_rate_proposal Function to propose coalescent rates vector MCMC updates (input current coal_rate and return list containing new coal_rate and Metro)
+#' @param cr_trans_kernel Function to evaluate log transition kernel for Metropolis-Hastings update (inputs new value and old value and returns log transition kernel evaluation)
+#' @param bit_mig_mat_prior Function to evaluate backwards-in-time migration rates prior (input bit_mig_mat only and return log prior density)
+#' @param mit_mig_mat_proposal Function to propose backwards-in-time migration rates MCMC updates (input current matrix and return new matrix only)
+#' @param bmm_trans_kernel Function to evaluate log transition kernel for Metropolis-Hastings update (inputs new value and old value and returns log transition kernel evaluation)
+#'
+#' \code{structured_coalescent_marginal_likelihood_2} estimates the marginal likelihood of the underlying phylogenetic tree and sampling demes using generic prior distributions input as functions and generic Metropolis-Hastings updates (also input as functions).
+
+structured_coalescent_marginal_likelihood_2 <- function(N, N0, method,
+                                                        ED, coal_rate, bit_mig_mat,
+                                                        st_radius, adaptive=TRUE,
+                                                        coal_rate_prior, coal_rate_proposal, cr_trans_kernel,
+                                                        bit_mig_mat_prior, bit_mig_mat_proposal, bmm_trans_kernel,
+                                                        adaptation_rate=0.6, target_accept_rate=0.234,
+                                                        n_stones=100,
+                                                        output_file=NULL){
+  #Select correct setup depending on input method
+  if (method %in% c('harmonic', 'Harmonic', 'h', 'H')){
+    estimate_method <- 'Harmonic mean'
+    batch_size <- N
+    n_batches <- 1
+    betas <- as.vector(1)
+  } else if (method %in% c('thermodynamic', 'Thermodynamic', 't', 'T')) {
+    estimate_method <- 'Thermodynamic integration'
+    batch_size <- 1
+    n_batches <- N
+    betas <- N:0/N
+  } else if (method %in% c('stepping_stones', 'Stepping_stones', 's', 'S')){
+    estimate_method <- 'Stepping stones sampling'
+    n_batches <- n_stones + 1
+    alpha <- 0.25
+    batch_size <- ceiling(N/(n_batches+1))
+    betas <- (0:n_batches/n_batches)^(1/alpha)
+  } else {
+    stop('Invalid estimation method entered')
+  }
+
+  if (!is.null(output_file)){
+    cat('Estimate method: ', estimate_method, '\n\n', file=output_file)
+    cat('beta\tlog likelihood\n', file=output_file, append=TRUE)
+  }
+  n_deme <- nrow(bit_mig_mat)
+
+  # Forward-in-time rates and eigen decomposition
+  fit_mig_mat <- FitMigMatC(bit_mig_mat, coal_rate)
+  fit_rates <- fit_mig_mat
+  diag(fit_rates) <- - rowSums(fit_mig_mat)
+
+  eigen_decomp <- eigen(fit_rates)
+  eigen_vals <- eigen_decomp$values
+  eigen_vecs <- eigen_decomp$vectors
+  inverse_vecs <- solve(eigen_vecs)
+
+  # Initial likelihoods and priors
+  ED_NI <- NodeIndicesC(ED)
+  ED_SC <- SC_like_C(ED, coal_rate, bit_mig_mat, ED_NI)
+  cr_prior <- coal_rate_prior(coal_rate)
+  bmm_prior <- bit_mig_mat_prior(bit_mig_mat)
+
+  log_likelihoods <- matrix(NA, batch_size, n_batches)
+
+  cat('\n', estimate_method, '\n')
+
+  pb <- txtProgressBar(0, batch_size * n_batches, style = 3)
+
+  ##########################
+  # Burn in from posterior #
+  ##########################
+
+  for (iter_id in 1 : N0){
+    setTxtProgressBar(pb, iter_id)
+
+    #Coalescent rate update
+    cr_prop <- coal_rate_proposal(coal_rate)
+    prop_SC <- SC_like_C(ED, cr_prop, bit_mig_mat, ED_NI)
+    prop_cr_prior <- coal_rate_prior(cr_prop)
+
+    log_AR <- min(0, (prop_SC + prop_cr_prior) -
+                    (ED_SC + cr_prior) +
+                    cr_trans_kernel(coal_rate, cr_prop) -
+                    cr_trans_kernel(cr_prop, coal_rate))
+
+    if (log(runif(1)) < log_AR){
+      coal_rate <- cr_prop
+      cr_prior <- prop_cr_prior
+      ED_SC <- prop_SC
+    }
+
+    #Migration rates update
+    bmm_prop <- bit_mig_mat_proposal(bit_mig_mat)
+    prop_SC <- SC_like_C(ED, coal_rate, bmm_prop, ED_NI)
+    prop_bmm_prior <- bit_mig_mat_prior(bmm_prop)
+
+    log_AR <- min(0, (prop_SC + prop_bmm_prior) -
+                    (ED_SC + bmm_prior) +
+                    bmm_trans_kernel(bit_mig_mat, bmm_prop) -
+                    bmm_trans_kernel(bmm_prop, bit_mig_mat))
+
+    if (log(runif(1)) < log_AR){
+      bit_mig_mat <- bmm_prop
+      bmm_prior <- prop_bmm_prior
+      ED_SC <- prop_SC
+    }
+
+    #Migration history update
+    subtree <- st_centre_dist(ED, st_radius, ED_NI)
+    proposal <- local_DTA_subtree_proposal(subtree$EED, subtree$st_labels, fit_rates,
+                                           eigen_decomp = eigen_decomp, inverse_vecs = inverse_vecs)
+
+    prop_NI <- NodeIndicesC(proposal$proposal)
+    prop_SC <- SC_like_C(proposal$proposal, coal_rate, bit_mig_mat, prop_NI)
+
+    log_AR <- min(0, prop_SC - ED_SC + #log difference in power posteriors
+                    local_DTA_likelihood(subtree$st_labels, coal_rate, bit_mig_mat)$log.likelihood - #log(q(H | H'))
+                    proposal$prop_prob) #log(q(H' | H))
+
+    if (log(runif(1)) < log_AR){
+      # Accept (No need to save ED_SC as recomputed at next iteration)
+      ED <- proposal$proposal
+      ED_NI <- prop_NI
+    }
+
+    if (adaptive){
+      # Update proposal radius
+      st_radius <- exp(log(st_radius) + iter_id^(-adaptation_rate) * (exp(log_AR) - target_accept_rate))
+    }
+  }
+
+  ##################################
+  # Marginal likelihood estimation #
+  ##################################
+
+  for (batch_id in 1 : n_batches){
+    for (iter_id in 1 : batch_size){
+      setTxtProgressBar(pb, (batch_id - 1) * batch_size + iter_id + N0)
+      #Gibbs move updates
+      #Coalescent rate update
+      cr_prop <- coal_rate_proposal(coal_rate)
+      prop_SC <- SC_like_C(ED, cr_prop, bit_mig_mat, ED_NI)
+      prop_cr_prior <- coal_rate_prior(cr_prop)
+
+      log_AR <- min(0, (prop_SC + prop_cr_prior) -
+                      (ED_SC + cr_prior) +
+                      cr_trans_kernel(coal_rate, cr_prop) -
+                      cr_trans_kernel(cr_prop, coal_rate))
+
+      if (log(runif(1)) < log_AR){
+        coal_rate <- cr_prop
+        cr_prior <- prop_cr_prior
+        ED_SC <- prop_SC
+      }
+
+      #Migration rates update
+      bmm_prop <- bit_mig_mat_proposal(bit_mig_mat)
+      prop_SC <- SC_like_C(ED, coal_rate, bmm_prop, ED_NI)
+      prop_bmm_prior <- bit_mig_mat_prior(bmm_prop)
+
+      log_AR <- min(0, betas[batch_id] * ((prop_SC + prop_bmm_prior) - (ED_SC + bmm_prior)) +
+                      bmm_trans_kernel(bit_mig_mat, bmm_prop) -
+                      bmm_trans_kernel(bmm_prop, bit_mig_mat))
+
+      if (log(runif(1)) < log_AR){
+        bit_mig_mat <- bmm_prop
+        bmm_prior <- prop_bmm_prior
+        ED_SC <- prop_SC
+      }
+
+      #Migration history update
       subtree <- st_centre_dist(ED, st_radius, ED_NI)
       proposal <- local_DTA_subtree_proposal(subtree$EED, subtree$st_labels, fit_rates,
                                              eigen_decomp = eigen_decomp, inverse_vecs = inverse_vecs)
