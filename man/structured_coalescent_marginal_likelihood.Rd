@@ -2,6 +2,7 @@
 % Please edit documentation in R/Marginal_likelihood_estimate.R
 \name{structured_coalescent_marginal_likelihood}
 \alias{structured_coalescent_marginal_likelihood}
+\alias{structured_coalescent_marginal_likelihood_2}
 \title{Marginal likelihood estimation}
 \usage{
 structured_coalescent_marginal_likelihood(
@@ -17,6 +18,27 @@ structured_coalescent_marginal_likelihood(
   cr_var,
   mm_mode,
   mm_var,
+  adaptation_rate = 0.6,
+  target_accept_rate = 0.234,
+  n_stones = 100,
+  output_file = NULL
+)
+
+structured_coalescent_marginal_likelihood_2(
+  N,
+  N0,
+  method,
+  ED,
+  coal_rate,
+  bit_mig_mat,
+  st_radius,
+  adaptive = TRUE,
+  coal_rate_prior,
+  coal_rate_proposal,
+  cr_trans_kernel,
+  bit_mig_mat_prior,
+  bit_mig_mat_proposal,
+  bmm_trans_kernel,
   adaptation_rate = 0.6,
   target_accept_rate = 0.234,
   n_stones = 100,
@@ -51,7 +73,24 @@ structured_coalescent_marginal_likelihood(
 \item{target_accept_rate}{Target acceptance rate for migration history updates}
 
 \item{n_stones}{Number of stepping stones to use (unused in harmonic mean or thermodynamic integration estimates)}
+
+\item{coal_rate_prior}{Function to evaluate coalescent rates vector prior (input coal_rate only and return log prior density)}
+
+\item{coal_rate_proposal}{Function to propose coalescent rates vector MCMC updates (input current coal_rate and return list containing new coal_rate and Metro)}
+
+\item{cr_trans_kernel}{Function to evaluate log transition kernel for Metropolis-Hastings update (inputs new value and old value and returns log transition kernel evaluation)}
+
+\item{bit_mig_mat_prior}{Function to evaluate backwards-in-time migration rates prior (input bit_mig_mat only and return log prior density)}
+
+\item{bmm_trans_kernel}{Function to evaluate log transition kernel for Metropolis-Hastings update (inputs new value and old value and returns log transition kernel evaluation)
+
+\code{structured_coalescent_marginal_likelihood_2} estimates the marginal likelihood of the underlying phylogenetic tree and sampling demes using generic prior distributions input as functions and generic Metropolis-Hastings updates (also input as functions).}
+
+\item{mit_mig_mat_proposal}{Function to propose backwards-in-time migration rates MCMC updates (input current matrix and return new matrix only)}
 }
 \description{
 Estimates the marginal likelihood under the structured coalescent using either the harmonic mean, thermodynamic integration or stepping stones sampling
+}
+\details{
+\code{structured_coalescent_marginal_likelihood} estimates the marginal likelihood of the underlying phylogenetic tree and sampling demes using Gamma priors on coalescent and migration rates only.
 }
