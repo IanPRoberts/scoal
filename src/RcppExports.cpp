@@ -45,7 +45,7 @@ RcppExport SEXP _scoal_DemeDecompC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indic
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -83,7 +83,7 @@ RcppExport SEXP _scoal_ED_dist_C(SEXP ED1SEXP, SEXP ED2SEXP, SEXP n_demeSEXP, SE
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -127,7 +127,7 @@ RcppExport SEXP _scoal_mcmc_cpp(SEXP N0SEXP, SEXP NSEXP, SEXP EDSEXP, SEXP coal_
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -162,7 +162,7 @@ RcppExport SEXP _scoal_FitMigMatC(SEXP bit_mmSEXP, SEXP coal_rateSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -197,7 +197,7 @@ RcppExport SEXP _scoal_BitMigMatC(SEXP fit_mmSEXP, SEXP coal_rateSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -233,7 +233,7 @@ RcppExport SEXP _scoal_NodeCountC(SEXP EDSEXP, SEXP n_demeSEXP, SEXP node_indice
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -267,7 +267,7 @@ RcppExport SEXP _scoal_NodeIndicesC(SEXP EDSEXP) {
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -304,7 +304,7 @@ RcppExport SEXP _scoal_SC_like_C(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP bit_mig_m
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -342,7 +342,7 @@ RcppExport SEXP _scoal_ScaledDTALikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEX
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -380,7 +380,7 @@ RcppExport SEXP _scoal_ScaledLikelihoodC(SEXP EDSEXP, SEXP coal_rateSEXP, SEXP t
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
@@ -418,7 +418,7 @@ RcppExport SEXP _scoal_StructuredLikelihoodC(SEXP EDSEXP, SEXP eff_popSEXP, SEXP
     if (rcpp_isError_gen) {
         SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
         UNPROTECT(1);
-        Rf_error("%s", CHAR(rcpp_msgSEXP_gen));
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
     }
     UNPROTECT(1);
     return rcpp_result_gen;
