@@ -33,7 +33,6 @@ adaptive_radius_MCMC <- function(N, ED, coal_rate, bit_mig_mat,
                                  output_dir, run_name = 'Local_DTA'){
 
   start_time <- Sys.time()
-
   # Convert priors to rate-shape parameterisation from mode-variance
   cr_rate <- (cr_mode + sqrt(cr_mode^2 + 4 * cr_var))/(2 * cr_var)
   cr_shape <- 1 + cr_mode * cr_rate

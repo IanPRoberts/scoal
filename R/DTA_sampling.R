@@ -1018,14 +1018,14 @@ local_DTA_subtree_proposal <- function(EED, st_labels, fit_rates, node_indices =
 
 #Breadth-first search to identify all nodes within distance 'st_width' of a central location
 
-st_centre_dist <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runif(1), edge_lengths = NULL){
+st_centre_dist <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runif(1), edge_lengths = numeric(0)){
   root_node <- ED[is.na(ED[,2]), 1]
   root_row <- NI[root_node]
 
-  # if (is.null(edge_lengths) == 0){
+  if (length(edge_lengths) == 0){
     edge_lengths <- ED[,6] - ED[NI[ED[,2]], 6]
     edge_lengths[root_row] <- 0
-  # }
+  }
 
   if (is.na(st_child)) st_child <- sample(ED[,1], 1, prob = edge_lengths)
 
