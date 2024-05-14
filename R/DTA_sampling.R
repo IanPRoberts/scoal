@@ -1161,6 +1161,7 @@ st_centre_dist <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runi
   return(list(ED = ED, st_labels = ED[NI[st_labels[,1]],]))
 }
 
+#' @export
 
 st_centre_dist2 <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runif(1), root_row = which(is.na(ED[,2]))){
   edge_lengths <- ED[,6] - ED[NI[ED[,2]], 6]
