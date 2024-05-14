@@ -23,7 +23,7 @@ st_centre_location <- function(ED, ED_NI, centre_age, root_row = which(is.na(ED[
   parent_ages[root_row] <- 0
   st_centre_children <- ED[(ED[,6] > centre_age) & (parent_ages < centre_age), 1]
 
-  st_child <- sample(st_centre_children, 1)
+  st_child <- st_centre_children[sample(length(st_centre_children), 1)] #Robust for edge case with long leaf branch leaving 1 lineage
   st_child_row <- ED_NI[st_child]
   st_child_age <- ED[st_child_row, 6]
   st_child_parent <- ED[st_child_row, 2]
