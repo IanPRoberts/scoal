@@ -50,7 +50,13 @@ exact_consensus <- function(ED_list, consensus_prob=0.5, plot=TRUE, ...){
       current_rows <- sapply(NI_list, function(x) x[leaf_labels[label_id]])
       child_coal <- leaf_labels[label_id]
     } else {
-      current_coal_labels <- sapply(ED_list, function(ED) ED[ED[,6] == coal_labels[label_id - n_leaf, 2], 1])
+      coal_id <- label_id - n_leaf
+      #Identify coalescent node labels using a.s. unique ordering in case of label switching and numerical precision
+      current_coal_labels <- sapply(ED_list, function(ED){
+        coal_events <- !is.na(ED[,4])
+        coal_order <- order(ED[coal_events, 6], decreasing=TRUE)
+        return(ED[coal_events, 1][coal_order][coal_id])
+      })
       current_rows <- sapply(1:n_trees, function(x) NI_list[[x]][current_coal_labels[x]])
       child_coal <- coal_labels[label_id - n_leaf, 1]
     }
@@ -88,8 +94,12 @@ exact_consensus <- function(ED_list, consensus_prob=0.5, plot=TRUE, ...){
         new_event_times <- matrix(NA, n_unique, n_trees + 1)
         for (unique_id in 1 : length(unique_times)){
           non_unique_rows <- event_times[,1] == unique_times[unique_id]
-          new_event_times[unique_id,] <- c(unique_times[unique_id],
-                                           colSums(event_times[non_unique_rows, -1]))
+          if (sum(non_unique_rows) == 1){
+            new_event_times[unique_id,] <- event_times[non_unique_rows, ]
+          } else {
+            new_event_times[unique_id,] <- c(unique_times[unique_id],
+                                             colSums(event_times[non_unique_rows, -1]))
+          }
         }
         event_times <- new_event_times
       }
