@@ -51,7 +51,7 @@ coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA
   rownames(deme_freq) <- plot_ED[plot_ED_coal_nodes, 1][plot_ED_coal_node_order]
 
   if (plot){
-    structured.plot(plot_ED)
+    structured.plot(plot_ED, ...)
     pie_plot <- rowSums(deme_freq == 0) < n_deme - 1 #Logical on whether 100% same deme observed (in which case no pie chart plotted!)
     nodelabels(node = as.numeric(rownames(deme_freq))[pie_plot],
                pie = deme_freq[pie_plot,]/rowSums(deme_freq[pie_plot,]),
