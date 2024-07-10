@@ -11,7 +11,7 @@
 #'
 #' @export
 
-coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9), cex = 0.5){
+coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA, 0, 9), cex = 0.5, ...){
   n_trees <- length(ED_list)
   n_deme <- max(ED_list[[1]][,5])
 

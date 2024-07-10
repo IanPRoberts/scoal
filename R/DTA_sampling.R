@@ -1162,6 +1162,9 @@ st_centre_dist <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runi
 }
 
 
+
+### Definitely a bug when adding two migrations on one edge - seem to place migrations wrong way around. Possibly more general bug.
+# Essentially no reason to use - st_centre_dist is basically the same speed and robustly tested before
 st_centre_dist2 <- function(ED, st_width, NI, st_child = NA, st_centre_loc = runif(1), root_row = which(is.na(ED[,2]))){
   edge_lengths <- ED[,6] - ED[NI[ED[,2]], 6]
   edge_lengths[root_row] <- 0
