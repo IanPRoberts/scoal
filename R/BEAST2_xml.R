@@ -174,21 +174,6 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat,
       sep='\n\t',
       append=TRUE)
 
-  # HKY Substitution Model (Unused but needed for BEAST2)
-  cat("\t<!-- HKY substitution model -->",
-      "<siteModel spec=\"SiteModel\" id=\"siteModel\">",
-      "\t<mutationRate spec='RealParameter' id=\"mutationRate\" value=\"1.0\"/>",
-      "\t<substModel spec=\"HKY\">",
-      "\t\t<kappa spec='RealParameter' id=\"hky.kappa\" value=\"1.0\"/>",
-      "\t\t<frequencies estimate=\"false\" spec='Frequencies'>",
-      "\t\t\t<frequencies spec='RealParameter' id=\"hky.freq\" value=\"0.25 0.25 0.25 0.25\"/>",
-      "\t\t</frequencies>",
-      "\t</substModel>",
-      "</siteModel> \n",
-      file=con,
-      sep = "\n\t",
-      append=TRUE)
-
   cat("\t<!-- Migration model -->",
       "<migrationModel spec='multitypetree.evolution.tree.SCMigrationModel' id='migModel'>",
       paste0("\t<rateMatrix spec='RealParameter' dimension='", n_deme * (n_deme - 1), "' id=\"rateMatrix\">"),
@@ -205,26 +190,18 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat,
 
   cat("\t<!-- Parameter priors -->",
       "<input spec='CompoundDistribution' id='parameterPriors'>",
-      # Mutation rate
-      "\t<distribution spec='beast.base.inference.distribution.Prior' x=\"@mutationRate\">",
-      "\t\t<distr spec='LogNormalDistributionModel' M=\"0.0\" S=\"4.0\"/>",
-      "\t</distribution>",
-      # HKY Kappa
-      "\t <distribution spec='beast.base.inference.distribution.Prior' x=\"@hky.kappa\">",
-      "\t\t <distr spec='LogNormalDistributionModel' M=\"0.0\" S=\"4.0\"/>",
-      "\t </distribution>",
       file=con,
       sep='\n\t',
       append=TRUE)
 
   if (priors %in% c('default', 'Default', 'lognormal')){ # Default MTT priors - logNormal(0,4)
     cat(# Migration rates
-      "\t\t <distribution spec='beast.base.inference.distribution.Prior' x=\"@rateMatrix\">",
-      "\t\t <distr spec='LogNormalDistributionModel' M=\"0.0\" S=\"4.0\"/>",
-      "\t </distribution>",
+      '\t\t <distribution spec="beast.base.inference.distribution.Prior" x="@rateMatrix">',
+      '\t\t <distr spec="LogNormalDistributionModel" M="0.0" S="4.0"/>',
+      '\t </distribution>',
       # Coalescent rates
-      "\t <distribution spec='beast.base.inference.distribution.Prior' x=\"@popSizes\">",
-      "\t\t <distr spec=\"LogNormalDistributionModel\"  M=\"0.0\" S=\"4.0\"/>",
+      '\t <distribution spec="beast.base.inference.distribution.Prior" x="@popSizes">',
+      '\t\t <distr spec="LogNormalDistributionModel"  M="0.0" S="4.0"/>',
       "\t </distribution>",
       "</input> \n",
       file=con,
@@ -279,15 +256,12 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat,
       sep='\n\t\t',
       append=TRUE)
 
-  cat("\t\t<!-- Initial state -->",
-      "<state> ",
-      "\t<stateNode idref=\"tree\"/>",
-      "\t<stateNode idref=\"rateMatrix\"/>",
-      "\t<stateNode idref=\"popSizes\"/>",
-      "\t<stateNode idref=\"mutationRate\"/>",
-      "\t<stateNode idref=\"hky.kappa\"/>",
-      "\t<stateNode idref=\"hky.freq\"/>",
-      "</state>\n",
+  cat('\t\t<!-- Initial state -->',
+      '<state>',
+      '\t<stateNode idref="tree"/>',
+      '\t<stateNode idref="rateMatrix"/>',
+      '\t<stateNode idref="popSizes"/>',
+      '</state>\n',
       file=con,
       sep='\n\t\t',
       append=TRUE)
@@ -341,7 +315,7 @@ fixed_tree_xml <- function(strphylo, n_deme, coal_rate, bit_mig_mat,
 
     cat('\t\t<!-- Trees file -->',
         "<logger",
-        paste0('\tlogEvery="', format(thin, scientific=FALSE), '"'),
+        paste0('\tlogEvery="', format(tree_thin, scientific=FALSE), '"'),
         paste0('\tfileName="', run_name, '.trees"'),
         '\t mode="tree">',
         '\t <log idref="tree"/>',
