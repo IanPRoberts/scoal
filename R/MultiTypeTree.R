@@ -548,10 +548,9 @@ MTT_node_retype_MCMC <- function(N = 1e6,
 MTT_node_retype_MCMC_eigen <- function(N = 1e6,
                                        ED, coal_rate, bit_mig_mat,
                                        st_depth = 1, cr_mode = 1, cr_var = 1, mm_mode = 0.05, mm_var = 0.5,
-                                       thin = 1e3, prop_rates = c(100, 1, 1),
+                                       thin = 1e3, tree_thin=1e3,
+                                       prop_rates = c(100, 1, 1),
                                        output_dir = '~', run_name = 'MTT_R'){
-  pb <- txtProgressBar(0, N, style = 3)
-
   # Prior parameters
   cr_rate <- (cr_mode + sqrt(cr_mode^2 + 4 * cr_var))/(2 * cr_var)
   cr_shape <- 1 + cr_mode * cr_rate
@@ -668,8 +667,15 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
 
     freq[2, move_id] <- freq[2, move_id] + 1
 
-    setTxtProgressBar(pb, x)
-    if (x %% thin == 0){ #x (mod thin) = 0, i.e. thin-many iterations have passed
+
+    if (x %% thin == 0){
+      # Write iteration, likelihood and posterior to stdout()
+      cat(x, # Sample
+          sprintf('%.03f', ED_SC), # Likelihood
+          sprintf('%.03f', ED_SC + mm_prior + cr_prior), # posterior
+          sep = '\t')
+
+      # Write continuous parameters to .log file
       cat(paste0("\n", x), #sample
           ED_SC, # likelihood
           ED_SC + mm_prior + cr_prior, # posterior
@@ -677,21 +683,23 @@ MTT_node_retype_MCMC_eigen <- function(N = 1e6,
           as.vector(bit_mig_mat)[-(1 + 0:(n_deme - 1) * (n_deme + 1))], #Mig mat
           file = log_file, sep =",", append = TRUE)
 
-      phylo <- ed.to.phylo(ED)
-      treedata <- treeio::as.treedata(phylo)
-      treedata@data <- tidytree::tibble(type = paste0("\"", phylo$node.deme, "\""), node = 1:length(phylo$node.deme))
-      cat("\tTREE STATE_", x, " = ",
-          treeio::write.beast.newick(treedata), "\n",
-          file = tree_file, append = TRUE, sep = "")
-
+      # Update .freq file (Overwrites existing file entirely)
       write.table(freq,
                   file = freq_file,
                   row.names = c('#ACCEPT', '#TOTAL'),
                   col.names = TRUE)
     }
 
+    if (x %% tree_thin == 0){
+      # Write current tree to .trees file
+      phylo <- ed.to.phylo(ED)
+      treedata <- treeio::as.treedata(phylo)
+      treedata@data <- tidytree::tibble(type = paste0("\"", phylo$node.deme, "\""), node = 1:length(phylo$node.deme))
+      cat("\tTREE STATE_", x, " = ",
+          treeio::write.beast.newick(treedata), "\n",
+          file = tree_file, append = TRUE, sep = "")
+    }
   }
-  close(pb)
   cat("END;",
       file = tree_file, append = TRUE, sep = "")
 }
