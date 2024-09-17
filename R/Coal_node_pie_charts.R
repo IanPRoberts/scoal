@@ -58,5 +58,5 @@ coalescent_node_pie_charts <- function(ED_list, plot = TRUE, plot_ED = matrix(NA
                cex = cex)
   }
 
-  return(list(ED = topology, node_freq = deme_freq))
+  return(list(ED = plot_ED, node_freq = deme_freq))
 }
