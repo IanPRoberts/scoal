@@ -127,7 +127,7 @@ structured.plot <- function(x, n_deme = NA, time_axis = FALSE, root_time = NA, .
 
   edge.color <- color.palette[phylo$node.deme[edge[,2]]]
 
-  plot(phylo, edge.color = edge.color, edge.width = 2, show.tip.label = FALSE, ...)
+  plot(phylo, edge.color = edge.color, show.tip.label = FALSE, ...)
 
   if (time_axis){
     if (is.na(root_time)){
